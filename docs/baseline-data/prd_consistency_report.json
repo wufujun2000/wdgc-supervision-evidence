@@ -1,7 +1,7 @@
 {
   "structural_status": "PASS",
-  "checks_passed": 37,
-  "checks_total": 37,
+  "checks_passed": 53,
+  "checks_total": 53,
   "errors": [],
   "checks": [
     {
@@ -60,6 +60,46 @@
       "detail": "VARCHAR(200)"
     },
     {
+      "check": "F02 旁站记录表号 A.0.6",
+      "passed": true,
+      "detail": "GB/T 50319-2013 表 A.0.6（监理旁站记录表）；37号令第十八条"
+    },
+    {
+      "check": "F04 方案报审表号 B.0.1（非A.0.1）",
+      "passed": true,
+      "detail": "GB/T 50319-2013 表 B.0.1（施工组织设计/专项施工方案报审表）；37号令第十一、十二、十八、二十条"
+    },
+    {
+      "check": "F05 监理通知单 A.0.3",
+      "passed": true,
+      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+    },
+    {
+      "check": "F05 工程暂停令 A.0.5（非A.0.4）",
+      "passed": true,
+      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+    },
+    {
+      "check": "F05 监理通知回复单 B.0.9（非B.0.5）",
+      "passed": true,
+      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+    },
+    {
+      "check": "PRD 无残留：旧方案报审表号 A.0.1",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "PRD 无残留：旧暂停令表号 A.0.4",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "PRD 无残留：旧回复单表号 B.0.5",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
       "check": "PRD 示例节点均真实存在",
       "passed": true,
       "detail": "不存在节点: []"
@@ -70,14 +110,29 @@
       "detail": "PRD=CONFIRMED, seed=CONFIRMED"
     },
     {
+      "check": "示例 WDGC-A-08-SC01-01 storage_path 包含真实 hazard_code=08",
+      "passed": true,
+      "detail": "ENT-001/TJ-2026-0089/08_钢结构、网架和索膜结构安装工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_08_SC01_01_01_★_20261014143218.JPG"
+    },
+    {
+      "check": "示例 WDGC-A-08-SC01-01 storage_path 包含真实 stage_code=01",
+      "passed": true,
+      "detail": "ENT-001/TJ-2026-0089/08_钢结构、网架和索膜结构安装工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_08_SC01_01_01_★_20261014143218.JPG"
+    },
+    {
+      "check": "示例 WDGC-A-08-SC01-01 哈希显式标记为演示值",
+      "passed": true,
+      "detail": "示例哈希未显式标记为演示值"
+    },
+    {
       "check": "示例 WDGC-A-01-SC01-01 review_status 与种子库一致",
       "passed": true,
       "detail": "PRD=PENDING_REVIEW, seed=PENDING_REVIEW"
     },
     {
-      "check": "待审示例 WDGC-A-01-SC01-01 不参与正式强制采集",
+      "check": "示例 WDGC-A-01-SC01-01 哈希显式标记为演示值",
       "passed": true,
-      "detail": "待审示例缺少业务准入门禁说明"
+      "detail": "示例哈希未显式标记为演示值"
     },
     {
       "check": "种子库命名公式包含 subcategory 与 node_uid_suffix",
@@ -88,6 +143,31 @@
       "check": "PRD 命名公式与种子库一致",
       "passed": true,
       "detail": "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix"
+    },
+    {
+      "check": "架构文档扩展列数量与字典一致(28)",
+      "passed": true,
+      "detail": "架构文档仍写25个扩展列"
+    },
+    {
+      "check": "架构文档使用 biz_task_occurrence 模型",
+      "passed": true,
+      "detail": "架构文档缺少 biz_task_occurrence"
+    },
+    {
+      "check": "架构文档无旧 biz_task_instance 核心任务模型",
+      "passed": true,
+      "detail": "架构文档仍残留 biz_task_instance"
+    },
+    {
+      "check": "架构文档超管不得代替法定责任人签字",
+      "passed": true,
+      "detail": "架构文档仍保留超管代办法定审批能力"
+    },
+    {
+      "check": "架构文档命名使用 legacy_node_code 与 file_sha256",
+      "passed": true,
+      "detail": "架构文档仍使用旧 node_code/sha256_hash"
     },
     {
       "check": "无残留：超管旧设备描述",

@@ -428,7 +428,7 @@
     {
       "form_family_code": "F04",
       "form_family_name": "危大工程报审/报验与履约总表族",
-      "official_standard_mapping": "GB/T 50319-2013 表 A.0.1（施工组织设计/专项施工方案报审表）；37号令第十一、十二、十八、二十条",
+      "official_standard_mapping": "GB/T 50319-2013 表 B.0.1（施工组织设计/专项施工方案报审表）；37号令第十一、十二、十八、二十条",
       "source_excel_sheet": "履约总表",
       "core_fields": [
         "序号",
@@ -455,7 +455,7 @@
     {
       "form_family_code": "F05",
       "form_family_name": "监理通知单、工程暂停令与整改闭环表族",
-      "official_standard_mapping": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.4（工程暂停令）、表 B.0.5（监理通知回复单）；37号令第十九条",
+      "official_standard_mapping": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条",
       "source_excel_sheet": "整改报告台账",
       "core_fields": [
         "序号",

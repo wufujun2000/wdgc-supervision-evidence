@@ -20,7 +20,7 @@ node_map = {n['node_uid']: n for n in nodes}
 confirmed_node = next(n for n in nodes if n['review_status'] == 'CONFIRMED' and n['hazard_code'] != '12')
 pending_node = next(n for n in nodes if n['review_status'] == 'PENDING_REVIEW')
 
-# 真实示例 1：已确认节点（CONFIRMED + ★）
+# 真实示例 1：已确认节点（CONFIRMED + ★）—— 所有分类、阶段、目录、文件名与部位均由同一节点派生
 n1 = confirmed_node
 example1 = {
     "tenant_id": 1001, "enterprise_code": "ENT-001", "project_code": "TJ-2026-0089",
@@ -29,13 +29,13 @@ example1 = {
     "risk_level": n1['risk_level'], "review_status": n1['review_status'],
     "media_type": "照片", "suggested_media_type": n1['suggested_media_type'],
     "shoot_utc_time": "2026-10-14 14:32:18", "shooter_emp_no": "JL027",
-    "risk_summary": n1['risk_description'][:40], "media_guid": "8f42d17c-903e-471a-b9c4-2d58f3107961",
-    "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": "1#楼北侧坑底",
+    "risk_summary": n1['risk_description'], "media_guid": "8f42d17c-903e-471a-b9c4-2d58f3107961",
+    "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": n1['node_name'],
     "client_clock_verified": 1, "is_offline_queued": 0, "time_drift_warning": 0,
-    "raw_frame_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "file_sha256": "a456c12349fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852c999",
+    "raw_frame_sha256": "demo_raw_frame_sha256_placeholder_not_real",
+    "file_sha256": "demo_archive_file_sha256_placeholder_not_real",
     "deposit_time": "2026-10-14 14:32:20.128", "upload_operator_no": "JL027",
-    "storage_path": "ENT-001/TJ-2026-0089/01_基坑工程/03_分部分项验收阶段/20261014/photo/TJ-2026-0089_01_SC01_03_25_★_20261014143218.JPG"
+    "storage_path": f"ENT-001/TJ-2026-0089/{n1['hazard_code']}_{n1['hazard_name']}/{n1['stage_code']}_{n1['stage_name']}/20261014/photo/TJ-2026-0089_{n1['hazard_code']}_{n1['subcategory_code']}_{n1['stage_code']}_{n1['source_sequence']:02d}_{n1['risk_level']}_20261014143218.JPG"
 }
 
 # 真实示例 2：待校审节点（PENDING_REVIEW，风险等级为 null，不参与正式强制采集与完整度考核）
@@ -263,11 +263,11 @@ prd = f"""---
 
 ## 5.4 监理审核流转与法定履职闭环中心
 - 专监对所管辖危大类别下的影像进行合格通过或驳回（选择标准驳回原因并通知监理员）；
-- 隐患流程支持一般隐患通知单（A.0.3）与严重隐患工程暂停令（A.0.4）、送达/拒收记录、报告建设单位/住建主管部门、多轮复查、复工审查；
+- 隐患流程支持一般隐患通知单（A.0.3）与严重隐患工程暂停令（A.0.5）、送达/拒收记录、报告建设单位/住建主管部门、多轮复查、复工审查；
 - 验收合格须经施工单位技术负责人及总监双签，并拍摄验收标识牌公示照片，完成后解锁下一道工序门禁。
 
 ## 5.5 核心监理表单管理中心
-一期落地 F01~F05 五大核心表单族，严格对齐《危大工程监理履约记录表.xlsx》与 GB/T 50319-2013 标准表号（旁站 A.0.6、通知单 A.0.3、暂停令 A.0.4、回复单 B.0.5、方案报审 A.0.1）。支持在线填报、关联影像插入、GB/T 50319 版式还原与矢量 PDF 导出。
+一期落地 F01~F05 五大核心表单族，严格对齐《危大工程监理履约记录表.xlsx》与 GB/T 50319-2013 标准表号（旁站 A.0.6、通知单 A.0.3、暂停令 A.0.5、回复单 B.0.9、方案报审 B.0.1）。支持在线填报、关联影像插入、GB/T 50319 版式还原与矢量 PDF 导出。
 
 ## 5.6 证据链检索调阅与合规出证中心
 - 按危大分类、施工阶段、风险等级、单据编号、人员工号、日期范围进行四维检索；
@@ -293,7 +293,7 @@ erDiagram
     biz_task_occurrence ||--o{{ biz_media_evidence : "采集生成证据"
     biz_media_evidence }}o--o{{ biz_document : "图单多对多关联"
     biz_media_evidence ||--o{{ biz_hazard_rectification : "隐患_QZ/_HW双图"
-    biz_hazard_rectification ||--o{{ biz_stop_work_order : "严重隐患停工令(A.0.4)"
+    biz_hazard_rectification ||--o{{ biz_stop_work_order : "严重隐患停工令(A.0.5)"
     biz_stop_work_order ||--o{{ biz_document_delivery_record : "送达/拒收记录"
     biz_hazard_rectification ||--o{{ biz_authority_report_record : "建设单位/主管部门报告"
     biz_hazard_rectification ||--o{{ biz_rectification_review_round : "多轮复查记录"
@@ -410,7 +410,7 @@ erDiagram
 | TC-OFF-02 | 本地沙箱 150MB 字节配额饱和拦截 | 达到 150MB 字节配额时阻断新拍摄，不触及微信 200MB 硬限制 | P0 |
 | TC-SEC-01 | 文件字节被篡改（1-bit 翻转试验） | 全文件 SHA-256 比对不一致，展示红色【证据失效】印章并写入安全告警 | P0 |
 | TC-SEC-04 | 定位异常与虚拟定位环境核验 | 记录定位精度、围栏距离与端侧状态，异常标记 `gps_status=4` 并高亮待人工核验，不虚构 100% 自动拦截 Fake GPS | P0 |
-| **TC-REV-05** | **严重隐患停工令签发与送达** | 总监签发工程暂停令（A.0.4），明确停工范围，记录送达方式、签收/拒收凭据及时间戳 | P0 |
+| **TC-REV-05** | **严重隐患停工令签发与送达** | 总监签发工程暂停令（A.0.5），明确停工范围，记录送达方式、签收/拒收凭据及时间戳 | P0 |
 | **TC-REV-06** | **建设单位与住建主管部门报告闭环** | 情节严重时及时报告建设单位；拒不整改/拒不停工时独立报告住建主管部门，登记文号、附件与签收凭据 | P0 |
 | **TC-REV-07** | **多轮复查与复工审查** | 支持多轮复查意见与 `_HW` 影像；停工状态下必须录入复工申请与条件核验，经总监审查后方可复工 | P0 |
 | **TC-REV-08** | **验收双签、标识公示与下一道工序门禁** | 验收合格经施工单位技术负责人及总监双签并拍摄标识牌公示照片后，自动解锁下一道工序任务实例 | P0 |

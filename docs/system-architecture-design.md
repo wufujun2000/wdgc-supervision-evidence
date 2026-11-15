@@ -1,13 +1,13 @@
 # 危大工程监理履职数字化证据链系统（`wdgc-supervision-evidence`）
-# 总体技术架构与基线融合设计说明书（v1.3 评审整改中版本）
+# 总体技术架构与基线融合设计说明书（v1.4 评审整改中版本）
 
-> **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 完成真实 SSOT 驱动与 CI 校验闭环，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
-> **编制日期**：2026-11-12；**v1.3 评审整改日期**：2026-11-15
-> **审查与复审依据**：`docs/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md` 及 `docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md`
+> **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 修正 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
+> **编制日期**：2026-11-12；**v1.4 评审整改日期**：2026-11-15
+> **审查与复审依据**：`docs/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
 > **机器可读数据字典**：`docs/baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射）
 > **开发模式**：AI Agent Vibe Coding 主导开发（文档驱动、强类型护栏、垂直切片高内聚）
 > **基线选型决议（锁定完整 Commit SHA）**：以 **`fastapiadmin/FastapiAdmin`（项目包版本 v3.2.0，固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）** 为主工程骨架；吸收借鉴 **`insistence/RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）** 的文件防篡改治理、接口防重放签名、Agno 视觉多模态 SSE 设计思想，在本底座中构建对应的自研增强模块。
-> **关联需求文档**：`docs/PRD_v2.3_评审整改中.md`（历史版本完整保留于 `docs/PRD_v1.0_正式版.md`、`docs/PRD_v2.0_架构对齐版.md`、`docs/PRD_v2.1_评审闭环版.md` 与 `docs/PRD_v2.2_评审整改中.md`）
+> **关联需求文档**：`docs/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/PRD_v1.0_正式版.md`、`docs/PRD_v2.0_架构对齐版.md`、`docs/PRD_v2.1_评审闭环版.md` 与 `docs/PRD_v2.2_评审整改中.md`）
 
 ---
 
@@ -18,7 +18,7 @@
 | 决策维度 | 最终拍板方案 | 决策理由与工程收益 |
 | :--- | :--- | :--- |
 | **1. 后端主骨架基线** | **`FastapiAdmin` (v3.2.0) + 吸收 `RuoYi-FastAPI` (v2.0.0) 核心长处** | 兼具 `FastapiAdmin` 的 Python 3.12 PEP-695 泛型 `CRUDBase`、请求级自动事务、领域垂直切片目录（极度适合 Agent Vibe Coding）与 `RuoYi-FastAPI` 的司法级文件 SHA-256 防篡改对账、多模态 AI 能力。 |
-| **2. 多租户数据库隔离** | **方案 A：共享 MySQL 8.0 数据库 + `tenant_id` 行级逻辑隔离（预留分表/分区演进）** | 针对 100+ 家入驻监理企业（前期试点先行），单库运维成本最低、Alembic 迁移最稳；通过 `TenantCRUDBase` 在 ORM 层 100% 强制锁死 `WHERE tenant_id = current_tenant_id`；未来单表上千万行时可直接按 `tenant_id` 哈希分区或分表，业务层零改动。 |
+| **2. 多租户数据库隔离** | **方案 A：共享 MySQL 8.0 数据库 + `tenant_id` 行级逻辑隔离（预留分表/分区演进）** | 针对 100+ 家入驻监理企业（前期试点先行），单库运维成本最低、Alembic 迁移最稳；通过 `TenantCRUDBase` 在 ORM 层强制注入 `WHERE tenant_id = current_tenant_id`（同时补充 Session 事件钩子兜底裸 SQL 与关联预加载）；未来单表上千万行时可按 `tenant_id` 哈希分区或分表演进，需同步评估 Redis 键、异步 Worker、OSS 签名及 MySQL 分区约束。 |
 | **3. 平台与租户后台分离** | **“一后端三前端”物理分离架构**：<br>① 平台管理端 (`platform-web`)<br>② 租户监理工作台 (`tenant-web`)<br>③ 现场移动采集端 (`mp-app`) | 彻底消除平台运营管理与监理企业日常业务的逻辑耦合。租户端上下文永远只有唯一确定的 `tenant_id`，无需在业务页面和小程序里编写“超级管理员跨租户切换”特例代码。 |
 | **4. 前端技术栈分工** | · **`platform-web`**：直接延用 `FastapiAdmin` 自带前端（Vue3 + TS + Element Plus）<br>· **`tenant-web`**：直接采用产品团队 **Figma Make 产出的 React + TS + Tailwind + shadcn/ui 工程**<br>· **`mp-app`**：采用 `FastapiAdmin` 自带 **`fastapp`（UniApp + Vue3 + 全量 TS + Wot Design Uni v2 + Alova）** | 100% 保护已有产出：平台端仅 3 个核心业务页，用自带前端零成本上线；租户端直接复用 Figma Make 的 React 原型工程，杜绝重复开发；小程序端使用成熟的全量 TS 工程应对离线沙箱与分片续传。 |
 | **5. 租户内权限模型** | **“企业级角色 + 项目级成员角色（RBAC on Project & Hazard）”两级解耦** | 企业管理员为租户级角色；**项目总监（`SUPERVISOR`）、专业监理工程师（`ENGINEER` + 绑定多类危大 `01~12`）、监理员（`MONITOR`）** 挂载在“项目-成员表”上，完美支持同一监理工程师在不同工程项目中担任不同角色的真实业务场景。 |
@@ -96,7 +96,7 @@ flowchart TB
      - 租户组织与人员：`biz_tenant_user`（监理企业员工表，含工号 `emp_no`、手机号、微信 `openid`、`is_enterprise_admin`）、`biz_tenant_dept`；
      - 租户扩展节点库：`biz_tenant_node_ext`（企业基于课题 347 项基线库派生的地方/企业扩展节点，编码如 `A-01-E01`）；
      - 项目与成员权限：`biz_project`、`biz_project_hazard`（项目挂载的危大类别）、`biz_project_member`（项目成员角色：总监/专监/监理员）、`biz_project_member_hazard`（专监在该项目绑定的多类危大 `01~12`）；
-     - 核心业务流转：`biz_task_instance`（应采节点任务实例）、`biz_media_evidence`（现场防篡改影像证据主表）、`biz_document`（F01~F05 核心表单与纸质扫描单据表）、`biz_media_document_rel`（图单多对多关联表）、`biz_hazard_rectification`（安全隐患下发 `_QZ` 与复查 `_HW` 闭环台账表）、`biz_evidence_export_task`（证据包异步打包导出任务表）、`biz_retention_destroy_approval`（常规影像到期销毁审批表）、`biz_tenant_audit_log`（租户内全生命周期操作审计表）。
+     - 核心业务流转：`biz_task_occurrence`（任务发生实例，支持按楼栋/部位/施工批次多次发生）、`biz_media_evidence`（现场防篡改影像证据主表）、`biz_document`（F01~F05 核心表单与纸质扫描单据表）、`biz_media_document_rel`（图单多对多关联表）、`biz_hazard_rectification`（安全隐患下发 `_QZ` 与复查 `_HW` 闭环台账表）、`biz_evidence_export_task`（证据包异步打包导出任务表）、`biz_retention_destroy_approval`（常规影像到期销毁审批表）、`biz_tenant_audit_log`（租户内全生命周期操作审计表）。
 
 ### 3.2 `TenantCRUDBase` 自动租户隔离与超级管理员“代管穿透（Impersonation）”机制
 
@@ -122,7 +122,7 @@ sequenceDiagram
 
 - **设计核心优势**：
   1. `TenantCRUDBase` 内部 **永远只有一条铁律**：`conditions.append(self.model.tenant_id == TenantRequestContext.get_tenant_id())`。
-  2. 租户业务代码（Service、CRUD、React 前端、微信小程序）完全不需要知道“超级管理员”的存在，却天然支持超级管理员在平台端受控代管穿透进入任意监理企业执行调阅、审批、督办与出证（默认只读，原始证据严禁修改删除），且 100% 留存不可篡改的跨租户特权审计轨迹！
+  2. 租户业务代码（Service、CRUD、React 前端、微信小程序）完全不需要知道“超级管理员”的存在，却天然支持超级管理员在平台端受控代管穿透进入任意监理企业执行调阅与出证（默认只读，原始证据严禁修改删除，法定签字与终审权由项目实际委派的总监/专监行使，超管不得代替法定责任人签字），且 100% 留存不可篡改的跨租户特权审计轨迹！
 
 ---
 
@@ -153,7 +153,7 @@ sequenceDiagram
 
 1. **裁定 1：统一为 24 个标准编号字段（`B001~B304`）+ 数据库内部扩展列（消除原 PRD 6.2 节与 10.3 节编号错位及 26/32/34 口径混乱）**：
    - 严格对齐课题原始材料《附录B 标准化数据字段表.docx》的 **24 个标准编号**（`B001~B011`、`B101~B106`、`B201~B203`、`B301~B304`）作为对外交互与台账导出标准；
-   - 数据库表 `biz_media_evidence` 的 25 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_instance_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
+   - 数据库表 `biz_media_evidence` 的 28 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_instance_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
    - 唯一事实来源为 **`docs/baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
 2. **裁定 2：统一标准化文件重命名公式（消除原 PRD 6.3.1 节与 10.4.2 节公式冲突）**：
    - 统一采用信息量最完整的 **第 6.3.1 节公式** 作为主规范：
@@ -176,8 +176,8 @@ erDiagram
     biz_project ||--o{ biz_project_member : "5. 项目指派成员(总监/专监/监理员)"
     biz_project_member ||--o{ biz_project_member_hazard : "6. 专监绑定多类危大(>3类预警)"
 
-    biz_project ||--o{ biz_task_instance : "7. 实例化应采节点任务树"
-    biz_task_instance ||--o{ biz_media_evidence : "8. 现场拍摄生成防篡改证据"
+    biz_project ||--o{ biz_task_occurrence : "7. 实例化任务发生实例"
+    biz_task_occurrence ||--o{ biz_media_evidence : "8. 现场拍摄生成防篡改证据"
     biz_media_evidence }o--o{ biz_document : "9. 通过 biz_media_document_rel 多对多绑定"
     biz_media_evidence ||--o{ biz_hazard_rectification : "10. 绑定隐患整改前(_QZ)与整改后(_HW)双图"
 ```
@@ -221,7 +221,7 @@ erDiagram
 ## 8. Agent Vibe Coding 研发护栏与实施路线图
 
 ### 8.1 Agent 编码铁律（写入项目根 `CLAUDE.md`）
-1. **字段命名一刀切铁律**：数据库物理列、SQLAlchemy Model、Pydantic Schema、API JSON 载荷、前端 TS 类型 **全链路统一使用 `snake_case`**（如 `tenant_id`、`project_code`、`node_code`、`sha256_hash`），严禁开启隐式 `to_camel` 转换。
+1. **字段命名一刀切铁律**：数据库物理列、SQLAlchemy Model、Pydantic Schema、API JSON 载荷、前端 TS 类型 **全链路统一使用 `snake_case`**（如 `tenant_id`、`project_code`、`legacy_node_code`、`file_sha256`），严禁开启隐式 `to_camel` 转换。
 2. **租户隔离铁律**：所有 `app/modules/tenant/` 下的业务模型必须继承 `TenantModelMixin`，所有 CRUD 类必须继承 `TenantCRUDBase`，严禁手写绕过 `TenantCRUDBase` 的裸 `session.execute(select(...))`。
 3. **双端职责红线铁律**：`platform-web` 与 `tenant-web` 严禁提供任何相机调用或本地图片作为现场工序证据上传的入口；现场工序照片/视频唯一上传通道为 `/api/v1/mp/evidence/*`。
 4. **每次改动必跑自检**：后端修改跑 `pyright` + `pytest`；前端修改跑 `tsc --noEmit`；跨端接口修改必跑 `python scripts/fullstack_contract_check.py`。

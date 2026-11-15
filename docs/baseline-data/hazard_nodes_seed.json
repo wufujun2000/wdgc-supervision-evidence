@@ -7956,7 +7956,7 @@
       "risk_description": "工序隐患长期未整改，持续诱发坍塌、高处坠落、火灾事故。",
       "supervision_action": "现场核查隐患实体，下发监理通知单/工程暂停令，跟踪复查整改效果，形成闭环管理。",
       "capture_guidance": "隐患原貌、文书与现场同框、整改后同角度对比影像；★强制。",
-      "related_document_suggestion": "监理通知单(A.0.3)、工程暂停令(A.0.4)、监理通知回复单(B.0.5)",
+      "related_document_suggestion": "监理通知单(A.0.3)、工程暂停令(A.0.5)、监理通知回复单(B.0.9)",
       "suffix_default": "_QZ/_HW"
     },
     {
@@ -7980,7 +7980,7 @@
       "risk_description": "基坑变形、架体滑移、洞内毒气超标、吊装失稳等突发险情，未及时停工抢险扩大事故后果。",
       "supervision_action": "第一时间下达工程暂停令，组织人员疏散，监督加固、堵漏、拆除等抢险措施落实；必要时报告建设单位与主管部门。",
       "capture_guidance": "险情实体、监测超限数据、抢险处置全过程视频；★强制。",
-      "related_document_suggestion": "工程暂停令(A.0.4)、应急处置记录、建设单位/主管部门报告记录",
+      "related_document_suggestion": "工程暂停令(A.0.5)、应急处置记录、建设单位/主管部门报告记录",
       "suffix_default": "_YJ"
     },
     {
