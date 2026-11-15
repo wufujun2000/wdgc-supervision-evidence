@@ -23,5 +23,7 @@ build/
 
 # Logs & temp
 *.log
+logs/
+output/
 tmp/
 temp/
