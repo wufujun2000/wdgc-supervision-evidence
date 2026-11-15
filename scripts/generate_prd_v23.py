@@ -33,6 +33,8 @@ example1 = {
     "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": None,
     "client_clock_verified": 1, "is_offline_queued": 0, "time_drift_warning": 0,
     "example_data_status": "SYNTHETIC",
+    "risk_file_token": "★",
+    "evidence_admission_status": "ADMITTED",
     "raw_frame_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "file_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
     "deposit_time": "2026-10-14 14:32:20.128", "upload_operator_no": "JL027",
@@ -52,10 +54,12 @@ example2 = {
     "gps_coordinates": None, "gps_status": 2,
     "is_offline_queued": 1, "client_clock_verified": 1, "time_drift_warning": 0,
     "example_data_status": "SYNTHETIC",
+    "risk_file_token": "PENDING",
+    "evidence_admission_status": "QUARANTINED",
     "raw_frame_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
     "file_sha256": "9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    "storage_path": f"ENT-001/TJ-2026-0089/{n2['hazard_code']}_{n2['hazard_name']}/{n2['stage_code']}_{n2['stage_name']}/20261014/photo/TJ-2026-0089_{n2['hazard_code']}_{n2['subcategory_code']}_{n2['stage_code']}_{n2['source_sequence']:02d}_UNSPECIFIED_20261014161500.JPG",
-    "business_gate_note": "该节点原始风险等级未标注，review_status=PENDING_REVIEW，不得进入正式强制采集任务与履职完整度考核分母，需业务专家确认后方可启用。"
+    "storage_path": f"ENT-001/TJ-2026-0089/{n2['hazard_code']}_{n2['hazard_name']}/{n2['stage_code']}_{n2['stage_name']}/20261014/photo/TJ-2026-0089_{n2['hazard_code']}_{n2['subcategory_code']}_{n2['stage_code']}_{n2['source_sequence']:02d}_PENDING_20261014161500.JPG",
+    "business_gate_note": "该节点原始风险等级未标注，review_status=PENDING_REVIEW，evidence_admission_status=QUARANTINED（隔离区草稿），不得进入正式强制采集任务与履职完整度考核分母，需业务专家确认后方可启用。"
 }
 
 # 分类节点统计表
@@ -312,8 +316,9 @@ erDiagram
 - **完整度公式**：`已进入施工时点且已审核闭环的任务发生实例数 ÷ 当前已进入施工时点的应采任务发生实例总数 × 100%`（剔除“不适用”“未到工序时点”及全部 `PENDING_REVIEW` 待校审节点）。
 
 ## 6.2 标准化文件命名规则（全链路统一版）
-- **影像命名公式**：`{{project_code}}_{{hazard_code}}_{{subcategory_code}}_{{stage_code}}_{{node_uid_suffix}}_{{risk_level}}_{{yyyyMMddHHmmss}}[_{{suffix}}].{{JPG|MP4}}`；
+- **影像命名公式**：`{{project_code}}_{{hazard_code}}_{{subcategory_code}}_{{stage_code}}_{{node_uid_suffix}}_{{risk_file_token}}_{{yyyyMMddHHmmss}}[_{{suffix}}].{{JPG|MP4}}`；
   - 示例：`TJ-2026-0089_04_SC03_01_01_★_20260612143218_QZ.JPG`
+  - 说明：`risk_file_token` 为文件命名专用标记，与业务风险等级 `risk_level` 分离；待审节点使用 `PENDING` 且 `evidence_admission_status=QUARANTINED`，不参与正式完整度考核。
 - **单据命名公式**：`{{project_code}}_{{hazard_code}}_{{subcategory_code}}_{{stage_code}}_{{node_uid_suffix}}_{{doc_code}}[_{{suffix}}].pdf`；
 - 严禁中文空格、特殊符号与非唯一业务编号替代 `node_uid_suffix`。
 
@@ -452,7 +457,7 @@ erDiagram
 
 {ext_table}
 
-## 10.4 附录四：典型影像元数据真实 JSON 示例（由种子库真实节点生成）
+## 10.4 附录四：基于真实节点的合成 JSON 示例（example_data_status=SYNTHETIC）
 
 ### 示例 1：已确认节点（CONFIRMED + ★）完整元数据（合成演示数据，example_data_status=SYNTHETIC）
 ```json

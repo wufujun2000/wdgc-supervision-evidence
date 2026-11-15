@@ -56,7 +56,7 @@
         "record_count": 5
       }
     },
-    "naming_formula": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_level}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}",
+    "naming_formula": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_file_token}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}",
     "suffix_definitions": {
       "_QZ": "隐患整改前取证照",
       "_GZ": "隐患整改中过程照",

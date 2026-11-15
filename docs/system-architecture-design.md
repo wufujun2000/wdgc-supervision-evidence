@@ -157,7 +157,7 @@ sequenceDiagram
    - 唯一事实来源为 **`docs/baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
 2. **裁定 2：统一标准化文件重命名公式（与 `docs/baseline-data/hazard_nodes_seed.json` 及 PRD 第 6.2 节完全一致）**：
    - 统一采用包含子类别与全局唯一节点后缀的公式作为主规范：
-     $$\text{影像文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{risk\_level}\_\text{yyyyMMddHHmmss}[\_\text{suffix}].\text{JPG|MP4}$$
+     $$\text{影像文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{risk\_file\_token}\_\text{yyyyMMddHHmmss}[\_\text{suffix}].\text{JPG|MP4}$$
      - 示例：`TJ-2026-0089_04_SC03_01_01_★_20261014143218_QZ.JPG`
    - 配套纸质单据/PDF 命名公式：
      $$\text{单据文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{doc\_code}[\_\text{suffix}].\text{pdf}$$
@@ -288,4 +288,4 @@ erDiagram
 ### 10.3 真实 CI 一致性校验链路
 - `scripts/generate_baseline_data.py`：从原始 Word/Excel 生成四份机器可读 JSON；
 - `scripts/generate_prd_v23.py`：从字典自动生成 PRD 字段表、节点统计、真实示例与法定履职验收用例；
-- `scripts/validate_prd_consistency.py`：实际执行 37 项断言（节点唯一性、字段契约、示例真实性与状态、命名公式一致性、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径），校验结果输出至 `docs/baseline-data/prd_consistency_report.json`。
+- `scripts/validate_prd_consistency.py`：实际执行 91 项断言（节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径），校验结果输出至 `docs/baseline-data/prd_consistency_report.json`。

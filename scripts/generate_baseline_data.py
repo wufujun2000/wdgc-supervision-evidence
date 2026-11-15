@@ -226,7 +226,7 @@ def main():
             "version": "1.3.0", "generated_on": "2026-11-15", "generator_script": "scripts/generate_baseline_data.py",
             "clarification": "共 347 条基线记录（11类专业危大342条 + 通用应急处置5条）。node_uid 为内部全局身份扩展，legacy_node_code 为标准业务编号（B004，非唯一键）。risk_level 仅允许★/△或null，UNSPECIFIED 仅存于 raw_risk_level 与 review_status。",
             "total_record_count": len(nodes), "category_counts": category_counts,
-            "naming_formula": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_level}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}",
+            "naming_formula": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_file_token}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}",
             "suffix_definitions": {"_QZ": "隐患整改前取证照", "_GZ": "隐患整改中过程照", "_HW": "隐患整改完成复查照", "_LZ": "专家论证影像", "_YJ": "应急抢险处置影像", "_JC": "住建督查检查影像", "_FX": "复工核验照", "_ZG": "专监专项复核照"}
         },
         "nodes": nodes

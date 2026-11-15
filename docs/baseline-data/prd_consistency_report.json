@@ -1,463 +1,473 @@
 {
   "structural_status": "PASS",
-  "checks_passed": 91,
-  "checks_total": 91,
+  "checks_passed": 93,
+  "checks_total": 93,
   "errors": [],
   "checks": [
     {
       "check": "节点记录总数",
       "passed": true,
-      "detail": "实际 347"
+      "detail": "通过：节点记录总数"
     },
     {
       "check": "node_uid 全局唯一",
       "passed": true,
-      "detail": "存在重复 node_uid"
+      "detail": "通过：node_uid 全局唯一"
     },
     {
       "check": "标准字段数量",
       "passed": true,
-      "detail": "实际 24"
+      "detail": "通过：标准字段数量"
     },
     {
       "check": "内部扩展字段数量",
       "passed": true,
-      "detail": "实际 28"
+      "detail": "通过：内部扩展字段数量"
     },
     {
       "check": "业务准入状态拆分",
       "passed": true,
-      "detail": "验证报告缺少业务准入状态拆分"
+      "detail": "通过：业务准入状态拆分"
     },
     {
       "check": "B004 语义为原始业务编号",
       "passed": true,
-      "detail": "legacy_node_code"
+      "detail": "通过：B004 语义为原始业务编号"
     },
     {
       "check": "B005 风险等级不混入UNSPECIFIED",
       "passed": true,
-      "detail": "仅允许★强制/△常规；原始空白时为NULL，校审状态由review_status独立管理，严禁将UNSPECIFIED作为业务风险等级。"
+      "detail": "通过：B005 风险等级不混入UNSPECIFIED"
     },
     {
       "check": "B006 单文件介质仅照片/视频",
       "passed": true,
-      "detail": "单个证据文件仅允许照片或视频；节点建议采集介质由内部扩展列suggested_media_type独立表达。"
+      "detail": "通过：B006 单文件介质仅照片/视频"
     },
     {
       "check": "B301 统一为 file_sha256",
       "passed": true,
-      "detail": "file_sha256"
+      "detail": "通过：B301 统一为 file_sha256"
     },
     {
       "check": "B304 长度 VARCHAR(512)",
       "passed": true,
-      "detail": "VARCHAR(512)"
+      "detail": "通过：B304 长度 VARCHAR(512)"
     },
     {
       "check": "B010 长度 VARCHAR(200)",
       "passed": true,
-      "detail": "VARCHAR(200)"
+      "detail": "通过：B010 长度 VARCHAR(200)"
     },
     {
       "check": "F02 旁站记录表号 A.0.6",
       "passed": true,
-      "detail": "GB/T 50319-2013 表 A.0.6（监理旁站记录表）；37号令第十八条"
+      "detail": "通过：F02 旁站记录表号 A.0.6"
     },
     {
       "check": "F04 方案报审表号 B.0.1（非A.0.1）",
       "passed": true,
-      "detail": "GB/T 50319-2013 表 B.0.1（施工组织设计/专项施工方案报审表）；37号令第十一、十二、十八、二十条"
+      "detail": "通过：F04 方案报审表号 B.0.1（非A.0.1）"
     },
     {
       "check": "F05 监理通知单 A.0.3",
       "passed": true,
-      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+      "detail": "通过：F05 监理通知单 A.0.3"
     },
     {
       "check": "F05 工程暂停令 A.0.5（非A.0.4）",
       "passed": true,
-      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+      "detail": "通过：F05 工程暂停令 A.0.5（非A.0.4）"
     },
     {
       "check": "F05 监理通知回复单 B.0.9（非B.0.5）",
       "passed": true,
-      "detail": "GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条"
+      "detail": "通过：F05 监理通知回复单 B.0.9（非B.0.5）"
     },
     {
       "check": "PRD 无残留：旧方案报审表号 A.0.1",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：PRD 无残留：旧方案报审表号 A.0.1"
     },
     {
       "check": "架构无残留：旧方案报审表号 A.0.1",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：旧方案报审表号 A.0.1"
     },
     {
       "check": "PRD 无残留：旧暂停令表号 A.0.4",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：PRD 无残留：旧暂停令表号 A.0.4"
     },
     {
       "check": "架构无残留：旧暂停令表号 A.0.4",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：旧暂停令表号 A.0.4"
     },
     {
       "check": "PRD 无残留：旧回复单表号 B.0.5",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：PRD 无残留：旧回复单表号 B.0.5"
     },
     {
       "check": "架构无残留：旧回复单表号 B.0.5",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：旧回复单表号 B.0.5"
     },
     {
       "check": "PRD 包含可解析的 JSON 示例",
       "passed": true,
-      "detail": "实际 2 个"
+      "detail": "通过：PRD 包含可解析的 JSON 示例"
     },
     {
       "check": "示例 1 node_uid 存在且真实",
       "passed": true,
-      "detail": "node_uid=WDGC-A-08-SC01-01"
+      "detail": "通过：示例 1 node_uid 存在且真实"
     },
     {
       "check": "示例 1 review_status 与种子库一致",
       "passed": true,
-      "detail": "PRD=CONFIRMED, seed=CONFIRMED"
+      "detail": "通过：示例 1 review_status 与种子库一致"
     },
     {
       "check": "示例 1 risk_level 与种子库一致",
       "passed": true,
-      "detail": "PRD=★, seed=★"
+      "detail": "通过：示例 1 risk_level 与种子库一致"
     },
     {
       "check": "示例 1 storage_path 包含真实 hazard_code=08",
       "passed": true,
-      "detail": "ENT-001/TJ-2026-0089/08_钢结构、网架和索膜结构安装工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_08_SC01_01_01_★_20261014143218.JPG"
+      "detail": "通过：示例 1 storage_path 包含真实 hazard_code=08"
     },
     {
       "check": "示例 1 storage_path 包含真实 stage_code=01",
       "passed": true,
-      "detail": "ENT-001/TJ-2026-0089/08_钢结构、网架和索膜结构安装工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_08_SC01_01_01_★_20261014143218.JPG"
+      "detail": "通过：示例 1 storage_path 包含真实 stage_code=01"
     },
     {
       "check": "示例 1 hazard_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=08, seed=08"
+      "detail": "通过：示例 1 hazard_code 与种子库一致"
     },
     {
       "check": "示例 1 stage_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=01, seed=01"
+      "detail": "通过：示例 1 stage_code 与种子库一致"
     },
     {
       "check": "示例 1 subcategory_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=SC01, seed=SC01"
+      "detail": "通过：示例 1 subcategory_code 与种子库一致"
     },
     {
       "check": "示例 1 raw_frame_sha256 为64位十六进制",
       "passed": true,
-      "detail": "实际=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      "detail": "通过：示例 1 raw_frame_sha256 为64位十六进制"
     },
     {
       "check": "示例 1 file_sha256 为64位十六进制",
       "passed": true,
-      "detail": "实际=fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+      "detail": "通过：示例 1 file_sha256 为64位十六进制"
     },
     {
       "check": "示例 1 显式标记为合成演示数据",
       "passed": true,
-      "detail": "example_data_status=SYNTHETIC"
+      "detail": "通过：示例 1 显式标记为合成演示数据"
     },
     {
       "check": "示例 1 position_desc 不用节点名称替代部位",
       "passed": true,
-      "detail": "position_desc=None"
+      "detail": "通过：示例 1 position_desc 不用节点名称替代部位"
     },
     {
       "check": "示例 1 B006 单文件介质仅照片/视频",
       "passed": true,
-      "detail": "media_type=照片"
+      "detail": "通过：示例 1 B006 单文件介质仅照片/视频"
+    },
+    {
+      "check": "示例 1 risk_file_token 与 review_status 匹配",
+      "passed": true,
+      "detail": "通过：示例 1 risk_file_token 与 review_status 匹配"
     },
     {
       "check": "示例 2 node_uid 存在且真实",
       "passed": true,
-      "detail": "node_uid=WDGC-A-01-SC01-01"
+      "detail": "通过：示例 2 node_uid 存在且真实"
     },
     {
       "check": "示例 2 review_status 与种子库一致",
       "passed": true,
-      "detail": "PRD=PENDING_REVIEW, seed=PENDING_REVIEW"
+      "detail": "通过：示例 2 review_status 与种子库一致"
     },
     {
       "check": "示例 2 risk_level 与种子库一致",
       "passed": true,
-      "detail": "PRD=None, seed=None"
+      "detail": "通过：示例 2 risk_level 与种子库一致"
     },
     {
       "check": "示例 2 storage_path 包含真实 hazard_code=01",
       "passed": true,
-      "detail": "ENT-001/TJ-2026-0089/01_基坑工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_01_SC01_01_01_UNSPECIFIED_20261014161500.JPG"
+      "detail": "通过：示例 2 storage_path 包含真实 hazard_code=01"
     },
     {
       "check": "示例 2 storage_path 包含真实 stage_code=01",
       "passed": true,
-      "detail": "ENT-001/TJ-2026-0089/01_基坑工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_01_SC01_01_01_UNSPECIFIED_20261014161500.JPG"
+      "detail": "通过：示例 2 storage_path 包含真实 stage_code=01"
     },
     {
       "check": "示例 2 hazard_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=01, seed=01"
+      "detail": "通过：示例 2 hazard_code 与种子库一致"
     },
     {
       "check": "示例 2 stage_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=01, seed=01"
+      "detail": "通过：示例 2 stage_code 与种子库一致"
     },
     {
       "check": "示例 2 subcategory_code 与种子库一致",
       "passed": true,
-      "detail": "PRD=SC01, seed=SC01"
+      "detail": "通过：示例 2 subcategory_code 与种子库一致"
     },
     {
       "check": "示例 2 raw_frame_sha256 为64位十六进制",
       "passed": true,
-      "detail": "实际=abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+      "detail": "通过：示例 2 raw_frame_sha256 为64位十六进制"
     },
     {
       "check": "示例 2 file_sha256 为64位十六进制",
       "passed": true,
-      "detail": "实际=9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
+      "detail": "通过：示例 2 file_sha256 为64位十六进制"
     },
     {
       "check": "示例 2 显式标记为合成演示数据",
       "passed": true,
-      "detail": "example_data_status=SYNTHETIC"
+      "detail": "通过：示例 2 显式标记为合成演示数据"
     },
     {
       "check": "示例 2 position_desc 不用节点名称替代部位",
       "passed": true,
-      "detail": "position_desc=None"
+      "detail": "通过：示例 2 position_desc 不用节点名称替代部位"
     },
     {
       "check": "示例 2 B006 单文件介质仅照片/视频",
       "passed": true,
-      "detail": "media_type=照片"
+      "detail": "通过：示例 2 B006 单文件介质仅照片/视频"
+    },
+    {
+      "check": "示例 2 risk_file_token 与 review_status 匹配",
+      "passed": true,
+      "detail": "通过：示例 2 risk_file_token 与 review_status 匹配"
     },
     {
       "check": "示例 2 待审节点不参与正式强制采集",
       "passed": true,
-      "detail": "待审示例缺少业务准入门禁说明"
+      "detail": "通过：示例 2 待审节点不参与正式强制采集"
     },
     {
-      "check": "种子库命名公式包含 subcategory 与 node_uid_suffix",
+      "check": "种子库命名公式包含 subcategory 与 node_uid_suffix 及 risk_file_token",
       "passed": true,
-      "detail": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_level}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}"
+      "detail": "通过：种子库命名公式包含 subcategory 与 node_uid_suffix 及 risk_file_token"
     },
     {
       "check": "PRD 命名公式与种子库一致",
       "passed": true,
-      "detail": "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix"
+      "detail": "通过：PRD 命名公式与种子库一致"
     },
     {
       "check": "架构命名公式与种子库一致",
       "passed": true,
-      "detail": "架构命名公式缺少 subcategory_code 或 node_uid_suffix"
+      "detail": "通过：架构命名公式与种子库一致"
     },
     {
       "check": "架构文档扩展列数量与字典一致(28)",
       "passed": true,
-      "detail": "架构文档仍写25个扩展列"
+      "detail": "通过：架构文档扩展列数量与字典一致(28)"
     },
     {
       "check": "PRD 首页扩展列数量与字典一致(28)",
       "passed": true,
-      "detail": "PRD 首页仍写25个扩展列"
+      "detail": "通过：PRD 首页扩展列数量与字典一致(28)"
     },
     {
       "check": "架构文档使用 biz_task_occurrence 模型",
       "passed": true,
-      "detail": "架构文档缺少 biz_task_occurrence"
+      "detail": "通过：架构文档使用 biz_task_occurrence 模型"
     },
     {
       "check": "架构文档无旧 biz_task_instance 核心任务模型",
       "passed": true,
-      "detail": "架构文档仍残留 biz_task_instance"
+      "detail": "通过：架构文档无旧 biz_task_instance 核心任务模型"
     },
     {
       "check": "架构文档无旧 task_instance_id 字段",
       "passed": true,
-      "detail": "架构文档仍残留 task_instance_id"
+      "detail": "通过：架构文档无旧 task_instance_id 字段"
     },
     {
       "check": "架构文档超管不得代替法定责任人签字",
       "passed": true,
-      "detail": "架构文档仍保留超管代办法定审批能力"
+      "detail": "通过：架构文档超管不得代替法定责任人签字"
     },
     {
       "check": "架构文档命名使用 legacy_node_code 与 file_sha256",
       "passed": true,
-      "detail": "架构文档仍使用旧 node_code/sha256_hash"
+      "detail": "通过：架构文档命名使用 legacy_node_code 与 file_sha256"
     },
     {
       "check": "架构文档无旧 node_code 命名公式",
       "passed": true,
-      "detail": "架构文档仍残留旧 node_code 命名公式"
+      "detail": "通过：架构文档无旧 node_code 命名公式"
     },
     {
       "check": "无残留：超管旧设备描述",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：超管旧设备描述"
     },
     {
       "check": "架构无残留：超管旧设备描述",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：超管旧设备描述"
     },
     {
       "check": "无残留：超管全库放行旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：超管全库放行旧规则"
     },
     {
       "check": "架构无残留：超管全库放行旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：超管全库放行旧规则"
     },
     {
       "check": "无残留：超管代办法定终审旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：超管代办法定终审旧规则"
     },
     {
       "check": "架构无残留：超管代办法定终审旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：超管代办法定终审旧规则"
     },
     {
       "check": "无残留：超管代管审批旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：超管代管审批旧规则"
     },
     {
       "check": "架构无残留：超管代管审批旧规则",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：超管代管审批旧规则"
     },
     {
       "check": "无残留：离线旧配额",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：离线旧配额"
     },
     {
       "check": "架构无残留：离线旧配额",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：离线旧配额"
     },
     {
       "check": "无残留：离线旧配额",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：离线旧配额"
     },
     {
       "check": "架构无残留：离线旧配额",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：离线旧配额"
     },
     {
       "check": "无残留：旧项目编码",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：旧项目编码"
     },
     {
       "check": "架构无残留：旧项目编码",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：旧项目编码"
     },
     {
       "check": "无残留：绝对化保存期限",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：绝对化保存期限"
     },
     {
       "check": "架构无残留：绝对化保存期限",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：绝对化保存期限"
     },
     {
       "check": "无残留：绝对化公信力声明",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：无残留：绝对化公信力声明"
     },
     {
       "check": "架构无残留：绝对化公信力声明",
       "passed": true,
-      "detail": "发现匹配: []"
+      "detail": "通过：架构无残留：绝对化公信力声明"
     },
     {
       "check": "法定履职验收用例 TC-REV-05 存在",
       "passed": true,
-      "detail": "缺少 TC-REV-05"
+      "detail": "通过：法定履职验收用例 TC-REV-05 存在"
     },
     {
       "check": "法定履职验收用例 TC-REV-06 存在",
       "passed": true,
-      "detail": "缺少 TC-REV-06"
+      "detail": "通过：法定履职验收用例 TC-REV-06 存在"
     },
     {
       "check": "法定履职验收用例 TC-REV-07 存在",
       "passed": true,
-      "detail": "缺少 TC-REV-07"
+      "detail": "通过：法定履职验收用例 TC-REV-07 存在"
     },
     {
       "check": "法定履职验收用例 TC-REV-08 存在",
       "passed": true,
-      "detail": "缺少 TC-REV-08"
+      "detail": "通过：法定履职验收用例 TC-REV-08 存在"
     },
     {
       "check": "验收双签与下一道工序门禁用例",
       "passed": true,
-      "detail": "缺少验收门禁用例"
+      "detail": "通过：验收双签与下一道工序门禁用例"
     },
     {
       "check": "严重隐患停工与报告主管部门用例",
       "passed": true,
-      "detail": "缺少严重隐患报告用例"
+      "detail": "通过：严重隐患停工与报告主管部门用例"
     },
     {
       "check": "水印性能统一口径",
       "passed": true,
-      "detail": "水印性能指标未统一"
+      "detail": "通过：水印性能统一口径"
     },
     {
       "check": "离线配额统一为150MB",
       "passed": true,
-      "detail": "缺少150MB字节配额"
+      "detail": "通过：离线配额统一为150MB"
     },
     {
       "check": "EXIF 诚实建模",
       "passed": true,
-      "detail": "仍承诺完整EXIF"
+      "detail": "通过：EXIF 诚实建模"
     },
     {
       "check": "定位异常诚实建模",
       "passed": true,
-      "detail": "仍存在绝对化FakeGPS拦截承诺"
+      "detail": "通过：定位异常诚实建模"
     },
     {
       "check": "个人信息保护专节存在",
       "passed": true,
-      "detail": "缺少7.7节"
+      "detail": "通过：个人信息保护专节存在"
     },
     {
       "check": "PIPIA 与法务复核要求",
       "passed": true,
-      "detail": "缺少PIPIA要求"
+      "detail": "通过：PIPIA 与法务复核要求"
     }
   ]
 }

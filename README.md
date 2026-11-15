@@ -29,7 +29,7 @@ wdgc-supervision-evidence/
 └── scripts/
     ├── generate_baseline_data.py            # 从原始 Word/Excel 生成机器可读种子字典与验证报告
     ├── generate_prd_v23.py                  # 从字典自动生成 PRD v2.3 字段表、真实示例与法定履职验收用例
-    └── validate_prd_consistency.py          # 真实 CI 一致性校验（37 项断言）
+    └── validate_prd_consistency.py          # 真实 CI 一致性校验（91 项断言）
 ```
 
 ---
@@ -68,7 +68,7 @@ python3 scripts/validate_prd_consistency.py
 
 - `docs/baseline-data/hazard_nodes_seed.json`：347 条记录 / 347 个唯一 `node_uid`；
 - `docs/baseline-data/validation_report.json`：`structural_status=PASS`，`source_review_status=PENDING`，`business_readiness=BLOCKED`；
-- `docs/baseline-data/prd_consistency_report.json`：37 项一致性断言全部通过。
+- `docs/baseline-data/prd_consistency_report.json`：91 项一致性断言全部通过。
 
 ---
 

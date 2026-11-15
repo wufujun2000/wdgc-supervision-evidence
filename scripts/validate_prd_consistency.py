@@ -16,7 +16,7 @@ errors = []
 checks = []
 
 def check(name, condition, detail=""):
-    checks.append({"check": name, "passed": bool(condition), "detail": detail})
+    checks.append({"check": name, "passed": bool(condition), "detail": detail if not condition else f"通过：{name}"})
     if not condition:
         errors.append(f"{name}: {detail}")
 
@@ -78,30 +78,33 @@ for idx, block in enumerate(example_blocks, 1):
         check(f"示例 {idx} JSON 可解析", False, str(e))
         continue
     uid = data.get('node_uid')
-    check(f"示例 {idx} node_uid 存在且真实", uid in node_map, f"node_uid={uid}")
-    if uid in node_map:
-        node = node_map[uid]
-        check(f"示例 {idx} review_status 与种子库一致", data.get('review_status') == node['review_status'], f"PRD={data.get('review_status')}, seed={node['review_status']}")
-        check(f"示例 {idx} risk_level 与种子库一致", data.get('risk_level') == node['risk_level'], f"PRD={data.get('risk_level')}, seed={node['risk_level']}")
-        storage_path = data.get('storage_path', '')
-        check(f"示例 {idx} storage_path 包含真实 hazard_code={node['hazard_code']}", f"/{node['hazard_code']}_" in storage_path, storage_path)
-        check(f"示例 {idx} storage_path 包含真实 stage_code={node['stage_code']}", f"/{node['stage_code']}_" in storage_path, storage_path)
-        check(f"示例 {idx} hazard_code 与种子库一致", data.get('hazard_code') == node['hazard_code'], f"PRD={data.get('hazard_code')}, seed={node['hazard_code']}")
-        check(f"示例 {idx} stage_code 与种子库一致", data.get('stage_code') == node['stage_code'], f"PRD={data.get('stage_code')}, seed={node['stage_code']}")
-        check(f"示例 {idx} subcategory_code 与种子库一致", data.get('subcategory_code') == node['subcategory_code'], f"PRD={data.get('subcategory_code')}, seed={node['subcategory_code']}")
+    if uid not in node_map:
+        check(f"示例 {idx} node_uid 存在且真实", False, f"node_uid={uid}")
+        continue
+    node = node_map[uid]
+    check(f"示例 {idx} node_uid 存在且真实", True, f"node_uid={uid}")
+    check(f"示例 {idx} review_status 与种子库一致", data.get('review_status') == node['review_status'], f"PRD={data.get('review_status')}, seed={node['review_status']}")
+    check(f"示例 {idx} risk_level 与种子库一致", data.get('risk_level') == node['risk_level'], f"PRD={data.get('risk_level')}, seed={node['risk_level']}")
+    storage_path = data.get('storage_path', '')
+    check(f"示例 {idx} storage_path 包含真实 hazard_code={node['hazard_code']}", f"/{node['hazard_code']}_" in storage_path, storage_path)
+    check(f"示例 {idx} storage_path 包含真实 stage_code={node['stage_code']}", f"/{node['stage_code']}_" in storage_path, storage_path)
+    check(f"示例 {idx} hazard_code 与种子库一致", data.get('hazard_code') == node['hazard_code'], f"PRD={data.get('hazard_code')}, seed={node['hazard_code']}")
+    check(f"示例 {idx} stage_code 与种子库一致", data.get('stage_code') == node['stage_code'], f"PRD={data.get('stage_code')}, seed={node['stage_code']}")
+    check(f"示例 {idx} subcategory_code 与种子库一致", data.get('subcategory_code') == node['subcategory_code'], f"PRD={data.get('subcategory_code')}, seed={node['subcategory_code']}")
     # 字段级契约校验
     check(f"示例 {idx} raw_frame_sha256 为64位十六进制", bool(hex64.match(str(data.get('raw_frame_sha256', '')))), f"实际={data.get('raw_frame_sha256')}")
     check(f"示例 {idx} file_sha256 为64位十六进制", bool(hex64.match(str(data.get('file_sha256', '')))), f"实际={data.get('file_sha256')}")
     check(f"示例 {idx} 显式标记为合成演示数据", data.get('example_data_status') == 'SYNTHETIC', f"example_data_status={data.get('example_data_status')}")
     check(f"示例 {idx} position_desc 不用节点名称替代部位", data.get('position_desc') is None or data.get('position_desc') != node.get('node_name'), f"position_desc={data.get('position_desc')}")
     check(f"示例 {idx} B006 单文件介质仅照片/视频", data.get('media_type') in ('照片', '视频'), f"media_type={data.get('media_type')}")
+    check(f"示例 {idx} risk_file_token 与 review_status 匹配", (data.get('review_status') == 'PENDING_REVIEW' and data.get('risk_file_token') == 'PENDING' and data.get('evidence_admission_status') == 'QUARANTINED') or (data.get('review_status') == 'CONFIRMED' and data.get('risk_file_token') in ('★', '△') and data.get('evidence_admission_status') == 'ADMITTED'), f"risk_file_token={data.get('risk_file_token')}, evidence_admission_status={data.get('evidence_admission_status')}")
     if data.get('review_status') == 'PENDING_REVIEW':
         check(f"示例 {idx} 待审节点不参与正式强制采集", '不得进入正式强制采集任务与履职完整度考核分母' in prd, "待审示例缺少业务准入门禁说明")
 
 # 5. 命名公式一致性校验
-check("种子库命名公式包含 subcategory 与 node_uid_suffix", 'subcategory_code' in seed['metadata']['naming_formula'] and 'node_uid_suffix' in seed['metadata']['naming_formula'], seed['metadata']['naming_formula'])
-check("PRD 命名公式与种子库一致", '{subcategory_code}' in prd and '{node_uid_suffix}' in prd, "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix")
-check("架构命名公式与种子库一致", ('subcategory_code' in arch or 'subcategory\\_code' in arch) and ('node_uid_suffix' in arch or 'node\\_uid\\_suffix' in arch), "架构命名公式缺少 subcategory_code 或 node_uid_suffix")
+check("种子库命名公式包含 subcategory 与 node_uid_suffix 及 risk_file_token", 'subcategory_code' in seed['metadata']['naming_formula'] and 'node_uid_suffix' in seed['metadata']['naming_formula'] and 'risk_file_token' in seed['metadata']['naming_formula'], seed['metadata']['naming_formula'])
+check("PRD 命名公式与种子库一致", '{subcategory_code}' in prd and '{node_uid_suffix}' in prd and '{risk_file_token}' in prd, "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix 或 risk_file_token")
+check("架构命名公式与种子库一致", ('subcategory_code' in arch or 'subcategory\\_code' in arch) and ('node_uid_suffix' in arch or 'node\\_uid\\_suffix' in arch) and ('risk_file_token' in arch or 'risk\\_file\\_token' in arch), "架构命名公式缺少 subcategory_code 或 node_uid_suffix 或 risk_file_token")
 
 # 6. 架构文档一致性校验（对应复审 P0-02）
 check("架构文档扩展列数量与字典一致(28)", '28 个内部扩展' in arch, "架构文档仍写25个扩展列")
