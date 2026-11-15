@@ -1,0 +1,18 @@
+[project]
+name = "wdgc-supervision-backend"
+version = "0.1.0"
+description = "危大工程监理履职数字化证据链系统后端（FastapiAdmin 基线融合）"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.138.0",
+    "uvicorn[standard]>=0.38.0",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "asyncmy>=0.2.10",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "redis>=7.1.0",
+    "alembic>=1.18.4",
+    "python-jose[cryptography]>=3.5.0",
+    "passlib[bcrypt]>=1.7.4",
+    "httpx>=0.28.1",
+]
