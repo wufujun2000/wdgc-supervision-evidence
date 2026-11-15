@@ -16,7 +16,7 @@ wdgc-supervision-evidence/
 │   │   ├── metadata_and_forms_dictionary.json # 24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射
 │   │   ├── source_data_review_log.json      # 原始材料待业务校审登记台账
 │   │   ├── validation_report.json           # 结构/源数据校审/业务准入三态验证报告
-│   │   └── prd_consistency_report.json      # PRD 与基线数据 37 项 CI 一致性校验报告
+│   │   ├── prd_consistency_report.json      # PRD 与基线数据 91 项 CI 一致性校验报告
 │   ├── temp/                                # 面向产品负责人的决策过程与评审溯源沟通文档
 │   ├── PRD_v1.0_正式版.md                    # 原始 PRD（历史版本，完整保留）
 │   ├── PRD_v2.0_架构对齐版.md                # 架构对齐版（历史版本，完整保留）
@@ -39,7 +39,7 @@ wdgc-supervision-evidence/
 | 维度 | 当前状态 | 说明 |
 | :--- | :--- | :--- |
 | **结构校验（structural_status）** | ✅ PASS | 347 条基线记录 / 347 个全局唯一 `node_uid` / 24 个标准编号字段 / 28 个内部扩展列 |
-| **PRD 与字典一致性校验** | ✅ 37/37 项通过 | 见 `docs/baseline-data/prd_consistency_report.json` |
+| **PRD 与字典一致性校验** | ✅ 91/91 项通过 | 见 `docs/baseline-data/prd_consistency_report.json` |
 | **源数据业务校审（source_review_status）** | ⏳ PENDING | CONFIRMED=16 条，PENDING_REVIEW=331 条（原始清单风险等级空白及 1 条内容错配，待业务专家确认） |
 | **业务开发准入（business_readiness）** | 🚦 BLOCKED | 未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母 |
 | **真机技术 PoC** | ⏳ 待启动 | 离线容量、重启恢复、后台续传、全文件 SHA-256、OSS WORM 组合验证 |
@@ -60,7 +60,7 @@ python3 scripts/generate_baseline_data.py
 # 2. 从字典自动生成 PRD v2.3（字段表、真实示例、法定履职验收用例）
 python3 scripts/generate_prd_v23.py
 
-# 3. 执行 PRD 与基线数据的真实 CI 一致性校验（37 项断言）
+# 3. 执行 PRD 与基线数据的真实 CI 一致性校验（91 项断言）
 python3 scripts/validate_prd_consistency.py
 ```
 

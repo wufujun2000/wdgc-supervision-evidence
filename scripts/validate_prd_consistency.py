@@ -1,6 +1,6 @@
 """
-危大工程监理履职证据链系统 —— PRD/架构文档与基线数据真实一致性 CI 校验脚本（v1.4）
-实际校验：节点唯一性、标准字段契约、GB/T 50319 表号正确性、PRD 示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词、离线旧配额、性能口径与法定履职验收用例覆盖。
+危大工程监理履职证据链系统 —— PRD/架构文档与基线数据真实一致性 CI 校验脚本（v1.5）
+实际校验：节点唯一性、标准字段契约、GB/T 50319 表号正确性、逐 JSON 示例结构与字段级一致性、命名公式一致性、架构文档旧规则、权限旧词、离线旧配额、性能口径与法定履职验收用例覆盖。
 """
 import json
 import os
@@ -57,7 +57,7 @@ check("F04 方案报审表号 B.0.1（非A.0.1）", '表 B.0.1' in form_map['F04
 check("F05 监理通知单 A.0.3", '表 A.0.3' in form_map['F05']['official_standard_mapping'], form_map['F05']['official_standard_mapping'])
 check("F05 工程暂停令 A.0.5（非A.0.4）", '表 A.0.5' in form_map['F05']['official_standard_mapping'], form_map['F05']['official_standard_mapping'])
 check("F05 监理通知回复单 B.0.9（非B.0.5）", '表 B.0.9' in form_map['F05']['official_standard_mapping'], form_map['F05']['official_standard_mapping'])
-# PRD 正文不得再出现旧错误表号组合
+# PRD 与架构正文不得再出现旧错误表号组合
 old_table_patterns = [
     (r"方案报审 A\.0\.1", "旧方案报审表号 A.0.1"),
     (r"暂停令 A\.0\.4", "旧暂停令表号 A.0.4"),
@@ -65,35 +65,53 @@ old_table_patterns = [
 ]
 for pattern, name in old_table_patterns:
     check(f"PRD 无残留：{name}", not re.search(pattern, prd), f"发现匹配: {re.findall(pattern, prd)}")
+    check(f"架构无残留：{name}", not re.search(pattern, arch), f"发现匹配: {re.findall(pattern, arch)}")
 
-# 4. PRD 示例节点真实性与跨字段一致性校验
-example_uids = re.findall(r'"node_uid":\s*"(WDGC-A-[^"]+)"', prd)
-check("PRD 示例节点均真实存在", all(uid in node_map for uid in example_uids), f"不存在节点: {[u for u in example_uids if u not in node_map]}")
-for uid in example_uids:
-    node = node_map[uid]
-    pattern = rf'"node_uid":\s*"{re.escape(uid)}".*?"review_status":\s*"([^"]+)"'
-    m = re.search(pattern, prd, re.S)
-    if m:
-        check(f"示例 {uid} review_status 与种子库一致", m.group(1) == node['review_status'], f"PRD={m.group(1)}, seed={node['review_status']}")
-    # 跨字段一致性：storage_path 必须包含节点真实 hazard_code 与 stage_code
-    path_m = re.search(rf'"node_uid":\s*"{re.escape(uid)}".*?"storage_path":\s*"([^"]+)"', prd, re.S)
-    if path_m:
-        storage_path = path_m.group(1)
-        check(f"示例 {uid} storage_path 包含真实 hazard_code={node['hazard_code']}", f"/{node['hazard_code']}_" in storage_path, storage_path)
-        check(f"示例 {uid} storage_path 包含真实 stage_code={node['stage_code']}", f"/{node['stage_code']}_" in storage_path, storage_path)
-    # 示例哈希必须显式标记为演示值，不得伪装为真实空字节串哈希
-    check(f"示例 {uid} 哈希显式标记为演示值", 'demo_raw_frame_sha256_placeholder_not_real' in prd and 'demo_archive_file_sha256_placeholder_not_real' in prd, "示例哈希未显式标记为演示值")
+# 4. 逐 JSON 示例结构与字段级校验（对应复审 P0-03/P0-04）
+example_blocks = re.findall(r'```json\s*(\{.*?\})\s*```', prd, re.S)
+check("PRD 包含可解析的 JSON 示例", len(example_blocks) >= 2, f"实际 {len(example_blocks)} 个")
+hex64 = re.compile(r'^[0-9a-fA-F]{64}$')
+for idx, block in enumerate(example_blocks, 1):
+    try:
+        data = json.loads(block)
+    except Exception as e:
+        check(f"示例 {idx} JSON 可解析", False, str(e))
+        continue
+    uid = data.get('node_uid')
+    check(f"示例 {idx} node_uid 存在且真实", uid in node_map, f"node_uid={uid}")
+    if uid in node_map:
+        node = node_map[uid]
+        check(f"示例 {idx} review_status 与种子库一致", data.get('review_status') == node['review_status'], f"PRD={data.get('review_status')}, seed={node['review_status']}")
+        check(f"示例 {idx} risk_level 与种子库一致", data.get('risk_level') == node['risk_level'], f"PRD={data.get('risk_level')}, seed={node['risk_level']}")
+        storage_path = data.get('storage_path', '')
+        check(f"示例 {idx} storage_path 包含真实 hazard_code={node['hazard_code']}", f"/{node['hazard_code']}_" in storage_path, storage_path)
+        check(f"示例 {idx} storage_path 包含真实 stage_code={node['stage_code']}", f"/{node['stage_code']}_" in storage_path, storage_path)
+        check(f"示例 {idx} hazard_code 与种子库一致", data.get('hazard_code') == node['hazard_code'], f"PRD={data.get('hazard_code')}, seed={node['hazard_code']}")
+        check(f"示例 {idx} stage_code 与种子库一致", data.get('stage_code') == node['stage_code'], f"PRD={data.get('stage_code')}, seed={node['stage_code']}")
+        check(f"示例 {idx} subcategory_code 与种子库一致", data.get('subcategory_code') == node['subcategory_code'], f"PRD={data.get('subcategory_code')}, seed={node['subcategory_code']}")
+    # 字段级契约校验
+    check(f"示例 {idx} raw_frame_sha256 为64位十六进制", bool(hex64.match(str(data.get('raw_frame_sha256', '')))), f"实际={data.get('raw_frame_sha256')}")
+    check(f"示例 {idx} file_sha256 为64位十六进制", bool(hex64.match(str(data.get('file_sha256', '')))), f"实际={data.get('file_sha256')}")
+    check(f"示例 {idx} 显式标记为合成演示数据", data.get('example_data_status') == 'SYNTHETIC', f"example_data_status={data.get('example_data_status')}")
+    check(f"示例 {idx} position_desc 不用节点名称替代部位", data.get('position_desc') is None or data.get('position_desc') != node.get('node_name'), f"position_desc={data.get('position_desc')}")
+    check(f"示例 {idx} B006 单文件介质仅照片/视频", data.get('media_type') in ('照片', '视频'), f"media_type={data.get('media_type')}")
+    if data.get('review_status') == 'PENDING_REVIEW':
+        check(f"示例 {idx} 待审节点不参与正式强制采集", '不得进入正式强制采集任务与履职完整度考核分母' in prd, "待审示例缺少业务准入门禁说明")
 
 # 5. 命名公式一致性校验
 check("种子库命名公式包含 subcategory 与 node_uid_suffix", 'subcategory_code' in seed['metadata']['naming_formula'] and 'node_uid_suffix' in seed['metadata']['naming_formula'], seed['metadata']['naming_formula'])
 check("PRD 命名公式与种子库一致", '{subcategory_code}' in prd and '{node_uid_suffix}' in prd, "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix")
+check("架构命名公式与种子库一致", ('subcategory_code' in arch or 'subcategory\\_code' in arch) and ('node_uid_suffix' in arch or 'node\\_uid\\_suffix' in arch), "架构命名公式缺少 subcategory_code 或 node_uid_suffix")
 
 # 6. 架构文档一致性校验（对应复审 P0-02）
 check("架构文档扩展列数量与字典一致(28)", '28 个内部扩展' in arch, "架构文档仍写25个扩展列")
+check("PRD 首页扩展列数量与字典一致(28)", '28 个内部扩展列' in prd, "PRD 首页仍写25个扩展列")
 check("架构文档使用 biz_task_occurrence 模型", 'biz_task_occurrence' in arch, "架构文档缺少 biz_task_occurrence")
 check("架构文档无旧 biz_task_instance 核心任务模型", 'biz_task_instance' not in arch, "架构文档仍残留 biz_task_instance")
+check("架构文档无旧 task_instance_id 字段", 'task_instance_id' not in arch, "架构文档仍残留 task_instance_id")
 check("架构文档超管不得代替法定责任人签字", '超管不得代替法定责任人签字' in arch or '不得代替法定责任人' in arch, "架构文档仍保留超管代办法定审批能力")
 check("架构文档命名使用 legacy_node_code 与 file_sha256", 'legacy_node_code' in arch and 'file_sha256' in arch, "架构文档仍使用旧 node_code/sha256_hash")
+check("架构文档无旧 node_code 命名公式", 'node_code}_' not in arch and 'node_code_' not in arch, "架构文档仍残留旧 node_code 命名公式")
 
 # 7. 权限旧词与离线旧配额残留扫描（排除第0章整改说明中的历史引用）
 prd_body = prd[prd.find("# 第1章 文档说明"):]
@@ -101,6 +119,7 @@ legacy_patterns = [
     (r"PC端管理后台 \+ 微信小程序", "超管旧设备描述"),
     (r"放行全量", "超管全库放行旧规则"),
     (r"代管二次授权后终审", "超管代办法定终审旧规则"),
+    (r"二次授权审批", "超管代管审批旧规则"),
     (r"50张照片或5段", "离线旧配额"),
     (r"50 张照片或 5 段", "离线旧配额"),
     (r"PRJ-ENT001", "旧项目编码"),
@@ -109,6 +128,7 @@ legacy_patterns = [
 ]
 for pattern, name in legacy_patterns:
     check(f"无残留：{name}", not re.search(pattern, prd_body), f"发现匹配: {re.findall(pattern, prd_body)}")
+    check(f"架构无残留：{name}", not re.search(pattern, arch), f"发现匹配: {re.findall(pattern, arch)}")
 
 # 8. 法定履职验收用例覆盖校验
 for tc in ['TC-REV-05', 'TC-REV-06', 'TC-REV-07', 'TC-REV-08']:

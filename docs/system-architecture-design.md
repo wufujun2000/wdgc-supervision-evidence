@@ -113,9 +113,9 @@ sequenceDiagram
     PlatAPI->>AuditDB: 写入特权穿透启动日志 (superadmin_id, target_tenant_id=1001, IP, 时间戳)
     PlatAPI-->>SuperAdmin: 签发一次性短效授权码 (One-time Code, 60秒有效, 一次性核销)
     SuperAdmin->>TenantWeb: 打开 tenant-web/impersonate?code=<一次性授权码>
-    TenantWeb->>PlatAPI: 后端核销授权码，换取短期目标租户会话 (默认只读，可单独二次授权审批/导出)
+    TenantWeb->>PlatAPI: 后端核销授权码，换取短期目标租户会话 (默认只读；导出与督查督办需单独二次授权，法定签字与终审权由项目实际委派的总监/专监行使)
     PlatAPI-->>TenantWeb: 签发短期会话 Token (含 tenant_id=1001, impersonator_id, scope="read_only")
-    TenantWeb->>TenantAPI: 调用任何租户业务接口 (如查询项目/审核影像/导出证据包)
+    TenantWeb->>TenantAPI: 调用租户业务接口 (如查询项目/调阅影像/导出证据包；默认只读)
     Note over TenantAPI: 1. TenantContext 提取 tenant_id = 1001 (与普通租户完全一致！)<br/>2. 检测到 is_impersonated == true，自动将本次请求明细追加至 plat_privilege_audit_log
     TenantAPI-->>TenantWeb: 返回 ENT-001 租户数据
 ```
@@ -153,14 +153,14 @@ sequenceDiagram
 
 1. **裁定 1：统一为 24 个标准编号字段（`B001~B304`）+ 数据库内部扩展列（消除原 PRD 6.2 节与 10.3 节编号错位及 26/32/34 口径混乱）**：
    - 严格对齐课题原始材料《附录B 标准化数据字段表.docx》的 **24 个标准编号**（`B001~B011`、`B101~B106`、`B201~B203`、`B301~B304`）作为对外交互与台账导出标准；
-   - 数据库表 `biz_media_evidence` 的 28 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_instance_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
+   - 数据库表 `biz_media_evidence` 的 28 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_occurrence_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
    - 唯一事实来源为 **`docs/baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
-2. **裁定 2：统一标准化文件重命名公式（消除原 PRD 6.3.1 节与 10.4.2 节公式冲突）**：
-   - 统一采用信息量最完整的 **第 6.3.1 节公式** 作为主规范：
-     $$\text{影像文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{stage\_code}\_\text{node\_code}\_\text{risk\_level}\_\text{yyyyMMddHHmmss}[\_\text{suffix}].\text{JPG|MP4}$$
-     - 示例：`TJ-2026-0089_01_03_A-01-25_★_20261014143218_QZ.JPG`
+2. **裁定 2：统一标准化文件重命名公式（与 `docs/baseline-data/hazard_nodes_seed.json` 及 PRD 第 6.2 节完全一致）**：
+   - 统一采用包含子类别与全局唯一节点后缀的公式作为主规范：
+     $$\text{影像文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{risk\_level}\_\text{yyyyMMddHHmmss}[\_\text{suffix}].\text{JPG|MP4}$$
+     - 示例：`TJ-2026-0089_04_SC03_01_01_★_20261014143218_QZ.JPG`
    - 配套纸质单据/PDF 命名公式：
-     $$\text{单据文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{stage\_code}\_\text{node\_code}\_\text{doc\_code}[\_\text{suffix}].\text{pdf}$$
+     $$\text{单据文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{doc\_code}[\_\text{suffix}].\text{pdf}$$
 3. **裁定 3：统一危大工程 12 大类编码为 `01` ~ `12`**：
    - `01` 基坑、`02` 模板支撑、`03` 起重吊装、`04` 脚手架、`05` 拆除、`06` 暗挖、`07` 幕墙、`08` 钢结构、`09` 人工挖孔桩、`10` 水下作业、`11` 装配式、`12` 应急抢险与特殊工序（兼容读取旧编码 `99`）。
 
@@ -253,7 +253,7 @@ erDiagram
 
 ### 9.2 法定履职全闭环数据与状态机支持
 在 `biz_hazard_rectification` 与任务实例基础上，补齐以下法定履职实体：
-1. **停工与送达**：`biz_stop_work_order`（工程暂停令，GB/T 50319 表 A.0.4，含停工范围、签发人、签发时间）与 `biz_document_delivery_record`（送达方式、签收/拒收凭据）；
+1. **停工与送达**：`biz_stop_work_order`（工程暂停令，GB/T 50319 表 A.0.5，含停工范围、签发人、签发时间）与 `biz_document_delivery_record`（送达方式、签收/拒收凭据）；
 2. **报告与拒不整改独立事件**：`biz_authority_report_record`（报告建设单位/住建主管部门的对象、文号、附件与签收凭据）及 `biz_refusal_to_rectify_event`；
 3. **多轮复查与复工审查**：`biz_rectification_review_round`（多轮复查意见、复查人、复查时间、`_HW` 影像）与 `biz_resumption_review`（复工申请、条件核验与总监签署意见）；
 4. **验收双签与工序放行门禁**：`biz_acceptance_signoff`（施工单位技术负责人 + 总监双签、验收标识牌公示照片）与 `biz_process_gate_rule`（验收合格且公示完成后解锁下一道工序任务实例）。

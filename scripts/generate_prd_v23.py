@@ -30,10 +30,11 @@ example1 = {
     "media_type": "照片", "suggested_media_type": n1['suggested_media_type'],
     "shoot_utc_time": "2026-10-14 14:32:18", "shooter_emp_no": "JL027",
     "risk_summary": n1['risk_description'], "media_guid": "8f42d17c-903e-471a-b9c4-2d58f3107961",
-    "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": n1['node_name'],
+    "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": None,
     "client_clock_verified": 1, "is_offline_queued": 0, "time_drift_warning": 0,
-    "raw_frame_sha256": "demo_raw_frame_sha256_placeholder_not_real",
-    "file_sha256": "demo_archive_file_sha256_placeholder_not_real",
+    "example_data_status": "SYNTHETIC",
+    "raw_frame_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "file_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
     "deposit_time": "2026-10-14 14:32:20.128", "upload_operator_no": "JL027",
     "storage_path": f"ENT-001/TJ-2026-0089/{n1['hazard_code']}_{n1['hazard_name']}/{n1['stage_code']}_{n1['stage_name']}/20261014/photo/TJ-2026-0089_{n1['hazard_code']}_{n1['subcategory_code']}_{n1['stage_code']}_{n1['source_sequence']:02d}_{n1['risk_level']}_20261014143218.JPG"
 }
@@ -50,6 +51,10 @@ example2 = {
     "media_guid": "7b19a334-82fe-4912-a7d1-1d54e928f610",
     "gps_coordinates": None, "gps_status": 2,
     "is_offline_queued": 1, "client_clock_verified": 1, "time_drift_warning": 0,
+    "example_data_status": "SYNTHETIC",
+    "raw_frame_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+    "file_sha256": "9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+    "storage_path": f"ENT-001/TJ-2026-0089/{n2['hazard_code']}_{n2['hazard_name']}/{n2['stage_code']}_{n2['stage_name']}/20261014/photo/TJ-2026-0089_{n2['hazard_code']}_{n2['subcategory_code']}_{n2['stage_code']}_{n2['source_sequence']:02d}_UNSPECIFIED_20261014161500.JPG",
     "business_gate_note": "该节点原始风险等级未标注，review_status=PENDING_REVIEW，不得进入正式强制采集任务与履职完整度考核分母，需业务专家确认后方可启用。"
 }
 
@@ -90,7 +95,7 @@ prd = f"""---
 
 > **文档状态与边界声明**：本版本针对第三方《PRD v2.2 重新复审报告》（`WDGC-PRD-V22-FOLLOWUP-20261115`）进行了严格整改。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd_v23.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。  
 > **业务准入状态（真实拆分）**：
-> - `structural_status = {validation['structural_status']}`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 25 个内部扩展列）；
+> - `structural_status = {validation['structural_status']}`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 28 个内部扩展列）；
 > - `source_review_status = {validation['source_review_status']}`（CONFIRMED={validation['confirmed_node_count']} 条，PENDING_REVIEW={validation['pending_review_node_count']} 条，待业务专家逐条确认）；
 > - `business_readiness = {validation['business_readiness']}`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待源数据校审与真机 PoC 完成后方可申请全量开发基线复审）。
 
@@ -132,7 +137,7 @@ prd = f"""---
 ## 1.2 名词与缩略语表
 | 名词/缩写 | 全称/解释 |
 |----------|---------|
-| **危大工程** | 危险性较大的分部分项工程，依住建部令第37号定义，包含基坑、模板支撑、起重吊装等 12 大类 |
+| **危大工程** | 危险性较大的分部分项工程，依住建部令第37号定义；本系统采用 11 类专业危大课题清单 + 1 个通用应急兜底模块的采集基线结构 |
 | **数字化证据链** | 在危大工程全生命周期中，证明监理单位按法规与合同履职的完整证据集合体 |
 | **node_uid** | 节点内部全局唯一身份编码（如 `WDGC-A-04-SC03-01`），与标准业务编号 `legacy_node_code` 分离 |
 | **review_status** | 源数据校审状态：`CONFIRMED`（已确认）/ `PENDING_REVIEW`（待业务校审） |
@@ -145,7 +150,7 @@ prd = f"""---
 # 第2章 项目背景与问题定义
 
 ## 2.1 行业背景与政策依据
-危险性较大的分部分项工程（危大工程）是建筑施工安全事故的高发领域。依据住建部令第37号及建办质〔2018〕31号，监理单位需履行方案审查、专项巡视、旁站监理、隐患整改、验收签认及档案管理等法定职责。
+危险性较大的分部分项工程（危大工程）是建筑施工安全事故的高发领域。依据住建部令第37号及建办质〔2018〕31号，监理单位需履行方案审查、专项巡视、旁站监理、隐患整改、验收签认及档案管理等法定职责。本系统采用 **“11 类专业危大课题清单 + 1 个通用应急兜底模块”** 的采集基线结构，共 347 条基线记录。
 
 > **核心认知**：“做了，但没有形成有效记录，在法律和监管意义上等同于没做。”
 
@@ -248,7 +253,7 @@ prd = f"""---
 - 项目成员指派支持同一员工在不同项目担任不同角色，专监绑定多类危大超过 3 类时弹出履职风险提示。
 
 ## 5.2 标准节点库与任务驱动中心
-- 系统内置 **12 大类危大工程 347 条课题标准采集基线记录**（11 类专业危大 342 条 + 通用应急处置 5 条），唯一事实来源为 `docs/baseline-data/hazard_nodes_seed.json`；
+- 系统内置 **“11 类专业危大课题清单（342 条）+ 1 个通用应急兜底模块（5 条）”共 347 条课题标准采集基线记录**，唯一事实来源为 `docs/baseline-data/hazard_nodes_seed.json`；
 - **业务准入门禁**：仅 `review_status=CONFIRMED` 的节点允许进入正式强制采集任务与履职完整度考核分母；`PENDING_REVIEW` 节点一律不进入正式应采任务，不参与完整度分母；
 - 支持按楼栋/部位/施工批次创建任务发生实例（`biz_task_occurrence`），同一节点可在不同楼栋或批次重复发生；
 - 支持不适用申请与总监审批，剔除不适用与未到工序时点项。
@@ -449,7 +454,7 @@ erDiagram
 
 ## 10.4 附录四：典型影像元数据真实 JSON 示例（由种子库真实节点生成）
 
-### 示例 1：已确认节点（CONFIRMED + ★）完整元数据
+### 示例 1：已确认节点（CONFIRMED + ★）完整元数据（合成演示数据，example_data_status=SYNTHETIC）
 ```json
 {json.dumps(example1, ensure_ascii=False, indent=2)}
 ```
