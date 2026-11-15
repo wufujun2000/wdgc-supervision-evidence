@@ -1,0 +1,193 @@
+{
+  "structural_status": "PASS",
+  "checks_passed": 37,
+  "checks_total": 37,
+  "errors": [],
+  "checks": [
+    {
+      "check": "节点记录总数",
+      "passed": true,
+      "detail": "实际 347"
+    },
+    {
+      "check": "node_uid 全局唯一",
+      "passed": true,
+      "detail": "存在重复 node_uid"
+    },
+    {
+      "check": "标准字段数量",
+      "passed": true,
+      "detail": "实际 24"
+    },
+    {
+      "check": "内部扩展字段数量",
+      "passed": true,
+      "detail": "实际 28"
+    },
+    {
+      "check": "业务准入状态拆分",
+      "passed": true,
+      "detail": "验证报告缺少业务准入状态拆分"
+    },
+    {
+      "check": "B004 语义为原始业务编号",
+      "passed": true,
+      "detail": "legacy_node_code"
+    },
+    {
+      "check": "B005 风险等级不混入UNSPECIFIED",
+      "passed": true,
+      "detail": "仅允许★强制/△常规；原始空白时为NULL，校审状态由review_status独立管理，严禁将UNSPECIFIED作为业务风险等级。"
+    },
+    {
+      "check": "B006 单文件介质仅照片/视频",
+      "passed": true,
+      "detail": "单个证据文件仅允许照片或视频；节点建议采集介质由内部扩展列suggested_media_type独立表达。"
+    },
+    {
+      "check": "B301 统一为 file_sha256",
+      "passed": true,
+      "detail": "file_sha256"
+    },
+    {
+      "check": "B304 长度 VARCHAR(512)",
+      "passed": true,
+      "detail": "VARCHAR(512)"
+    },
+    {
+      "check": "B010 长度 VARCHAR(200)",
+      "passed": true,
+      "detail": "VARCHAR(200)"
+    },
+    {
+      "check": "PRD 示例节点均真实存在",
+      "passed": true,
+      "detail": "不存在节点: []"
+    },
+    {
+      "check": "示例 WDGC-A-08-SC01-01 review_status 与种子库一致",
+      "passed": true,
+      "detail": "PRD=CONFIRMED, seed=CONFIRMED"
+    },
+    {
+      "check": "示例 WDGC-A-01-SC01-01 review_status 与种子库一致",
+      "passed": true,
+      "detail": "PRD=PENDING_REVIEW, seed=PENDING_REVIEW"
+    },
+    {
+      "check": "待审示例 WDGC-A-01-SC01-01 不参与正式强制采集",
+      "passed": true,
+      "detail": "待审示例缺少业务准入门禁说明"
+    },
+    {
+      "check": "种子库命名公式包含 subcategory 与 node_uid_suffix",
+      "passed": true,
+      "detail": "{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_level}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}"
+    },
+    {
+      "check": "PRD 命名公式与种子库一致",
+      "passed": true,
+      "detail": "PRD 命名公式缺少 subcategory_code 或 node_uid_suffix"
+    },
+    {
+      "check": "无残留：超管旧设备描述",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：超管全库放行旧规则",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：超管代办法定终审旧规则",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：离线旧配额",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：离线旧配额",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：旧项目编码",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：绝对化保存期限",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "无残留：绝对化公信力声明",
+      "passed": true,
+      "detail": "发现匹配: []"
+    },
+    {
+      "check": "法定履职验收用例 TC-REV-05 存在",
+      "passed": true,
+      "detail": "缺少 TC-REV-05"
+    },
+    {
+      "check": "法定履职验收用例 TC-REV-06 存在",
+      "passed": true,
+      "detail": "缺少 TC-REV-06"
+    },
+    {
+      "check": "法定履职验收用例 TC-REV-07 存在",
+      "passed": true,
+      "detail": "缺少 TC-REV-07"
+    },
+    {
+      "check": "法定履职验收用例 TC-REV-08 存在",
+      "passed": true,
+      "detail": "缺少 TC-REV-08"
+    },
+    {
+      "check": "验收双签与下一道工序门禁用例",
+      "passed": true,
+      "detail": "缺少验收门禁用例"
+    },
+    {
+      "check": "严重隐患停工与报告主管部门用例",
+      "passed": true,
+      "detail": "缺少严重隐患报告用例"
+    },
+    {
+      "check": "水印性能统一口径",
+      "passed": true,
+      "detail": "水印性能指标未统一"
+    },
+    {
+      "check": "离线配额统一为150MB",
+      "passed": true,
+      "detail": "缺少150MB字节配额"
+    },
+    {
+      "check": "EXIF 诚实建模",
+      "passed": true,
+      "detail": "仍承诺完整EXIF"
+    },
+    {
+      "check": "定位异常诚实建模",
+      "passed": true,
+      "detail": "仍存在绝对化FakeGPS拦截承诺"
+    },
+    {
+      "check": "个人信息保护专节存在",
+      "passed": true,
+      "detail": "缺少7.7节"
+    },
+    {
+      "check": "PIPIA 与法务复核要求",
+      "passed": true,
+      "detail": "缺少PIPIA要求"
+    }
+  ]
+}

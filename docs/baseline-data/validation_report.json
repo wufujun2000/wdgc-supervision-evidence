@@ -1,0 +1,63 @@
+{
+  "structural_status": "PASS",
+  "source_review_status": "PENDING",
+  "business_readiness": "BLOCKED",
+  "total_baseline_records": 347,
+  "unique_node_uid_count": 347,
+  "confirmed_node_count": 16,
+  "pending_review_node_count": 331,
+  "standard_field_count": 24,
+  "internal_extension_count": 28,
+  "category_counts": {
+    "01": {
+      "name": "基坑工程",
+      "record_count": 25
+    },
+    "02": {
+      "name": "模板工程及支撑体系",
+      "record_count": 41
+    },
+    "03": {
+      "name": "起重吊装及起重机械安装拆卸工程",
+      "record_count": 24
+    },
+    "04": {
+      "name": "脚手架工程",
+      "record_count": 74
+    },
+    "05": {
+      "name": "拆除工程",
+      "record_count": 24
+    },
+    "06": {
+      "name": "暗挖工程",
+      "record_count": 63
+    },
+    "07": {
+      "name": "建筑幕墙安装工程",
+      "record_count": 17
+    },
+    "08": {
+      "name": "钢结构、网架和索膜结构安装工程",
+      "record_count": 13
+    },
+    "09": {
+      "name": "人工挖孔桩工程",
+      "record_count": 23
+    },
+    "10": {
+      "name": "水下作业工程",
+      "record_count": 20
+    },
+    "11": {
+      "name": "装配式建筑混凝土预制构件安装工程",
+      "record_count": 18
+    },
+    "12": {
+      "name": "应急抢险与通用兜底",
+      "record_count": 5
+    }
+  },
+  "business_gate_rule": "仅 review_status=CONFIRMED 的节点允许进入正式强制采集任务与履职完整度考核分母；PENDING_REVIEW 节点一律不进入正式应采任务，不参与完整度分母。",
+  "validation_scope": "包含节点UID唯一性、字段契约、PRD示例真实性与状态、命名公式一致性、权限旧词与旧配额扫描、法定履职验收用例覆盖检查（见 scripts/validate_prd_consistency.py）。"
+}
