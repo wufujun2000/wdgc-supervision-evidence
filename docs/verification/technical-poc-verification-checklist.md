@@ -1,7 +1,7 @@
 # 危大工程监理履职证据链系统 —— 真机与云服务质量属性 PoC 验证清单（V1.0）
 
 > **文档定位**：供研发、测试及第三方评审专家执行“限定范围原型与技术 PoC”使用，是将 `business_readiness` 从 `BLOCKED` 解除的必要技术证据。  
-> **关联文档**：`docs/PRD_v2.3_评审整改中.md`、`docs/system-architecture-design.md`、`docs/baseline-data/validation_report.json`  
+> **关联文档**：`docs/prd/PRD_v2.3_评审整改中.md`、`docs/architecture/system-architecture-design.md`、`docs/baseline-data/validation_report.json`
 > **验证原则**：真机实测、云服务实测、可复现步骤、保留原始证据（截图/日志/录屏/测试报告），不以文档承诺代替实测结果。
 
 ---

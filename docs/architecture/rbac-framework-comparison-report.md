@@ -276,7 +276,7 @@ flowchart TB
 
 ## 9. 最终架构拍板决议（2026-11-12 已定稿）
 
-经结合业务需求与多租户边界深入研讨，正式敲定以下最终基线架构方案（详见 `docs/system-architecture-design.md` 与 `docs/PRD_v2.0_架构对齐版.md`）：
+经结合业务需求与多租户边界深入研讨，正式敲定以下最终基线架构方案（详见 `docs/architecture/system-architecture-design.md` 与 `docs/prd/PRD_v2.0_架构对齐版.md`）：
 
 1. **主骨架选型**：正式选定 **`FastapiAdmin (v3.2.0)` 为主工程骨架基线**，并在底座搭建阶段吸收融合 **`RuoYi-FastAPI (v2.0.0)` 的文件证据防篡改对账子系统、接口防重放签名、Agno 多模态视觉 SSE 引擎与全栈 AST 契约检查脚本**，同时完成 `FastapiAdmin` 原有 `base_crud.py` / `dependencies.py` / `permission.py` 的加固。
 2. **多租户与分库分表策略**：采用 **方案 A（共享 MySQL 8.0 数据库 + `tenant_id` 行级逻辑隔离 + 阿里云 OSS 顶层企业编码路径隔离）**，由 `TenantCRUDBase` 底层统一强制拦截；预留后续随数据量增长按 `tenant_id` 分表/分区演进能力。

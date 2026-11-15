@@ -74,9 +74,9 @@ python3 scripts/validate_prd_consistency.py
 
 **位置：**
 
-- `docs/PRD_v2.3_评审整改中.md` 第 191、195、221、338、385～386 行；
+- `docs/prd/PRD_v2.3_评审整改中.md` 第 191、195、221、338、385～386 行；
 - `docs/baseline-data/metadata_and_forms_dictionary.json` 的 F04、F05；
-- `docs/system-architecture-design.md` 第 256 行。
+- `docs/architecture/system-architecture-design.md` 第 256 行。
 
 **当前错误与正确映射：**
 

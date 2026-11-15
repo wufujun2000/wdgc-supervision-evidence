@@ -3,11 +3,11 @@
 
 > **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 修正 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
 > **编制日期**：2026-11-12；**v1.4 评审整改日期**：2026-11-15
-> **审查与复审依据**：`docs/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
+> **审查与复审依据**：`docs/01-review-reports/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
 > **机器可读数据字典**：`docs/baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射）
 > **开发模式**：AI Agent Vibe Coding 主导开发（文档驱动、强类型护栏、垂直切片高内聚）
 > **基线选型决议（锁定完整 Commit SHA）**：以 **`fastapiadmin/FastapiAdmin`（项目包版本 v3.2.0，固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）** 为主工程骨架；吸收借鉴 **`insistence/RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）** 的文件防篡改治理、接口防重放签名、Agno 视觉多模态 SSE 设计思想，在本底座中构建对应的自研增强模块。
-> **关联需求文档**：`docs/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/PRD_v1.0_正式版.md`、`docs/PRD_v2.0_架构对齐版.md`、`docs/PRD_v2.1_评审闭环版.md` 与 `docs/PRD_v2.2_评审整改中.md`）
+> **关联需求文档**：`docs/prd/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/prd/PRD_v1.0_正式版.md`、`docs/prd/PRD_v2.0_架构对齐版.md`、`docs/prd/PRD_v2.1_评审闭环版.md` 与 `docs/prd/PRD_v2.2_评审整改中.md`）
 
 ---
 

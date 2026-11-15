@@ -23,7 +23,7 @@
 
 ### 2.1 复审材料
 
-1. `docs/PRD_v2.2_评审整改中.md`
+1. `docs/prd/PRD_v2.2_评审整改中.md`
 2. `docs/baseline-data/hazard_nodes_seed.json`
 3. `docs/baseline-data/metadata_and_forms_dictionary.json`
 4. `docs/baseline-data/source_data_review_log.json`

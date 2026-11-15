@@ -59,7 +59,7 @@ python3 scripts/validate_prd_consistency.py
 
 **位置：**
 
-- `docs/business-source-review-checklist.md` 第 89～92、134 行；
+- `docs/verification/business-source-review-checklist.md` 第 89～92、134 行；
 - `scripts/generate_baseline_data.py` 第 154、173、182～195、234～237 行。
 
 校审清单要求：

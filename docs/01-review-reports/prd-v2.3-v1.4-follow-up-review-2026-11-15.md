@@ -85,7 +85,7 @@ PRD 正文、F04/F05 字典、应急节点建议单据及生成脚本均已同�
 
 ### P0-01：架构仍残留一处错误表号
 
-**位置：**`docs/system-architecture-design.md` 第 256 行。
+**位置：**`docs/architecture/system-architecture-design.md` 第 256 行。
 
 当前仍写：
 

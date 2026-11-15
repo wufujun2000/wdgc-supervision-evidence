@@ -2,7 +2,7 @@
 文档名称：危大工程监理履职数字化证据链系统 产品需求文档（PRD）
 系统版本：v2.2 评审整改中版本（节点全局唯一身份模型重建 + 原始数据忠实溯源 + 法定履职全闭环）
 当前文档状态：评审整改中（根据 WDGC-PRD-V21-FOLLOWUP-20261114 复审意见逐项根治，待第三方复审签收后方可升级为可开发基线）
-前序版本：docs/PRD_v2.1_评审闭环版.md / docs/PRD_v2.0_架构对齐版.md / docs/PRD_v1.0_正式版.md（历史版本完整保留）
+前序版本：docs/prd/PRD_v2.1_评审闭环版.md / docs/prd/PRD_v2.0_架构对齐版.md / docs/prd/PRD_v1.0_正式版.md（历史版本完整保留）
 复审依据：docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md
 原始材料溯源目录：docs/00-source-materials/
 机器可读数据字典与校验报告：docs/baseline-data/（hazard_nodes_seed.json / metadata_and_forms_dictionary.json / source_data_review_log.json / validation_report.json）
