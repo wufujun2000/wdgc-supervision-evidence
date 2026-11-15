@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import re
+import hashlib
 from collections import Counter
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -121,11 +122,33 @@ def extract_source_values(capture_guidance, node_name):
     suggested_media_type = "照片+视频" if requires_video and ('照片' in capture_guidance or '影像' in capture_guidance) else ("视频" if requires_video else "照片")
     return raw_level, risk_level, review_status, suggested_media_type
 
+def compute_source_fingerprint(node_name, risk_description, supervision_action, capture_guidance):
+    """计算原始内容指纹，用于检测原始材料变化并使旧审核失效。"""
+    content = f"{node_name}|{risk_description}|{supervision_action}|{capture_guidance}"
+    return hashlib.sha256(content.encode('utf-8')).hexdigest()[:16]
+
+def load_review_decisions():
+    """读取人工校审决定（独立受版本控制的输入文件）。"""
+    path = os.path.join(OUT_DIR, "source_review_decisions.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f).get("decisions", [])
+    return []
+
+def save_review_decisions(decisions):
+    path = os.path.join(OUT_DIR, "source_review_decisions.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump({"decisions": decisions}, f, ensure_ascii=False, indent=2)
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     nodes = []
     review_logs = []
     category_counts = {}
+
+    # 读取人工校审决定并建立索引
+    decisions = load_review_decisions()
+    decision_map = {(d['node_uid'], d['issue_type']): d for d in decisions}
 
     for hc, info in HAZARD_META.items():
         blocks = get_docx_body_blocks(os.path.join(SRC_DIR, info['file']))
@@ -154,6 +177,24 @@ def main():
                 raw_risk_level, risk_level, review_status, suggested_media_type = extract_source_values(capture_guidance, node_name)
                 node_uid = f"WDGC-A-{hc}-{sub_info['code']}-{seq:02d}"
                 legacy_node_code = f"A-{hc}-{seq:02d}"
+                source_fingerprint = compute_source_fingerprint(node_name, r[3].strip(), r[4].strip(), capture_guidance)
+
+                # 合并人工校审决定（以 node_uid + issue_type + source_fingerprint 关联）
+                decision_key = (node_uid, "MISSING_RISK_LEVEL")
+                decision = decision_map.get(decision_key)
+                if decision and decision.get('source_fingerprint') == source_fingerprint:
+                    review_status = decision.get('resolution_status', review_status)
+                    risk_level = decision.get('risk_level', risk_level)
+                elif decision:
+                    # 原始内容变化导致旧审核失效
+                    review_status = "PENDING_REVIEW"
+                    review_logs.append({
+                        "node_uid": node_uid, "source_location": f"{info['file']} / 表{table_idx}({sub_info['name']}) / 第{ridx}行",
+                        "issue_type": "SOURCE_CHANGED_REVIEW_EXPIRED",
+                        "description": f"节点【{node_name}】原始内容已变化，旧校审决定失效，需重新校审。",
+                        "review_status": "PENDING_REVIEW", "reviewer": None, "reviewed_at": None, "review_basis": None, "resolution": None
+                    })
+
                 node = {
                     "node_uid": node_uid,
                     "legacy_node_code": legacy_node_code,
@@ -167,6 +208,7 @@ def main():
                     "source_document": info["file"],
                     "source_table_index": table_idx,
                     "source_row_no": ridx,
+                    "source_fingerprint": source_fingerprint,
                     "node_name": node_name,
                     "raw_risk_level": raw_risk_level,
                     "risk_level": risk_level,
@@ -180,12 +222,21 @@ def main():
                 nodes.append(node)
                 file_count += 1
                 if review_status == "PENDING_REVIEW":
-                    review_logs.append({
+                    log_entry = {
                         "node_uid": node_uid, "source_location": f"{info['file']} / 表{table_idx}({sub_info['name']}) / 第{ridx}行",
                         "issue_type": "MISSING_RISK_LEVEL",
                         "description": f"原始清单未标注★/△风险等级，节点【{node_name}】已保留原始空白，review_status=PENDING_REVIEW，待业务专家确认。",
                         "review_status": "PENDING_REVIEW", "reviewer": None, "reviewed_at": None, "review_basis": None, "resolution": None
-                    })
+                    }
+                    # 若存在人工决定，合并审核信息
+                    if decision and decision.get('source_fingerprint') == source_fingerprint:
+                        log_entry.update({
+                            "reviewer": decision.get('reviewer'),
+                            "reviewed_at": decision.get('reviewed_at'),
+                            "review_basis": decision.get('review_basis'),
+                            "resolution": decision.get('resolution')
+                        })
+                    review_logs.append(log_entry)
                 if hc == "02" and table_idx == 3 and seq == 8:
                     review_logs.append({
                         "node_uid": node_uid, "source_location": f"{info['file']} / 表3(飞模工程) / 第{ridx}行",
@@ -272,7 +323,9 @@ def main():
         {"column_name": "task_occurrence_id", "data_type": "BIGINT", "description": "关联biz_task_occurrence.id，支持同节点按楼栋/部位/批次多次发生"},
         {"column_name": "subcategory_code", "data_type": "VARCHAR(8)", "description": "危大子类别编码（如SC01~SC06/GEN）"},
         {"column_name": "suggested_media_type", "data_type": "VARCHAR(16)", "description": "节点级建议采集介质（照片/视频/照片+视频），与单文件B006严格分离"},
-        {"column_name": "review_status", "data_type": "VARCHAR(16)", "description": "源数据校审状态：CONFIRMED/PENDING_REVIEW；待审节点不得进入正式强制采集任务与完整度考核"},
+        {"column_name": "review_status", "data_type": "VARCHAR(16)", "description": "源数据校审状态：CONFIRMED/PENDING_REVIEW/REJECTED_WITH_REASON；待审或驳回节点不得进入正式强制采集任务与完整度考核"},
+        {"column_name": "risk_file_token", "data_type": "VARCHAR(16)", "description": "文件命名专用风险标记（★/△/PENDING），与业务 risk_level 分离"},
+        {"column_name": "evidence_admission_status", "data_type": "VARCHAR(16)", "description": "证据准入状态：ADMITTED（正式归档）/QUARANTINED（隔离区草稿，不参与正式完整度考核）"},
         {"column_name": "role_type", "data_type": "VARCHAR(16)", "description": "拍摄人项目角色（SZ总监/SP专监/SA监理员/ADMIN企业管理员）"},
         {"column_name": "action_type", "data_type": "VARCHAR(16)", "description": "履职动作类型（PZ旁站/XS巡视/YS验收/ZG整改/YJ应急/JC督查）"},
         {"column_name": "altitude", "data_type": "DECIMAL(8,2)", "description": "GPS定位高程（米，选填）"},
@@ -322,11 +375,15 @@ def main():
     with open(os.path.join(OUT_DIR, "metadata_and_forms_dictionary.json"), "w", encoding="utf-8") as f:
         json.dump(forms_dictionary, f, ensure_ascii=False, indent=2)
 
-    # 验证报告：结构、源数据校审、业务准入严格拆分
+    # 验证报告：结构、源数据校审、技术PoC、合规复核、行为验收五态拆分
     validation_report = {
         "structural_status": "PASS",
+        "static_consistency_status": "PENDING",
         "source_review_status": "PENDING" if pending_count > 0 else "PASS",
-        "business_readiness": "BLOCKED" if pending_count > 0 else "READY",
+        "technical_poc_status": "PENDING",
+        "compliance_review_status": "PENDING",
+        "behavioral_acceptance_status": "PENDING",
+        "business_readiness": "BLOCKED",
         "total_baseline_records": len(nodes),
         "unique_node_uid_count": len(set(node_uids)),
         "confirmed_node_count": confirmed_count,
@@ -334,7 +391,7 @@ def main():
         "standard_field_count": len(standard_fields),
         "internal_extension_count": len(internal_extensions),
         "category_counts": category_counts,
-        "business_gate_rule": "仅 review_status=CONFIRMED 的节点允许进入正式强制采集任务与履职完整度考核分母；PENDING_REVIEW 节点一律不进入正式应采任务，不参与完整度分母。",
+        "business_gate_rule": "仅当 structural_status=PASS、static_consistency_status=PASS、source_review_status=PASS、technical_poc_status=PASS、compliance_review_status=PASS、behavioral_acceptance_status=PASS 时，business_readiness 才允许为 READY。未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母。",
         "validation_scope": "包含节点UID唯一性、字段契约、PRD示例真实性与状态、命名公式一致性、权限旧词与旧配额扫描、法定履职验收用例覆盖检查（见 scripts/validate_prd_consistency.py）。"
     }
     with open(os.path.join(OUT_DIR, "validation_report.json"), "w", encoding="utf-8") as f:

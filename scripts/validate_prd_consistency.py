@@ -38,8 +38,8 @@ node_map = {n['node_uid']: n for n in nodes}
 check("节点记录总数", len(nodes) == 347, f"实际 {len(nodes)}")
 check("node_uid 全局唯一", len(set(node_map.keys())) == len(nodes), "存在重复 node_uid")
 check("标准字段数量", len(dictionary['standard_metadata_fields']) == 24, f"实际 {len(dictionary['standard_metadata_fields'])}")
-check("内部扩展字段数量", len(dictionary['internal_database_extensions']) == 28, f"实际 {len(dictionary['internal_database_extensions'])}")
-check("业务准入状态拆分", all(k in validation for k in ['structural_status', 'source_review_status', 'business_readiness']), "验证报告缺少业务准入状态拆分")
+check("内部扩展字段数量", len(dictionary['internal_database_extensions']) == 30, f"实际 {len(dictionary['internal_database_extensions'])}")
+check("业务准入状态拆分", all(k in validation for k in ['structural_status', 'static_consistency_status', 'source_review_status', 'technical_poc_status', 'compliance_review_status', 'behavioral_acceptance_status', 'business_readiness']), "验证报告缺少综合业务准入状态拆分")
 
 # 2. 标准字段语义分离校验
 field_map = {f['field_code']: f for f in dictionary['standard_metadata_fields']}
@@ -107,8 +107,8 @@ check("PRD 命名公式与种子库一致", '{subcategory_code}' in prd and '{no
 check("架构命名公式与种子库一致", ('subcategory_code' in arch or 'subcategory\\_code' in arch) and ('node_uid_suffix' in arch or 'node\\_uid\\_suffix' in arch) and ('risk_file_token' in arch or 'risk\\_file\\_token' in arch), "架构命名公式缺少 subcategory_code 或 node_uid_suffix 或 risk_file_token")
 
 # 6. 架构文档一致性校验（对应复审 P0-02）
-check("架构文档扩展列数量与字典一致(28)", '28 个内部扩展' in arch, "架构文档仍写25个扩展列")
-check("PRD 首页扩展列数量与字典一致(28)", '28 个内部扩展列' in prd, "PRD 首页仍写25个扩展列")
+check("架构文档扩展列数量与字典一致(30)", '30 个内部扩展' in arch, "架构文档扩展列数量与字典不一致")
+check("PRD 首页扩展列数量与字典一致(30)", '30 个内部扩展列' in prd, "PRD 首页扩展列数量与字典不一致")
 check("架构文档使用 biz_task_occurrence 模型", 'biz_task_occurrence' in arch, "架构文档缺少 biz_task_occurrence")
 check("架构文档无旧 biz_task_instance 核心任务模型", 'biz_task_instance' not in arch, "架构文档仍残留 biz_task_instance")
 check("架构文档无旧 task_instance_id 字段", 'task_instance_id' not in arch, "架构文档仍残留 task_instance_id")

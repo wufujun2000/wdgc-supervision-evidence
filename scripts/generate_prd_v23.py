@@ -99,9 +99,13 @@ prd = f"""---
 
 > **文档状态与边界声明**：本版本针对第三方《PRD v2.2 重新复审报告》（`WDGC-PRD-V22-FOLLOWUP-20261115`）进行了严格整改。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd_v23.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。  
 > **业务准入状态（真实拆分）**：
-> - `structural_status = {validation['structural_status']}`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 28 个内部扩展列）；
+> - `structural_status = {validation['structural_status']}`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 30 个内部扩展列）；
+> - `static_consistency_status = {validation['static_consistency_status']}`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
 > - `source_review_status = {validation['source_review_status']}`（CONFIRMED={validation['confirmed_node_count']} 条，PENDING_REVIEW={validation['pending_review_node_count']} 条，待业务专家逐条确认）；
-> - `business_readiness = {validation['business_readiness']}`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待源数据校审与真机 PoC 完成后方可申请全量开发基线复审）。
+> - `technical_poc_status = {validation['technical_poc_status']}`（真机/云服务/离线/越权实测证据待提交）；
+> - `compliance_review_status = {validation['compliance_review_status']}`（法务/隐私/档案专项复核待完成）；
+> - `behavioral_acceptance_status = {validation['behavioral_acceptance_status']}`（法定履职状态机与行为级验收待完成）；
+> - `business_readiness = {validation['business_readiness']}`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待全部准入条件完成后方可申请全量开发基线复审）。
 
 ---
 

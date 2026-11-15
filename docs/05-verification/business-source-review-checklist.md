@@ -63,7 +63,7 @@
 
 | 校审字段 | 填写要求与判定规则 |
 | :--- | :--- |
-| `risk_level` | 仅允许 **`★`（强制采集）** 或 **`△`（常规巡视）**。原始空白时由业务专家依据工序风险、法规要求、验收/旁站/隐蔽性质及事故后果确定，不得留空或写 `UNSPECIFIED`。 |
+| `risk_level` | 仅允许 **`★`（强制采集）** 或 **`△`（常规巡视）**。原始空白时由业务专家依据工序风险、法规要求、验收/旁站/隐蔽性质及事故后果确定；**对于“一期不适用”或“驳回”的节点，允许 `risk_level=null` 并标记 `review_status=REJECTED_WITH_REASON`，不进入正式应采任务与完整度分母，但必须填写驳回理由、审核人和依据**。 |
 | `suggested_media_type` | 节点级建议采集介质：`照片` / `视频` / `照片+视频`。与单个证据文件 `media_type`（仅照片/视频）严格区分。 |
 | `applicable_scope` | 明确该节点适用的危大子类别、楼栋/部位、施工阶段与是否需按批次重复发生。 |
 | `related_document_suggestion` | 确认关联单据名称及标准表号（如 GB/T 50319 表 A.0.1/A.0.3/A.0.5/A.0.6/B.0.1/B.0.9），不得使用错误表号。 |
@@ -112,9 +112,11 @@ flowchart TD
 ## 七、校审后版本与快照迁移规则
 
 1. **种子版本升级**：每次校审批次完成后，将 `hazard_nodes_seed.json` 的 `metadata.version` 递增（如 `1.3.0 → 1.4.0`），并记录 `generated_on` 与校审批次号；
-2. **既有 Occurrence 快照**：已创建的 `biz_task_occurrence.node_version_snapshot` 不自动覆盖；如需采用新校审结果，由专监/总监发起版本升级评估并留痕；
-3. **完整度分母**：仅将 `review_status=CONFIRMED` 且已进入施工时点的任务发生实例纳入分母；待审节点一律不参与正式强制采集与完整度考核；
-4. **复审留痕**：校审后的 JSON、PRD 示例、校验报告及《源数据业务校审签认表》一并提交第三方专家复审。
+2. **校审结果持久化**：人工校审决定统一写入 **`docs/04-baseline-data/source_review_decisions.json`**（独立受版本控制的输入文件），生成器以 `(node_uid, issue_type, source_fingerprint)` 关联并合并决定，**重跑不会覆盖专家校审结果**；
+3. **原始内容变化失效**：原始 Word/Excel 内容变化导致 `source_fingerprint` 变化时，旧校审决定自动失效并重新进入待审队列；
+4. **既有 Occurrence 快照**：已创建的 `biz_task_occurrence.node_version_snapshot` 不自动覆盖；如需采用新校审结果，由专监/总监发起版本升级评估并留痕；
+5. **完整度分母**：仅将 `review_status=CONFIRMED` 且已进入施工时点的任务发生实例纳入分母；待审节点一律不参与正式强制采集与完整度考核；
+6. **复审留痕**：校审后的 JSON、PRD 示例、校验报告及《源数据业务校审签认表》一并提交第三方专家复审。
 
 ---
 

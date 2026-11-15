@@ -153,7 +153,7 @@ sequenceDiagram
 
 1. **裁定 1：统一为 24 个标准编号字段（`B001~B304`）+ 数据库内部扩展列（消除原 PRD 6.2 节与 10.3 节编号错位及 26/32/34 口径混乱）**：
    - 严格对齐课题原始材料《附录B 标准化数据字段表.docx》的 **24 个标准编号**（`B001~B011`、`B101~B106`、`B201~B203`、`B301~B304`）作为对外交互与台账导出标准；
-   - 数据库表 `biz_media_evidence` 的 28 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_occurrence_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
+   - 数据库表 `biz_media_evidence` 的 30 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_occurrence_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
    - 唯一事实来源为 **`docs/04-baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
 2. **裁定 2：统一标准化文件重命名公式（与 `docs/04-baseline-data/hazard_nodes_seed.json` 及 PRD 第 6.2 节完全一致）**：
    - 统一采用包含子类别与全局唯一节点后缀的公式作为主规范：

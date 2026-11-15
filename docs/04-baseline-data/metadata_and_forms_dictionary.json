@@ -5,7 +5,7 @@
     "generated_on": "2026-11-15",
     "generator_script": "scripts/generate_baseline_data.py",
     "standard_exchange_field_count": 24,
-    "internal_database_extension_count": 28,
+    "internal_database_extension_count": 30,
     "naming_convention": "数据库列、SQLAlchemy Model、Pydantic Schema、API JSON与前端TS类型全栈统一使用snake_case。"
   },
   "standard_metadata_fields": [
@@ -270,7 +270,17 @@
     {
       "column_name": "review_status",
       "data_type": "VARCHAR(16)",
-      "description": "源数据校审状态：CONFIRMED/PENDING_REVIEW；待审节点不得进入正式强制采集任务与完整度考核"
+      "description": "源数据校审状态：CONFIRMED/PENDING_REVIEW/REJECTED_WITH_REASON；待审或驳回节点不得进入正式强制采集任务与完整度考核"
+    },
+    {
+      "column_name": "risk_file_token",
+      "data_type": "VARCHAR(16)",
+      "description": "文件命名专用风险标记（★/△/PENDING），与业务 risk_level 分离"
+    },
+    {
+      "column_name": "evidence_admission_status",
+      "data_type": "VARCHAR(16)",
+      "description": "证据准入状态：ADMITTED（正式归档）/QUARANTINED（隔离区草稿，不参与正式完整度考核）"
     },
     {
       "column_name": "role_type",

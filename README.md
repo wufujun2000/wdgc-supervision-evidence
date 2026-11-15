@@ -70,7 +70,7 @@ python3 scripts/validate_prd_consistency.py
 - `docs/04-baseline-data/hazard_nodes_seed.json`：347 条基线记录及唯一节点身份；
 - `docs/04-baseline-data/metadata_and_forms_dictionary.json`：标准字段、内部扩展和表单映射；
 - `docs/04-baseline-data/validation_report.json`：结构与业务准入状态；
-- `docs/04-baseline-data/prd_consistency_report.json`：实际一致性检查数量与结果；
+- `docs/04-baseline-data/prd_consistency_report.json`：实际一致性检查数量与结果（以 `checks_passed/checks_total` 为准）；
 - `docs/02-prd/PRD_v2.3_评审整改中.md`：由生成器输出的当前 PRD。
 
 修改原始材料、生成器或字典后，应重新执行上述命令并检查 Git 差异。不要直接手改由脚本生成的 PRD 和基线文件。

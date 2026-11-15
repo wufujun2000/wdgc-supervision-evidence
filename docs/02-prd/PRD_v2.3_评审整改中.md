@@ -15,9 +15,13 @@
 
 > **文档状态与边界声明**：本版本针对第三方《PRD v2.2 重新复审报告》（`WDGC-PRD-V22-FOLLOWUP-20261115`）进行了严格整改。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd_v23.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。  
 > **业务准入状态（真实拆分）**：
-> - `structural_status = PASS`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 28 个内部扩展列）；
+> - `structural_status = PASS`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 30 个内部扩展列）；
+> - `static_consistency_status = PENDING`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
 > - `source_review_status = PENDING`（CONFIRMED=16 条，PENDING_REVIEW=331 条，待业务专家逐条确认）；
-> - `business_readiness = BLOCKED`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待源数据校审与真机 PoC 完成后方可申请全量开发基线复审）。
+> - `technical_poc_status = PENDING`（真机/云服务/离线/越权实测证据待提交）；
+> - `compliance_review_status = PENDING`（法务/隐私/档案专项复核待完成）；
+> - `behavioral_acceptance_status = PENDING`（法定履职状态机与行为级验收待完成）；
+> - `business_readiness = BLOCKED`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待全部准入条件完成后方可申请全量开发基线复审）。
 
 ---
 
@@ -429,7 +433,9 @@ erDiagram
 | `task_occurrence_id` | `BIGINT` | 关联biz_task_occurrence.id，支持同节点按楼栋/部位/批次多次发生 |
 | `subcategory_code` | `VARCHAR(8)` | 危大子类别编码（如SC01~SC06/GEN） |
 | `suggested_media_type` | `VARCHAR(16)` | 节点级建议采集介质（照片/视频/照片+视频），与单文件B006严格分离 |
-| `review_status` | `VARCHAR(16)` | 源数据校审状态：CONFIRMED/PENDING_REVIEW；待审节点不得进入正式强制采集任务与完整度考核 |
+| `review_status` | `VARCHAR(16)` | 源数据校审状态：CONFIRMED/PENDING_REVIEW/REJECTED_WITH_REASON；待审或驳回节点不得进入正式强制采集任务与完整度考核 |
+| `risk_file_token` | `VARCHAR(16)` | 文件命名专用风险标记（★/△/PENDING），与业务 risk_level 分离 |
+| `evidence_admission_status` | `VARCHAR(16)` | 证据准入状态：ADMITTED（正式归档）/QUARANTINED（隔离区草稿，不参与正式完整度考核） |
 | `role_type` | `VARCHAR(16)` | 拍摄人项目角色（SZ总监/SP专监/SA监理员/ADMIN企业管理员） |
 | `action_type` | `VARCHAR(16)` | 履职动作类型（PZ旁站/XS巡视/YS验收/ZG整改/YJ应急/JC督查） |
 | `altitude` | `DECIMAL(8,2)` | GPS定位高程（米，选填） |
