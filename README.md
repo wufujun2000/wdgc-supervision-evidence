@@ -74,6 +74,8 @@ python3 scripts/validate_prd_consistency.py
 
 ## 四、评审与协作约定
 
+产品负责团队、技术开发团队、测试团队与专家评审团队统一按照 [`docs/team-collaboration-and-delivery-workflow.md`](docs/team-collaboration-and-delivery-workflow.md) 执行并行开发、变更沟通、原型交接、接口联调和验收准入。
+
 1. **历史版本完整保留**：`docs/PRD_v1.0_正式版.md`、`docs/PRD_v2.0_架构对齐版.md`、`docs/PRD_v2.1_评审闭环版.md`、`docs/PRD_v2.2_评审整改中.md` 均不删除，便于逐版本追溯偏移原因；
 2. **原始材料不篡改**：`docs/00-source-materials/` 下的课题 Word/Excel 原件作为唯一溯源依据，任何原始空白或内容错误仅登记至 `docs/baseline-data/source_data_review_log.json`，由业务专家确认后修订；
 3. **评审意见留痕**：第三方各轮审查与复审报告统一归档至 `docs/01-review-reports/`；
