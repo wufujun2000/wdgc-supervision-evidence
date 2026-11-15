@@ -8,14 +8,14 @@
 
 | 维度 | 当前状态 | 查阅位置 |
 | :--- | :--- | :--- |
-| 当前需求版本 | PRD v2.3，评审整改中，可用于原型与限定范围开发 | `prd/PRD_v2.3_评审整改中.md` |
-| 当前架构版本 | 总体架构 v1.4，技术基线已确定 | `architecture/system-architecture-design.md` |
-| 节点结构 | 347 条基线记录、347 个唯一 `node_uid` | `baseline-data/hazard_nodes_seed.json` |
-| 标准字段 | 24 个标准编号字段、28 个内部扩展列 | `baseline-data/metadata_and_forms_dictionary.json` |
-| 源数据校审 | 16 条已确认、331 条待审，另有 1 条原始内容错配 | `baseline-data/source_data_review_log.json` |
-| 静态一致性 | 以最新校验报告的实际通过数为准 | `baseline-data/prd_consistency_report.json` |
-| 业务上线准入 | BLOCKED，不表示禁止技术基线、原型和限定范围开发 | `baseline-data/validation_report.json` |
-| 技术 PoC | 已有工作清单，尚需真实测试证据 | `verification/technical-poc-verification-checklist.md` |
+| 当前需求版本 | PRD v2.3，评审整改中，可用于原型与限定范围开发 | `02-prd/PRD_v2.3_评审整改中.md` |
+| 当前架构版本 | 总体架构 v1.4，技术基线已确定 | `03-architecture/system-architecture-design.md` |
+| 节点结构 | 347 条基线记录、347 个唯一 `node_uid` | `04-baseline-data/hazard_nodes_seed.json` |
+| 标准字段 | 24 个标准编号字段、28 个内部扩展列 | `04-baseline-data/metadata_and_forms_dictionary.json` |
+| 源数据校审 | 16 条已确认、331 条待审，另有 1 条原始内容错配 | `04-baseline-data/source_data_review_log.json` |
+| 静态一致性 | 以最新校验报告的实际通过数为准 | `04-baseline-data/prd_consistency_report.json` |
+| 业务上线准入 | BLOCKED，不表示禁止技术基线、原型和限定范围开发 | `04-baseline-data/validation_report.json` |
+| 技术 PoC | 已有工作清单，尚需真实测试证据 | `05-verification/technical-poc-verification-checklist.md` |
 | 法务与隐私 | 尚需专项复核 | 同上及当前 PRD 第 7.7 节 |
 
 当前文档、数据和评审材料较多，是因为项目处于需求定版、原型开发与技术基线并行阶段。随着真实代码、数据库迁移、OpenAPI 和测试报告形成，后续开发应逐步以工程产物和实测结果为直接依据。
@@ -25,16 +25,16 @@
 ```text
 docs/
 ├── README.md                         # 文档中心与逐文件索引
-├── prd/                              # 当前及历史产品需求文档
-├── architecture/                     # 总体架构与技术选型
-├── collaboration/                    # 跨团队协作与交付规则
-├── verification/                     # 业务校审和技术验证工作清单
-├── baseline-data/                    # 机器可读数据、字典与校验报告
 ├── 00-source-materials/              # 原始研究材料，不作为现行法规原文
-└── 01-review-reports/                # 历史审查与复审记录
+├── 01-review-reports/                # 历史审查与复审记录
+├── 02-prd/                           # 当前及历史产品需求文档
+├── 03-architecture/                  # 总体架构与技术选型
+├── 04-baseline-data/                 # 机器可读数据、字典与校验报告
+├── 05-verification/                  # 业务校审和技术验证工作清单
+└── 06-collaboration/                 # 跨团队协作与交付规则
 ```
 
-## 三、PRD 产品需求文档：`prd/`
+## 三、PRD 产品需求文档：`02-prd/`
 
 | 文件 | 用途与当前定位 |
 | :--- | :--- |
@@ -46,7 +46,7 @@ docs/
 
 阅读规则：新需求开发默认阅读 v2.3；旧版本仅用于理解变更原因。发现 v2.3 与原型或真实业务冲突时，应通过决策记录和生成器修订，而不是从历史版本复制规则。历史 PRD 中可能保留原作者机器的 `file://` 本地链接，这些链接仅作历史留痕，不属于仓库可访问文件，Agent 不应据此判断仓库缺件。
 
-## 四、架构与选型：`architecture/`
+## 四、架构与选型：`03-architecture/`
 
 | 文件 | 用途 |
 | :--- | :--- |
@@ -55,7 +55,7 @@ docs/
 
 新增技术选型时，应先检查现有架构，不得绕开技术负责人另行决定数据库、前端、移动端或证据存储方案。
 
-## 五、团队协作：`collaboration/`
+## 五、团队协作：`06-collaboration/`
 
 | 文件 | 用途 |
 | :--- | :--- |
@@ -63,7 +63,7 @@ docs/
 
 所有团队开始任务前应阅读该文件。它同时明确：允许当前阶段开发，不等于允许直接全量上线。
 
-## 六、业务与技术验证：`verification/`
+## 六、业务与技术验证：`05-verification/`
 
 | 文件 | 用途 |
 | :--- | :--- |
@@ -72,7 +72,7 @@ docs/
 
 这两份文件是**待执行工作模板**，不是已完成验证的证明。实际结果应另附签认记录、日志、截图、测试报告和证据链接。
 
-## 七、机器可读基线：`baseline-data/`
+## 七、机器可读基线：`04-baseline-data/`
 
 | 文件 | 用途 | 是否生成 |
 | :--- | :--- | :--- |
@@ -129,7 +129,7 @@ docs/
 | 文件 | 用途 |
 | :--- | :--- |
 | `generate_baseline_data.py` | 从原始 Word/Excel 生成节点、字段字典、校审台账和准入报告 |
-| `generate_prd_v23.py` | 从基线和字典生成当前 PRD v2.3 到 `docs/prd/` |
+| `generate_prd_v23.py` | 从基线和字典生成当前 PRD v2.3 到 `docs/02-prd/` |
 | `validate_prd_consistency.py` | 校验 PRD、架构、节点、示例、命名和关键规则一致性 |
 
 统一执行方式：
@@ -140,7 +140,7 @@ python3 scripts/generate_prd_v23.py
 python3 scripts/validate_prd_consistency.py
 ```
 
-执行后必须检查生成结果和 Git 差异。校验具体数量以 `baseline-data/prd_consistency_report.json` 为准，不在多个文档中手工维护固定数字。
+执行后必须检查生成结果和 Git 差异。校验具体数量以 `04-baseline-data/prd_consistency_report.json` 为准，不在多个文档中手工维护固定数字。
 
 ## 十一、不同角色的阅读路线
 
@@ -194,4 +194,4 @@ python3 scripts/validate_prd_consistency.py
 5. 临时沟通材料不属于正式基线，需要长期保留时应整理为正式文档后归档；
 6. 评审报告保留历史判断，不回写为当前需求；
 7. 后续形成数据库、OpenAPI、真实前后端工程和测试报告后，应在根 README 与本文件中增加对应入口；
-8. 所有变更通过 GitHub 留痕，具体协作方式见 `collaboration/team-collaboration-and-delivery-workflow.md`。
+8. 所有变更通过 GitHub 留痕，具体协作方式见 `06-collaboration/team-collaboration-and-delivery-workflow.md`。

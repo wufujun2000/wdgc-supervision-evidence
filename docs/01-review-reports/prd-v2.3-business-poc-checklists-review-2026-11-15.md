@@ -59,7 +59,7 @@ python3 scripts/validate_prd_consistency.py
 
 **位置：**
 
-- `docs/verification/business-source-review-checklist.md` 第 89～92、134 行；
+- `docs/05-verification/business-source-review-checklist.md` 第 89～92、134 行；
 - `scripts/generate_baseline_data.py` 第 154、173、182～195、234～237 行。
 
 校审清单要求：
@@ -160,7 +160,7 @@ WORM 保护生效时，覆盖/修改操作本身应被阻止，可能无法进�
 
 建议统一写为：
 
-> 一致性校验全部通过，具体数量以 `docs/baseline-data/prd_consistency_report.json` 的 `checks_passed/checks_total` 为准。
+> 一致性校验全部通过，具体数量以 `docs/04-baseline-data/prd_consistency_report.json` 的 `checks_passed/checks_total` 为准。
 
 如确需展示数字，应由脚本生成 README 摘要，避免每次新增断言后再次产生文档漂移。
 

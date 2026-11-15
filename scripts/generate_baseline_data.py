@@ -18,7 +18,7 @@ from collections import Counter
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(BASE_DIR, "docs", "00-source-materials")
-OUT_DIR = os.path.join(BASE_DIR, "docs", "baseline-data")
+OUT_DIR = os.path.join(BASE_DIR, "docs", "04-baseline-data")
 
 def get_docx_body_blocks(path):
     with zipfile.ZipFile(path) as z:

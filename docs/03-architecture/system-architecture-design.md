@@ -4,10 +4,10 @@
 > **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 修正 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
 > **编制日期**：2026-11-12；**v1.4 评审整改日期**：2026-11-15
 > **审查与复审依据**：`docs/01-review-reports/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
-> **机器可读数据字典**：`docs/baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射）
+> **机器可读数据字典**：`docs/04-baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/04-baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射）
 > **开发模式**：AI Agent Vibe Coding 主导开发（文档驱动、强类型护栏、垂直切片高内聚）
 > **基线选型决议（锁定完整 Commit SHA）**：以 **`fastapiadmin/FastapiAdmin`（项目包版本 v3.2.0，固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）** 为主工程骨架；吸收借鉴 **`insistence/RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）** 的文件防篡改治理、接口防重放签名、Agno 视觉多模态 SSE 设计思想，在本底座中构建对应的自研增强模块。
-> **关联需求文档**：`docs/prd/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/prd/PRD_v1.0_正式版.md`、`docs/prd/PRD_v2.0_架构对齐版.md`、`docs/prd/PRD_v2.1_评审闭环版.md` 与 `docs/prd/PRD_v2.2_评审整改中.md`）
+> **关联需求文档**：`docs/02-prd/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/02-prd/PRD_v1.0_正式版.md`、`docs/02-prd/PRD_v2.0_架构对齐版.md`、`docs/02-prd/PRD_v2.1_评审闭环版.md` 与 `docs/02-prd/PRD_v2.2_评审整改中.md`）
 
 ---
 
@@ -88,7 +88,7 @@ flowchart TB
    - `sys_user`、`sys_role`、`sys_menu`、`sys_dept`、`sys_dict_*`、`sys_log`：100% 留给 **平台管理端 (`platform-web`)** 的平台运维管理员（`ROLE_SYSADMIN`）和超级管理员（`ROLE_SUPERADMIN`）使用。
 2. **`plat_*`（平台级危大业务基线表，无 `tenant_id` 或 `tenant_id=0`）**：
    - `plat_enterprise`（监理企业租户主表：管理入驻企业 `ENT-001`、社会信用代码、状态 `1正常/0冻结`、存储配额、OSS 根路径前缀）。
-   - `plat_hazard_node_base`（课题研究成果 12 大类 347 个危大采集节点只读基线库，含 11 类专业危大 342 项 + 通用应急 5 项，版本号 `v1.1`，由 `docs/baseline-data/hazard_nodes_seed.json` 导入）。
+   - `plat_hazard_node_base`（课题研究成果 12 大类 347 个危大采集节点只读基线库，含 11 类专业危大 342 项 + 通用应急 5 项，版本号 `v1.1`，由 `docs/04-baseline-data/hazard_nodes_seed.json` 导入）。
    - `plat_privilege_audit_log`（超级管理员跨租户穿透调阅与特权操作 WORM 只读审计日志表）。
 3. **`biz_*`（租户业务域表，100% 强制包含 `tenant_id` 字段）**：
    - 所有表继承 `TenantModelMixin`，包含 `tenant_id: Mapped[int] = mapped_column(BigInteger, index=True, nullable=False, comment="所属监理企业租户ID")`。
@@ -154,8 +154,8 @@ sequenceDiagram
 1. **裁定 1：统一为 24 个标准编号字段（`B001~B304`）+ 数据库内部扩展列（消除原 PRD 6.2 节与 10.3 节编号错位及 26/32/34 口径混乱）**：
    - 严格对齐课题原始材料《附录B 标准化数据字段表.docx》的 **24 个标准编号**（`B001~B011`、`B101~B106`、`B201~B203`、`B301~B304`）作为对外交互与台账导出标准；
    - 数据库表 `biz_media_evidence` 的 28 个内部扩展管理列（如 `tenant_id`、`project_id`、`task_occurrence_id`、`gps_status`、`client_clock_verified`、`is_offline_queued`、`raw_frame_sha256`、`watermarked_file_path`、`retention_policy_code` 等）不占用 B 系列标准编号；
-   - 唯一事实来源为 **`docs/baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
-2. **裁定 2：统一标准化文件重命名公式（与 `docs/baseline-data/hazard_nodes_seed.json` 及 PRD 第 6.2 节完全一致）**：
+   - 唯一事实来源为 **`docs/04-baseline-data/metadata_and_forms_dictionary.json`**，字段命名全栈统一采用 `snake_case`。
+2. **裁定 2：统一标准化文件重命名公式（与 `docs/04-baseline-data/hazard_nodes_seed.json` 及 PRD 第 6.2 节完全一致）**：
    - 统一采用包含子类别与全局唯一节点后缀的公式作为主规范：
      $$\text{影像文件名} = \text{project\_code}\_\text{hazard\_code}\_\text{subcategory\_code}\_\text{stage\_code}\_\text{node\_uid\_suffix}\_\text{risk\_file\_token}\_\text{yyyyMMddHHmmss}[\_\text{suffix}].\text{JPG|MP4}$$
      - 示例：`TJ-2026-0089_04_SC03_01_01_★_20261014143218_QZ.JPG`
@@ -263,7 +263,7 @@ erDiagram
 - 完整度分母为“已进入施工时点且经确认适用的应采任务发生实例”，分子为“其中已采集且审核闭环的实例数”，剔除不适用与未到工序时点项。
 
 ### 9.4 数据与文档一致性 CI 断言
-- 通过 `scripts/generate_baseline_data.py` 自动生成 `docs/baseline-data/` 下的 `hazard_nodes_seed.json`、`metadata_and_forms_dictionary.json`、`source_data_review_log.json` 与 `validation_report.json`；
+- 通过 `scripts/generate_baseline_data.py` 自动生成 `docs/04-baseline-data/` 下的 `hazard_nodes_seed.json`、`metadata_and_forms_dictionary.json`、`source_data_review_log.json` 与 `validation_report.json`；
 - CI 强制断言：`node_uid` 唯一率 100%、标准字段与 PRD 表格完全一致、无残留旧规则（50张/5段视频、超管进入小程序、旧完整度公式等）。
 
 
@@ -275,10 +275,10 @@ erDiagram
 - **B004** 恢复为原始附录清单业务编号 `legacy_node_code`（非唯一键），内部全局身份 `node_uid` 作为独立扩展列；
 - **B005** 风险等级仅允许 `★/△`，原始空白仅通过 `review_status` 与 `raw_risk_level` 表达，严禁将 `UNSPECIFIED` 作为业务风险等级；
 - **B006** 单文件介质仅允许“照片/视频”，节点建议介质独立为 `suggested_media_type`；
-- 所有字段名、类型、长度与生成主体由 `docs/baseline-data/metadata_and_forms_dictionary.json` 统一驱动。
+- 所有字段名、类型、长度与生成主体由 `docs/04-baseline-data/metadata_and_forms_dictionary.json` 统一驱动。
 
 ### 10.2 验证报告业务准入状态真实拆分
-`docs/baseline-data/validation_report.json` 分别输出：
+`docs/04-baseline-data/validation_report.json` 分别输出：
 - `structural_status`：结构校验状态（记录数、唯一 node_uid、字段数量）；
 - `source_review_status`：源数据业务校审状态（CONFIRMED / PENDING_REVIEW 数量）；
 - `business_readiness`：业务准入状态（存在 PENDING_REVIEW 节点时为 BLOCKED）。
@@ -288,4 +288,4 @@ erDiagram
 ### 10.3 真实 CI 一致性校验链路
 - `scripts/generate_baseline_data.py`：从原始 Word/Excel 生成四份机器可读 JSON；
 - `scripts/generate_prd_v23.py`：从字典自动生成 PRD 字段表、节点统计、真实示例与法定履职验收用例；
-- `scripts/validate_prd_consistency.py`：实际执行 91 项断言（节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径），校验结果输出至 `docs/baseline-data/prd_consistency_report.json`。
+- `scripts/validate_prd_consistency.py`：实际执行 91 项断言（节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径），校验结果输出至 `docs/04-baseline-data/prd_consistency_report.json`。

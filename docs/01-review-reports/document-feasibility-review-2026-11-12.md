@@ -42,9 +42,9 @@
 
 | 材料类别 | 主要文件 | 本次用途 |
 |---|---|---|
-| 产品需求 | `docs/prd/PRD_v1.0_正式版.md`、`docs/prd/PRD_v2.0_架构对齐版.md` | 版本差异、功能边界、数据规则、验收标准审查 |
-| 总体架构 | `docs/architecture/system-architecture-design.md` | 技术路线、权限、多租户、证据链和实施路线审查 |
-| 选型依据 | `docs/architecture/rbac-framework-comparison-report.md` | 框架版本、提交、源码能力与选型证据核验 |
+| 产品需求 | `docs/02-prd/PRD_v1.0_正式版.md`、`docs/02-prd/PRD_v2.0_架构对齐版.md` | 版本差异、功能边界、数据规则、验收标准审查 |
+| 总体架构 | `docs/03-architecture/system-architecture-design.md` | 技术路线、权限、多租户、证据链和实施路线审查 |
+| 选型依据 | `docs/03-architecture/rbac-framework-comparison-report.md` | 框架版本、提交、源码能力与选型证据核验 |
 | 研究报告 | `docs/00-source-materials/危大工程监理履职数字化证据链构建与应用研究（研究报告初稿）.docx` | 需求来源、调研依据和研究限制核对 |
 | 采集清单 | `docs/00-source-materials/附录A-1～A-11` 各专业 DOCX | 节点数据行复算及分类数量核对 |
 | 字段与命名 | `docs/00-source-materials/附录B 标准化数据字段表.docx`、`docs/00-source-materials/附录C 文件名与存储规则示例.docx` | 字段数量、命名、目录和保存规则核对 |
@@ -267,10 +267,10 @@ GB/T 50319-2013 的基本表式不能按现有 F01～F05 映射直接生成。�
 
 ### A. 项目内部材料
 
-- `docs/prd/PRD_v2.0_架构对齐版.md`：第 0、2～10 章。
-- `docs/prd/PRD_v1.0_正式版.md`：用于历史版本对照。
-- `docs/architecture/system-architecture-design.md`：第 1～8 节。
-- `docs/architecture/rbac-framework-comparison-report.md`：版本、源码能力与选型结论。
+- `docs/02-prd/PRD_v2.0_架构对齐版.md`：第 0、2～10 章。
+- `docs/02-prd/PRD_v1.0_正式版.md`：用于历史版本对照。
+- `docs/03-architecture/system-architecture-design.md`：第 1～8 节。
+- `docs/03-architecture/rbac-framework-comparison-report.md`：版本、源码能力与选型结论。
 - `docs/00-source-materials/` 下研究报告、附录 A-1～A-11、附录 B、附录 C。
 
 ### B. 外部官方资料

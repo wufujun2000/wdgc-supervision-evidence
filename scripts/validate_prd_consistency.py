@@ -8,9 +8,9 @@ import re
 import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, "docs", "baseline-data")
-PRD_PATH = os.path.join(BASE_DIR, "docs", "prd", "PRD_v2.3_评审整改中.md")
-ARCH_PATH = os.path.join(BASE_DIR, "docs", "architecture", "system-architecture-design.md")
+OUT_DIR = os.path.join(BASE_DIR, "docs", "04-baseline-data")
+PRD_PATH = os.path.join(BASE_DIR, "docs", "02-prd", "PRD_v2.3_评审整改中.md")
+ARCH_PATH = os.path.join(BASE_DIR, "docs", "03-architecture", "system-architecture-design.md")
 
 errors = []
 checks = []

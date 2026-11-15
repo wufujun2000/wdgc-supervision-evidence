@@ -23,11 +23,11 @@
 
 ### 2.1 复审材料
 
-1. `docs/prd/PRD_v2.2_评审整改中.md`
-2. `docs/baseline-data/hazard_nodes_seed.json`
-3. `docs/baseline-data/metadata_and_forms_dictionary.json`
-4. `docs/baseline-data/source_data_review_log.json`
-5. `docs/baseline-data/validation_report.json`
+1. `docs/02-prd/PRD_v2.2_评审整改中.md`
+2. `docs/04-baseline-data/hazard_nodes_seed.json`
+3. `docs/04-baseline-data/metadata_and_forms_dictionary.json`
+4. `docs/04-baseline-data/source_data_review_log.json`
+5. `docs/04-baseline-data/validation_report.json`
 6. `scripts/generate_baseline_data.py`
 
 ### 2.2 补充溯源材料
@@ -297,5 +297,5 @@ PRD v2.2 相比 v2.1 已有明显进步，尤其是：
 - PRD 严重隐患及验收门禁：第 1254～1267 行；
 - PRD 任务 Occurrence：第 1548～1560 行；
 - PRD 隐私合规专节：第 2141～2156 行；
-- 原始待审日志：`docs/baseline-data/source_data_review_log.json`；
-- 结构验证报告：`docs/baseline-data/validation_report.json`。
+- 原始待审日志：`docs/04-baseline-data/source_data_review_log.json`；
+- 结构验证报告：`docs/04-baseline-data/validation_report.json`。

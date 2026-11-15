@@ -10,7 +10,7 @@
 
 本仓库目前主要包含需求、架构、原始研究材料、机器可读数据、生成与校验脚本，以及团队协作和评审记录；尚不是包含完整前后端实现的成品仓库。
 
-当前允许开展技术基线、原型和限定范围业务开发。全量上线仍需完成源数据业务校审、真机与云服务 PoC、行为验收及法务合规复核，具体状态见 `docs/baseline-data/validation_report.json`。
+当前允许开展技术基线、原型和限定范围业务开发。全量上线仍需完成源数据业务校审、真机与云服务 PoC、行为验收及法务合规复核，具体状态见 `docs/04-baseline-data/validation_report.json`。
 
 ## 二、目标业务能力
 
@@ -29,10 +29,10 @@
 | 顺序 | 文件 | 用途 |
 | :--- | :--- | :--- |
 | 1 | [`docs/README.md`](docs/README.md) | 完整文档地图、当前版本、逐文件说明和角色阅读路线 |
-| 2 | [`docs/prd/PRD_v2.3_评审整改中.md`](docs/prd/PRD_v2.3_评审整改中.md) | 当前产品需求、角色、功能、数据规则及验收要求 |
-| 3 | [`docs/architecture/system-architecture-design.md`](docs/architecture/system-architecture-design.md) | 技术选型、工程拓扑、多租户与证据链架构 |
-| 4 | [`docs/collaboration/team-collaboration-and-delivery-workflow.md`](docs/collaboration/team-collaboration-and-delivery-workflow.md) | 产品、技术、测试和专家评审团队的协作规则 |
-| 5 | [`docs/baseline-data/validation_report.json`](docs/baseline-data/validation_report.json) | 当前结构、业务校审和开发准入状态 |
+| 2 | [`docs/02-prd/PRD_v2.3_评审整改中.md`](docs/02-prd/PRD_v2.3_评审整改中.md) | 当前产品需求、角色、功能、数据规则及验收要求 |
+| 3 | [`docs/03-architecture/system-architecture-design.md`](docs/03-architecture/system-architecture-design.md) | 技术选型、工程拓扑、多租户与证据链架构 |
+| 4 | [`docs/06-collaboration/team-collaboration-and-delivery-workflow.md`](docs/06-collaboration/team-collaboration-and-delivery-workflow.md) | 产品、技术、测试和专家评审团队的协作规则 |
+| 5 | [`docs/04-baseline-data/validation_report.json`](docs/04-baseline-data/validation_report.json) | 当前结构、业务校审和开发准入状态 |
 
 **所有文档相关说明统一查看 [`docs/README.md`](docs/README.md)。根 README 只承担项目入口和工程导航职责。**
 
@@ -43,13 +43,13 @@ wdgc-supervision-evidence/
 ├── README.md                         # 项目说明与开发 Agent 总入口
 ├── docs/                             # 需求、架构、数据、验证与评审资料
 │   ├── README.md                     # 文档总目录和逐文件说明
-│   ├── prd/                          # 当前及历史 PRD
-│   ├── architecture/                 # 总体架构与框架选型依据
-│   ├── collaboration/                # 跨团队协作与交付规则
-│   ├── verification/                 # 业务校审与技术 PoC 工作清单
-│   ├── baseline-data/                # 机器可读基线及校验报告
 │   ├── 00-source-materials/          # 原始研究报告、附录和履约模板
-│   └── 01-review-reports/            # 历次第三方审查与复审记录
+│   ├── 01-review-reports/            # 历次第三方审查与复审记录
+│   ├── 02-prd/                       # 当前及历史 PRD
+│   ├── 03-architecture/              # 总体架构与框架选型依据
+│   ├── 04-baseline-data/             # 机器可读基线及校验报告
+│   ├── 05-verification/              # 业务校审与技术 PoC 工作清单
+│   └── 06-collaboration/             # 跨团队协作与交付规则
 └── scripts/                          # 基线生成、PRD 生成和一致性校验脚本
 ```
 
@@ -67,11 +67,11 @@ python3 scripts/validate_prd_consistency.py
 
 生成结果包括：
 
-- `docs/baseline-data/hazard_nodes_seed.json`：347 条基线记录及唯一节点身份；
-- `docs/baseline-data/metadata_and_forms_dictionary.json`：标准字段、内部扩展和表单映射；
-- `docs/baseline-data/validation_report.json`：结构与业务准入状态；
-- `docs/baseline-data/prd_consistency_report.json`：实际一致性检查数量与结果；
-- `docs/prd/PRD_v2.3_评审整改中.md`：由生成器输出的当前 PRD。
+- `docs/04-baseline-data/hazard_nodes_seed.json`：347 条基线记录及唯一节点身份；
+- `docs/04-baseline-data/metadata_and_forms_dictionary.json`：标准字段、内部扩展和表单映射；
+- `docs/04-baseline-data/validation_report.json`：结构与业务准入状态；
+- `docs/04-baseline-data/prd_consistency_report.json`：实际一致性检查数量与结果；
+- `docs/02-prd/PRD_v2.3_评审整改中.md`：由生成器输出的当前 PRD。
 
 修改原始材料、生成器或字典后，应重新执行上述命令并检查 Git 差异。不要直接手改由脚本生成的 PRD 和基线文件。
 
@@ -79,6 +79,6 @@ python3 scripts/validate_prd_consistency.py
 
 产品、技术、测试和专家评审团队统一遵循：
 
-- [`docs/collaboration/team-collaboration-and-delivery-workflow.md`](docs/collaboration/team-collaboration-and-delivery-workflow.md)
+- [`docs/06-collaboration/team-collaboration-and-delivery-workflow.md`](docs/06-collaboration/team-collaboration-and-delivery-workflow.md)
 
 开发与上线门禁分离：允许当前阶段并行开发，不代表已经具备全量上线条件。业务规则、数据库、API、原型和测试变更应通过 GitHub 留痕，避免口头变更和跨文档漂移。

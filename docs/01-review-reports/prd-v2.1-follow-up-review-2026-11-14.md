@@ -4,7 +4,7 @@
 > 复审日期：2026-11-14  
 > 呈送对象：产品负责人、项目负责人、技术负责人及相关评审人员  
 > 前序审查：`docs/01-review-reports/document-feasibility-review-2026-11-12.md`  
-> 复审对象：`docs/prd/PRD_v2.1_评审闭环版.md`、产品负责人回复及配套机器可读基线
+> 复审对象：`docs/02-prd/PRD_v2.1_评审闭环版.md`、产品负责人回复及配套机器可读基线
 > 评审性质：整改有效性复核与开发准入审查
 
 ## 一、复审结论
@@ -29,13 +29,13 @@
 ### 2.1 主要复审材料
 
 1. `docs/temp/third-party-review-and-source-verification-for-po.md`
-2. `docs/prd/PRD_v2.1_评审闭环版.md`
-3. `docs/baseline-data/hazard_nodes_seed.json`
-4. `docs/baseline-data/metadata_and_forms_dictionary.json`
+2. `docs/02-prd/PRD_v2.1_评审闭环版.md`
+3. `docs/04-baseline-data/hazard_nodes_seed.json`
+4. `docs/04-baseline-data/metadata_and_forms_dictionary.json`
 
 ### 2.2 补充交叉核验材料
 
-1. `docs/architecture/system-architecture-design.md`（v1.1）
+1. `docs/03-architecture/system-architecture-design.md`（v1.1）
 2. `docs/00-source-materials/附录A-2模板工程及支撑体系监理影像采集清单.docx`
 3. `docs/00-source-materials/附录A-8钢结构、网架和索膜结构安装工程影像采集清单.docx`
 4. 《危险性较大的分部分项工程安全管理规定》（住建部令第37号，根据第47号令修正）
