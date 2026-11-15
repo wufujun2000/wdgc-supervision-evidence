@@ -400,7 +400,7 @@ def main():
     print("=" * 70)
     print(f"✅ 基线库生成与结构校验通过: {len(nodes)} 条记录 / {len(set(node_uids))} 个全局唯一 node_uid")
     print(f"📋 业务校审状态: CONFIRMED={confirmed_count} 条, PENDING_REVIEW={pending_count} 条")
-    print(f"🚦 业务准入状态: business_readiness={validation_report['business_readiness']}（待业务专家确认后方可全量开发）")
+    print(f"🚦 业务准入状态: business_readiness={validation_report['business_readiness']}（技术基线可继续；业务试点与全量推广须待全部准入条件完成）")
     print("=" * 70)
 
 if __name__ == "__main__":

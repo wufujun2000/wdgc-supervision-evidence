@@ -1,7 +1,7 @@
 {
   "structural_status": "PASS",
-  "checks_passed": 93,
-  "checks_total": 93,
+  "checks_passed": 94,
+  "checks_total": 94,
   "errors": [],
   "checks": [
     {
@@ -468,6 +468,11 @@
       "check": "PIPIA 与法务复核要求",
       "passed": true,
       "detail": "通过：PIPIA 与法务复核要求"
+    },
+    {
+      "check": "PRD 静态门禁状态行可更新",
+      "passed": true,
+      "detail": "通过：PRD 静态门禁状态行可更新"
     }
   ]
 }

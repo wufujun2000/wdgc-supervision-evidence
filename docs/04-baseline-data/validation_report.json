@@ -1,6 +1,6 @@
 {
   "structural_status": "PASS",
-  "static_consistency_status": "PENDING",
+  "static_consistency_status": "PASS",
   "source_review_status": "PENDING",
   "technical_poc_status": "PENDING",
   "compliance_review_status": "PENDING",

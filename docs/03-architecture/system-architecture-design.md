@@ -4,7 +4,7 @@
 > **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 修正 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
 > **编制日期**：2026-11-12；**v1.4 评审整改日期**：2026-11-15
 > **审查与复审依据**：`docs/01-review-reports/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
-> **机器可读数据字典**：`docs/04-baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/04-baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 28 个内部扩展列 + F01~F05 表单映射）
+> **机器可读数据字典**：`docs/04-baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/04-baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 30 个内部扩展列 + F01~F05 表单映射）
 > **开发模式**：AI Agent Vibe Coding 主导开发（文档驱动、强类型护栏、垂直切片高内聚）
 > **基线选型决议（锁定完整 Commit SHA）**：以 **`fastapiadmin/FastapiAdmin`（项目包版本 v3.2.0，固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）** 为主工程骨架；吸收借鉴 **`insistence/RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）** 的文件防篡改治理、接口防重放签名、Agno 视觉多模态 SSE 设计思想，在本底座中构建对应的自研增强模块。
 > **关联需求文档**：`docs/02-prd/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/02-prd/PRD_v1.0_正式版.md`、`docs/02-prd/PRD_v2.0_架构对齐版.md`、`docs/02-prd/PRD_v2.1_评审闭环版.md` 与 `docs/02-prd/PRD_v2.2_评审整改中.md`）
@@ -63,8 +63,8 @@ flowchart TB
 
 | 编号 | 目标文件 | 原生问题（源码锚点） | 加固改造方案 |
 | :---: | :--- | :--- | :--- |
-| **H-01** | `vendor/FastapiAdmin/backend/app/core/base_crud.py` | `delete()`(L424)、`set()`(L472)、`clear()`(L504) 直接构造 `WHERE id IN (...)`，绕过了 `_build_conditions()` 中的软删除与数据权限过滤。 | 强制所有写/删方法（`update`、`delete`、`set`、`clear`）统一合并 `await self._build_conditions()` 生成的租户与数据权限条件，杜绝跨租户/跨项目越权修改或删除。 |
-| **H-02** | `vendor/FastapiAdmin/backend/app/core/dependencies.py` | `_authenticate()` 从 Redis 会话读取用户状态，回查数据库时仅校验 `is_deleted == False`，未校验账号启用状态与租户冻结状态。 | 认证依赖同时校验 **`user.status == 0`（正常启用，`FastapiAdmin` 源码中 0=启用，1=停用）** 及所属租户 `enterprise.status == 1`（正常未冻结）；一旦平台冻结某监理企业租户或企业停用某员工，立即清理其 Redis Token 会话并实时阻断请求。 |
+| **H-01** | `vendor/FastapiAdmin/backend/app/core/base_crud.py` | `delete()`、`set()`、`clear()` 直接构造 `WHERE id IN (...)`，绕过了 `_build_conditions()` 中的软删除与数据权限过滤；`update()` 也未复用统一的数据权限条件。 | 强制所有写/删方法（`update`、`delete`、`set`、`clear`）统一合并 `await self._build_conditions()` 生成的租户与数据权限条件，杜绝跨租户/跨项目越权修改或删除。 |
+| **H-02** | `vendor/FastapiAdmin/backend/app/core/dependencies.py` | `_authenticate()` 会检查 Redis 会话快照中的 `user_status`，但数据库回查仅校验 `is_deleted == False`，未实时校验当前 `UserModel.status`；原生模型也没有企业租户冻结状态。停用用户时仅更新数据库而不清理既有会话，快照状态可能滞后。 | 认证依赖同时校验 **`user.status == 0`（正常启用，`FastapiAdmin` 源码中 0=启用，1=停用）** 及所属租户 `enterprise.status == 1`（正常未冻结）；一旦平台冻结某监理企业租户或企业停用某员工，立即清理其 Redis Token 会话并实时阻断请求。 |
 | **H-03** | `vendor/FastapiAdmin/backend/app/core/permission.py` | 原 `Permission` 仅实现 3 级且通过 `created_by.has(UserModel.dept_id...)` 动态关联，不契合监理工程按“项目 + 危大分类”授权的业务模型。 | 平台域保留基础权限；租户域新增专门的 **`TenantProjectPermission`**（见第 4 节），基于业务表固化的 `(tenant_id, project_id, hazard_code)` 进行高性能索引过滤。 |
 
 ### 2.2 从 `RuoYi-FastAPI` (v2.0.0) 吸收移植的 4 大核心模块
@@ -72,7 +72,7 @@ flowchart TB
 | 编号 | 吸收自 `RuoYi-FastAPI` 的源模块 | 移植入本底座的目标位置 | 赋能本项目的具体业务价值 |
 | :---: | :--- | :--- | :--- |
 | **M-01** | **企业级文件证据治理与防篡改对账设计（自研增强模块）**<br>（借鉴 `RuoYi-FastAPI` 文件治理模型，在本底座基于阿里云 OSS / MinIO 重新实现全量流式对账） | `src/backend/app/modules/tenant/media_evidence/reconcile_service.py` 及存证对账表 | 直接赋能 PRD 7.3 节司法防篡改要求：<br>1. 固化归档摘要 `file_sha256` 与原始帧摘要 `raw_frame_sha256` 双哈希分离，以及 `worm_locked_status` / 长期留存保护状态；<br>2. 图单强引用计数（防止已被 F01~F05 表单引用的现场照片被误删）；<br>3. **后台定时防篡改对账任务（`reconcile_run`）**：定期抽检或全量重算 OSS 文件流 SHA-256 与数据库比对，发现 1-bit 篡改立即锁定标红并生成 `reconcile_issue` 安全告警。 |
-| **M-02** | **接口防重放签名与客户端通道鉴权中间件**<br>（源：`middlewares/transport_crypto_middleware.py`） | `src/backend/app/core/middlewares/evidence_guard_middleware.py` | 直接赋能 PRD 5.4 / 7.3.5 / 7.4.3 刚性红线：<br>1. 校验请求头 `X-Timestamp`（与服务端 NTP 时间差 >15 分钟自动打上“时间异常漂移”标记）、`X-Nonce`（Redis 防重放）、`X-Sign`（HMAC-SHA256 签名）；<br>2. **PC 端禁拍取证硬拦截**：现场影像上传接口 `/api/v1/mp/evidence/upload` 强制校验微信小程序专属通道签名与设备硬件元数据，PC 端直接调用一律返回 `403 Forbidden`。 |
+| **M-02** | **传输层防重放设计参考与自研客户端通道鉴权中间件**<br>（参考 `ruoyi-fastapi-backend/middlewares/transport_crypto_middleware.py`：上游实现 RSA/AES 信封加解密及信封内 `ts/nonce` 校验，不直接提供下述 HMAC 三请求头实现） | `src/backend/app/core/middlewares/evidence_guard_middleware.py` | 直接赋能 PRD 5.4 / 7.3.5 / 7.4.3 刚性红线：<br>1. 校验请求头 `X-Timestamp`（与服务端 NTP 时间差 >15 分钟自动打上“时间异常漂移”标记）、`X-Nonce`（Redis 防重放）、`X-Sign`（HMAC-SHA256 签名）；<br>2. **PC 端禁拍取证硬拦截**：现场影像上传接口 `/api/v1/mp/evidence/upload` 强制校验微信小程序专属通道签名与设备硬件元数据，PC 端直接调用一律返回 `403 Forbidden`。 |
 | **M-03** | **Agno 多模态视觉 Agent + HTTP SSE 流式引擎**<br>（源：`plugins/ai/service/ai_chat_service.py`、`ai_util.py`） | `src/backend/app/modules/ai/` | 弥补 `FastapiAdmin` AI 仅支持纯文本 WebSocket 的短板：<br>1. 引入 `agno.media.Image` 多模态输入，现场照片上传后可异步或实时调用视觉大模型自动生成 **B201 AI 风险识别标签、B202 置信度、B010 风险简述建议**；<br>2. 增加标准 HTTP SSE 流式端点，完美兼容微信小程序 `enableChunked: true`；<br>3. 保留 `FastapiAdmin` 原有的 `tools/registry.py` 闭包鉴权工具机制，让 AI 助手能安全查询当前项目的危大节点规范与未闭环隐患。 |
 | **M-04** | **全栈前后端路由与字段契约 AST 静态检查器（本项目自研工具）**<br>（基于 FastAPI 路由 Schema 与三套前端 AST 扫描实现） | `scripts/fullstack_contract_check.py` | 专为 Agent Vibe Coding 打造的防幻觉护栏：自动扫描 FastAPI 路由 Schema 与 `platform-web` (Vue3)、`tenant-web` (React)、`mp-app` (UniApp) 的接口调用代码，确保 URL、Method、请求/响应字段 100% 对齐。 |
 
@@ -288,4 +288,4 @@ erDiagram
 ### 10.3 真实 CI 一致性校验链路
 - `scripts/generate_baseline_data.py`：从原始 Word/Excel 生成四份机器可读 JSON；
 - `scripts/generate_prd_v23.py`：从字典自动生成 PRD 字段表、节点统计、真实示例与法定履职验收用例；
-- `scripts/validate_prd_consistency.py`：实际执行 91 项断言（节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径），校验结果输出至 `docs/04-baseline-data/prd_consistency_report.json`。
+- `scripts/validate_prd_consistency.py`：执行节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径等断言；实际检查数量以 `docs/04-baseline-data/prd_consistency_report.json` 的 `checks_passed/checks_total` 为准，校验后同步 `validation_report.json` 与 PRD 的 `static_consistency_status`。

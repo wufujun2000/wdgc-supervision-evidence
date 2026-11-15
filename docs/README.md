@@ -11,9 +11,10 @@
 | 当前需求版本 | PRD v2.3，评审整改中，可用于原型与限定范围开发 | `02-prd/PRD_v2.3_评审整改中.md` |
 | 当前架构版本 | 总体架构 v1.4，技术基线已确定 | `03-architecture/system-architecture-design.md` |
 | 节点结构 | 347 条基线记录、347 个唯一 `node_uid` | `04-baseline-data/hazard_nodes_seed.json` |
-| 标准字段 | 24 个标准编号字段、28 个内部扩展列 | `04-baseline-data/metadata_and_forms_dictionary.json` |
+| 标准字段 | 24 个标准编号字段、30 个内部扩展列 | `04-baseline-data/metadata_and_forms_dictionary.json` |
+| 校审人工输入 | 独立保存专家决定，生成器按节点与源指纹合并，重跑不覆盖 | `04-baseline-data/source_review_decisions.json` |
 | 源数据校审 | 16 条已确认、331 条待审，另有 1 条原始内容错配 | `04-baseline-data/source_data_review_log.json` |
-| 静态一致性 | 以最新校验报告的实际通过数为准 | `04-baseline-data/prd_consistency_report.json` |
+| 静态一致性 | 自动检查结果以 `checks_passed/checks_total` 为准，校验后同步综合报告中的静态门禁状态 | `04-baseline-data/prd_consistency_report.json`、`04-baseline-data/validation_report.json` |
 | 业务上线准入 | BLOCKED，不表示禁止技术基线、原型和限定范围开发 | `04-baseline-data/validation_report.json` |
 | 技术 PoC | 已有工作清单，尚需真实测试证据 | `05-verification/technical-poc-verification-checklist.md` |
 | 法务与隐私 | 尚需专项复核 | 同上及当前 PRD 第 7.7 节 |
@@ -77,6 +78,7 @@ docs/
 | 文件 | 用途 | 是否生成 |
 | :--- | :--- | :--- |
 | `hazard_nodes_seed.json` | 347 条课题采集基线、节点唯一身份、原始行级溯源、风险等级和校审状态 | 是 |
+| `source_review_decisions.json` | 人工校审决定输入，按 `(node_uid, issue_type, source_fingerprint)` 关联并保留审核记录 | 否（人工维护） |
 | `metadata_and_forms_dictionary.json` | 24 个标准字段、内部扩展列及 F01～F05 表单映射 | 是 |
 | `source_data_review_log.json` | 原始材料待审事项及审核结果台账 | 是 |
 | `validation_report.json` | 结构状态、源数据校审状态和业务准入状态 | 是 |

@@ -1,7 +1,7 @@
 # 危大工程监理履职证据链系统 —— 源数据业务校审工作清单（V1.0）
 
 > **文档定位**：供产品负责人组织业务专家完成源数据业务校审使用，是解除 `business_readiness=BLOCKED` 的必要前置工作。  
-> **关联文件**：`docs/04-baseline-data/source_data_review_log.json`、`docs/04-baseline-data/hazard_nodes_seed.json`、`docs/04-baseline-data/validation_report.json`
+> **关联文件**：`docs/04-baseline-data/source_review_decisions.json`（人工输入）、`docs/04-baseline-data/source_data_review_log.json`（派生输出）、`docs/04-baseline-data/hazard_nodes_seed.json`、`docs/04-baseline-data/validation_report.json`
 > **当前状态**：347 条基线记录中，CONFIRMED=16 条，PENDING_REVIEW=331 条；另有 1 条原始内容错配待校审。  
 > **校审原则**：原始材料忠实可溯源、空白不擅自补值、每项确认均有审核人/依据/时间/版本记录。
 
@@ -133,4 +133,4 @@ flowchart TD
 
 ---
 
-> **说明**：本清单用于指导业务校审，不替代业务专家的专业判断。校审完成后，请将签认结果回填至 `docs/04-baseline-data/source_data_review_log.json` 并重新运行生成与校验脚本，再提交第三方复审。
+> **说明**：本清单用于指导业务校审，不替代业务专家的专业判断。人工校审决定统一回填至独立输入文件 `docs/04-baseline-data/source_review_decisions.json`，不得直接编辑派生输出 `source_data_review_log.json`。回填后重新运行生成与校验脚本，再提交第三方复审。

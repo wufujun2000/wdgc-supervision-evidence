@@ -16,7 +16,7 @@
 > **文档状态与边界声明**：本版本针对第三方《PRD v2.2 重新复审报告》（`WDGC-PRD-V22-FOLLOWUP-20261115`）进行了严格整改。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd_v23.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。  
 > **业务准入状态（真实拆分）**：
 > - `structural_status = PASS`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 30 个内部扩展列）；
-> - `static_consistency_status = PENDING`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
+> - `static_consistency_status = PASS`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
 > - `source_review_status = PENDING`（CONFIRMED=16 条，PENDING_REVIEW=331 条，待业务专家逐条确认）；
 > - `technical_poc_status = PENDING`（真机/云服务/离线/越权实测证据待提交）；
 > - `compliance_review_status = PENDING`（法务/隐私/档案专项复核待完成）；

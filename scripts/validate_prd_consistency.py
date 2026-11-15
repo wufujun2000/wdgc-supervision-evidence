@@ -1,6 +1,6 @@
 """
 危大工程监理履职证据链系统 —— PRD/架构文档与基线数据真实一致性 CI 校验脚本（v1.5）
-实际校验：节点唯一性、标准字段契约、GB/T 50319 表号正确性、逐 JSON 示例结构与字段级一致性、命名公式一致性、架构文档旧规则、权限旧词、离线旧配额、性能口径与法定履职验收用例覆盖。
+实际校验：节点唯一性、标准字段契约、GB/T 50319 表号正确性、逐 JSON 示例结构与字段级一致性、命名公式一致性、架构文档旧规则、权限旧词、离线旧配额、性能口径与法定履职验收用例覆盖；校验后同步 PRD 与 validation_report.json 的 static_consistency_status。
 """
 import json
 import os
@@ -149,7 +149,18 @@ check("定位异常诚实建模", 'gps_status=4' in prd and '不虚构 100% 自�
 check("个人信息保护专节存在", '## 7.7 个人信息保护与数据安全合规专节' in prd, "缺少7.7节")
 check("PIPIA 与法务复核要求", '个人信息保护影响评估' in prd and '法务专项复核' in prd, "缺少PIPIA要求")
 
-# 输出校验报告
+# 输出校验报告并同步静态一致性门禁
+static_status_pattern = re.compile(
+    r"^(> - `static_consistency_status = )(?:PENDING|PASS|FAIL)(`.*)$",
+    re.MULTILINE,
+)
+static_status_match = static_status_pattern.search(prd)
+check(
+    "PRD 静态门禁状态行可更新",
+    static_status_match is not None,
+    "未找到 static_consistency_status 状态行或状态值无效",
+)
+
 result = {
     "structural_status": "PASS" if not errors else "FAIL",
     "checks_passed": sum(1 for c in checks if c['passed']),
@@ -159,6 +170,20 @@ result = {
 }
 with open(os.path.join(OUT_DIR, "prd_consistency_report.json"), "w", encoding="utf-8") as f:
     json.dump(result, f, ensure_ascii=False, indent=2)
+
+static_status = "PASS" if not errors else "FAIL"
+validation["static_consistency_status"] = static_status
+with open(os.path.join(OUT_DIR, "validation_report.json"), "w", encoding="utf-8") as f:
+    json.dump(validation, f, ensure_ascii=False, indent=2)
+
+if static_status_match:
+    status_line = (
+        f"{static_status_match.group(1)}{static_status}"
+        f"{static_status_match.group(2)}"
+    )
+    prd = prd[:static_status_match.start()] + status_line + prd[static_status_match.end():]
+    with open(PRD_PATH, "w", encoding="utf-8") as f:
+        f.write(prd)
 
 print("=" * 70)
 print(f"PRD/架构文档与基线数据一致性 CI 校验: {result['checks_passed']}/{result['checks_total']} 项通过")
