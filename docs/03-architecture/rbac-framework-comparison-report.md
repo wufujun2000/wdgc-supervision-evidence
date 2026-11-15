@@ -281,7 +281,7 @@ flowchart TB
 1. **主骨架选型**：正式选定 **`FastapiAdmin (v3.2.0)` 为主工程骨架基线**，并在底座搭建阶段吸收融合 **`RuoYi-FastAPI (v2.0.0)` 的文件证据防篡改对账子系统、接口防重放签名、Agno 多模态视觉 SSE 引擎与全栈 AST 契约检查脚本**，同时完成 `FastapiAdmin` 原有 `base_crud.py` / `dependencies.py` / `permission.py` 的加固。
 2. **多租户与分库分表策略**：采用 **方案 A（共享 MySQL 8.0 数据库 + `tenant_id` 行级逻辑隔离 + 阿里云 OSS 顶层企业编码路径隔离）**，由 `TenantCRUDBase` 底层统一强制拦截；预留后续随数据量增长按 `tenant_id` 分表/分区演进能力。
 3. **“一后端三前端”物理分离架构**：
-   - **平台管理端 (`frontend/platform-web`)**：直接延用 `FastapiAdmin` 自带前端（Vue3 + TS + Element Plus），服务平台管理员与超级管理员（支持 SaaS 标准 **Impersonation 跨租户穿透令牌 + 只读审计**）；
-   - **租户监理工作台 (`frontend/tenant-web`)**：直接采用产品团队 **Figma Make 产出的 React + TS + Tailwind + shadcn/ui 工程**，100% 保护已有原型资产；
-   - **现场移动取证端 (`frontend/mp-app`)**：采用 `FastapiAdmin` 自带 `fastapp`（UniApp + Vue3 + 全量 TS + Wot Design Uni v2 + Alova）。
+   - **平台管理端 (`src/platform-web`)**：直接延用 `FastapiAdmin` 自带前端（Vue3 + TS + Element Plus），服务平台管理员与超级管理员（支持 SaaS 标准 **Impersonation 跨租户穿透令牌 + 只读审计**）；
+   - **租户监理工作台 (`src/tenant-web`)**：直接采用产品团队 **Figma Make 产出的 React + TS + Tailwind + shadcn/ui 工程**，100% 保护已有原型资产；
+   - **现场移动取证端 (`src/mp-app`)**：采用 `FastapiAdmin` 自带 `fastapp`（UniApp + Vue3 + 全量 TS + Wot Design Uni v2 + Alova）。
 4. **租户内角色模型**：采用 **“企业级角色（企业管理员）+ 项目级成员角色（项目总监 / 专监+所辖多类危大 `01~12` / 现场监理员）”** 两级解耦授权模型。

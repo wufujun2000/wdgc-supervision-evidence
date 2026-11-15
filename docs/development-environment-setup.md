@@ -17,7 +17,7 @@
 | **数据库** | MySQL 8.0（Docker 容器） | 项目级独立容器与数据卷 |
 | **缓存/会话/锁** | Redis 7.x（Docker 容器） | 项目级独立容器与数据卷 |
 | **反向代理** | Nginx（Docker 容器，可选启用） | 联调/演示/测试时启用，生产环境必须启用 |
-| **工程目录** | `backend/`、`frontend/platform-web/`、`frontend/tenant-web/`、`frontend/mp-app/`、`deploy/dev/` | 文档目录与代码目录分离 |
+| **工程目录** | `src/backend/`、`src/platform-web/`、`src/tenant-web/`、`src/mp-app/`、`vendor/FastapiAdmin/`、`vendor/RuoYi-FastAPI/`、`deploy/dev/` | 自研代码集中于 `src/`，上游基线源码集中于 `vendor/`，文档目录与代码目录分离 |
 
 ---
 
@@ -53,7 +53,7 @@ uv sync
 - 每个项目必须有独立的 `.venv`；
 - 禁止将本项目依赖安装到系统 Python；
 - 禁止与其他项目共用虚拟环境；
-- 后端依赖必须写入 `backend/pyproject.toml` 并生成 `uv.lock`。
+- 后端依赖必须写入 `src/backend/pyproject.toml` 并生成 `uv.lock`。
 
 ---
 
@@ -82,23 +82,53 @@ uv sync
 
 ```text
 wdgc-supervision-evidence/
-├── backend/                         # FastAPI 后端工程（Python 3.12 + uv）
-│   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── .python-version
-│   └── app/
-├── frontend/
+├── src/                             # 应用工程（自研代码）
+│   ├── backend/                     # FastAPI 后端工程（Python 3.12 + uv）
+│   │   ├── pyproject.toml
+│   │   ├── uv.lock
+│   │   ├── .python-version
+│   │   └── app/
 │   ├── platform-web/                # 平台管理端（Vue3 + TS）
 │   ├── tenant-web/                  # 租户监理工作台（Figma Make React 工程）
 │   └── mp-app/                      # 现场移动采集端（UniApp + TS）
+├── vendor/                          # 上游基线源码（本地克隆，不纳入版本控制）
+│   ├── FastapiAdmin/                # 后端主骨架基线（固定提交 6828ba1）
+│   └── RuoYi-FastAPI/               # 文件治理、防重放、多模态 SSE 参考基线（固定提交 7f7c66d）
 ├── deploy/
 │   └── dev/
 │       ├── docker-compose.yml       # 项目级 MySQL/Redis/Nginx 隔离环境
 │       └── nginx.conf               # 可选反向代理配置
 ├── docs/                            # 文档与机器可读基线
 ├── scripts/                         # 生成与校验脚本
+├── tests/                           # 跨端契约、集成与验收测试
 └── README.md
 ```
+
+### 4.1 上游基线源码（vendor/）
+
+`vendor/` 保存两个上游开源框架的基线源码，仅作差异比对与能力移植参考，禁止直接修改其中的文件。该目录为本地克隆、不纳入版本控制，首次检出仓库后在根目录执行：
+
+```bash
+git clone https://github.com/fastapiadmin/FastapiAdmin.git vendor/FastapiAdmin
+git clone https://github.com/insistence/RuoYi-FastAPI.git vendor/RuoYi-FastAPI
+```
+
+网络较慢时可加 `--depth 1`。架构文档与 PRD 锁定的固定基线提交：
+
+| 上游仓库 | 固定提交 | 用途 |
+| :--- | :--- | :--- |
+| `FastapiAdmin` | `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2` | 后端主骨架（RBAC、代码生成、系统监控、fastapp 移动端） |
+| `RuoYi-FastAPI` | `7f7c66d373b6b344899961a42249ff51285cd865` | 文件治理、接口防重放签名、Agno 多模态 SSE 参考 |
+
+克隆到最新主干后如需对齐固定提交：
+
+```bash
+git -C vendor/FastapiAdmin fetch origin 6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2
+git -C vendor/FastapiAdmin checkout 6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2
+git -C vendor/RuoYi-FastAPI checkout 7f7c66d373b6b344899961a42249ff51285cd865
+```
+
+后续初始化 `src/backend/` 时，应以上述 `FastapiAdmin` 固定提交的 `backend/` 工程为基线复制改造，而不是直接修改 `vendor/` 内的文件。
 
 ---
 
@@ -119,7 +149,7 @@ docker compose up -d
 ### 5.3 初始化后端环境
 
 ```bash
-cd backend
+cd src/backend
 uv python pin 3.12
 uv venv
 uv sync
@@ -138,10 +168,10 @@ uv run python -c "import fastapi, sqlalchemy, redis; print('backend deps ok')"
 ## 六、后续基线搭建立即事项
 
 环境确认后，按以下顺序进入基线搭建：
-1. 拉取并初始化 FastapiAdmin 后端骨架；
+1. 以 `vendor/FastapiAdmin`（固定提交 `6828ba1`）为基线，在 `src/backend/` 初始化后端工程；
 2. 建立 `TenantModelMixin`、`TenantCRUDBase`、`TenantProjectPermission`；
 3. 实现文件防篡改、接口防重放、离线沙箱与分片续传底层模块；
-4. 建立 `frontend/platform-web/`、`frontend/tenant-web/`、`frontend/mp-app/` 工程；
+4. 建立 `src/platform-web/`、`src/tenant-web/`、`src/mp-app/` 工程；
 5. 开始 MVP 核心业务闭环开发。
 
 ---

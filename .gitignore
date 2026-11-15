@@ -27,3 +27,6 @@ logs/
 output/
 tmp/
 temp/
+
+# Upstream baseline checkouts (local only, see README 4.1)
+/vendor/

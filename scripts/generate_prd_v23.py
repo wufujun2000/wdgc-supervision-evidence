@@ -239,9 +239,9 @@ prd = f"""---
 
 | 终端工程目录 | 终端名称 | 锁定技术栈与工程来源 | 承载页面范围 |
 |:---|:---|:---|:---|
-| `frontend/platform-web` | 平台运营总控台 | Vue3 + Vite + TypeScript + Element Plus（延用 FastapiAdmin 自带前端） | P-PC-01~03 及系统监控 |
-| `frontend/tenant-web` | 租户监理工作台 | React 18 + Vite + TypeScript + Tailwind + shadcn/ui（直接采用 Figma Make 产出工程） | P-PC-04~14 |
-| `frontend/mp-app` | 现场移动采集端 | UniApp + Vue3 + 全量 TypeScript + Wot Design Uni v2 + Alova（FastapiAdmin fastapp） | P-MP-01~09 |
+| `src/platform-web` | 平台运营总控台 | Vue3 + Vite + TypeScript + Element Plus（延用 FastapiAdmin 自带前端） | P-PC-01~03 及系统监控 |
+| `src/tenant-web` | 租户监理工作台 | React 18 + Vite + TypeScript + Tailwind + shadcn/ui（直接采用 Figma Make 产出工程） | P-PC-04~14 |
+| `src/mp-app` | 现场移动采集端 | UniApp + Vue3 + 全量 TypeScript + Wot Design Uni v2 + Alova（FastapiAdmin fastapp） | P-MP-01~09 |
 
 后端以 `FastapiAdmin`（固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）为主骨架，借鉴 `RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）文件防篡改治理、接口防重放签名与 Agno 多模态 SSE 设计思想构建自研增强模块。
 

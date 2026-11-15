@@ -32,13 +32,13 @@
 flowchart TB
     subgraph Monorepo["wdgc-supervision-evidence 仓库物理拓扑"]
         direction TB
-        subgraph Frontends["frontend/（三端物理独立，各自独立构建部署）"]
-            PW["frontend/platform-web/<br/>【沿用 FastapiAdmin 自带 Vue3+TS 前端】<br/>· 平台管理员 / 超级管理员使用<br/>· 原生系统监控/定时任务/字典/权限<br/>· P-PC-01 企业租户开通管理<br/>· P-PC-02 全局347课题标准采集节点基线库<br/>· P-PC-03 全局运行与特权穿透审计"]
-            TW["frontend/tenant-web/<br/>【直接接入 Figma Make 产出的 React+TS 工程】<br/>· 企业管理员 / 项目总监 / 专监使用<br/>· P-PC-04~06 企业项目建档与成员危大绑定<br/>· P-PC-07~09 任务看板、高清看图审核台、双图隐患闭环<br/>· P-PC-10~11 F01~F05 GB/T 50319 表单与 PDF 导出<br/>· P-PC-12~14 完整度大屏、五级目录调阅、ZIP出证"]
-            MP["frontend/mp-app/<br/>【沿用 FastapiAdmin fastapp UniApp+Vue3+TS】<br/>· 微信小程序端（唯一合法现场取证入口）<br/>· P-MP-01~09 微信登录、自适应工作台、原生相机水印、<br/>  150MB字节离线沙箱队列（含单调时钟防漂移）、5MB分片续传、移动审核与红黄灯"]
+        subgraph Frontends["src/（三端物理独立，各自独立构建部署）"]
+            PW["src/platform-web/<br/>【沿用 FastapiAdmin 自带 Vue3+TS 前端】<br/>· 平台管理员 / 超级管理员使用<br/>· 原生系统监控/定时任务/字典/权限<br/>· P-PC-01 企业租户开通管理<br/>· P-PC-02 全局347课题标准采集节点基线库<br/>· P-PC-03 全局运行与特权穿透审计"]
+            TW["src/tenant-web/<br/>【直接接入 Figma Make 产出的 React+TS 工程】<br/>· 企业管理员 / 项目总监 / 专监使用<br/>· P-PC-04~06 企业项目建档与成员危大绑定<br/>· P-PC-07~09 任务看板、高清看图审核台、双图隐患闭环<br/>· P-PC-10~11 F01~F05 GB/T 50319 表单与 PDF 导出<br/>· P-PC-12~14 完整度大屏、五级目录调阅、ZIP出证"]
+            MP["src/mp-app/<br/>【沿用 FastapiAdmin fastapp UniApp+Vue3+TS】<br/>· 微信小程序端（唯一合法现场取证入口）<br/>· P-MP-01~09 微信登录、自适应工作台、原生相机水印、<br/>  150MB字节离线沙箱队列（含单调时钟防漂移）、5MB分片续传、移动审核与红黄灯"]
         end
 
-        subgraph Backend["backend/（统一 FastAPI 异步后端底座，Python 3.12 + uv）"]
+        subgraph Backend["src/backend/（统一 FastAPI 异步后端底座，Python 3.12 + uv）"]
             Core["app/core/（加固后的统一核心层）<br/>· database.py & redis.py<br/>· base_model.py (含 TenantModelMixin)<br/>· base_crud.py (含加固版 CRUDBase & TenantCRUDBase)<br/>· project_permission.py (租户+项目+危大三维权限拦截)<br/>· storage.py (阿里云 OSS / MinIO S3 + 五级目录 + WORM)<br/>· evidence_crypto.py (流式 SHA-256 + 命名引擎 + 接口防重放签名)"]
             ModPlat["app/modules/platform/ & system/ & monitor/ & task/<br/>【平台域模块：服务于 platform-web】"]
             ModTenant["app/modules/tenant/ & mp/<br/>【租户业务域模块：服务于 tenant-web 与 mp-app】<br/>enterprise_org / project / node_task / media_evidence /<br/>hazard_rectify / supervision_form / evidence_export"]
@@ -63,17 +63,17 @@ flowchart TB
 
 | 编号 | 目标文件 | 原生问题（源码锚点） | 加固改造方案 |
 | :---: | :--- | :--- | :--- |
-| **H-01** | `backend/app/core/base_crud.py` | `delete()`(L424)、`set()`(L472)、`clear()`(L504) 直接构造 `WHERE id IN (...)`，绕过了 `_build_conditions()` 中的软删除与数据权限过滤。 | 强制所有写/删方法（`update`、`delete`、`set`、`clear`）统一合并 `await self._build_conditions()` 生成的租户与数据权限条件，杜绝跨租户/跨项目越权修改或删除。 |
-| **H-02** | `backend/app/core/dependencies.py` | `_authenticate()` 从 Redis 会话读取用户状态，回查数据库时仅校验 `is_deleted == False`，未校验账号启用状态与租户冻结状态。 | 认证依赖同时校验 **`user.status == 0`（正常启用，`FastapiAdmin` 源码中 0=启用，1=停用）** 及所属租户 `enterprise.status == 1`（正常未冻结）；一旦平台冻结某监理企业租户或企业停用某员工，立即清理其 Redis Token 会话并实时阻断请求。 |
-| **H-03** | `backend/app/core/permission.py` | 原 `Permission` 仅实现 3 级且通过 `created_by.has(UserModel.dept_id...)` 动态关联，不契合监理工程按“项目 + 危大分类”授权的业务模型。 | 平台域保留基础权限；租户域新增专门的 **`TenantProjectPermission`**（见第 4 节），基于业务表固化的 `(tenant_id, project_id, hazard_code)` 进行高性能索引过滤。 |
+| **H-01** | `vendor/FastapiAdmin/backend/app/core/base_crud.py` | `delete()`(L424)、`set()`(L472)、`clear()`(L504) 直接构造 `WHERE id IN (...)`，绕过了 `_build_conditions()` 中的软删除与数据权限过滤。 | 强制所有写/删方法（`update`、`delete`、`set`、`clear`）统一合并 `await self._build_conditions()` 生成的租户与数据权限条件，杜绝跨租户/跨项目越权修改或删除。 |
+| **H-02** | `vendor/FastapiAdmin/backend/app/core/dependencies.py` | `_authenticate()` 从 Redis 会话读取用户状态，回查数据库时仅校验 `is_deleted == False`，未校验账号启用状态与租户冻结状态。 | 认证依赖同时校验 **`user.status == 0`（正常启用，`FastapiAdmin` 源码中 0=启用，1=停用）** 及所属租户 `enterprise.status == 1`（正常未冻结）；一旦平台冻结某监理企业租户或企业停用某员工，立即清理其 Redis Token 会话并实时阻断请求。 |
+| **H-03** | `vendor/FastapiAdmin/backend/app/core/permission.py` | 原 `Permission` 仅实现 3 级且通过 `created_by.has(UserModel.dept_id...)` 动态关联，不契合监理工程按“项目 + 危大分类”授权的业务模型。 | 平台域保留基础权限；租户域新增专门的 **`TenantProjectPermission`**（见第 4 节），基于业务表固化的 `(tenant_id, project_id, hazard_code)` 进行高性能索引过滤。 |
 
 ### 2.2 从 `RuoYi-FastAPI` (v2.0.0) 吸收移植的 4 大核心模块
 
 | 编号 | 吸收自 `RuoYi-FastAPI` 的源模块 | 移植入本底座的目标位置 | 赋能本项目的具体业务价值 |
 | :---: | :--- | :--- | :--- |
-| **M-01** | **企业级文件证据治理与防篡改对账设计（自研增强模块）**<br>（借鉴 `RuoYi-FastAPI` 文件治理模型，在本底座基于阿里云 OSS / MinIO 重新实现全量流式对账） | `backend/app/modules/tenant/media_evidence/reconcile_service.py` 及存证对账表 | 直接赋能 PRD 7.3 节司法防篡改要求：<br>1. 固化归档摘要 `file_sha256` 与原始帧摘要 `raw_frame_sha256` 双哈希分离，以及 `worm_locked_status` / 长期留存保护状态；<br>2. 图单强引用计数（防止已被 F01~F05 表单引用的现场照片被误删）；<br>3. **后台定时防篡改对账任务（`reconcile_run`）**：定期抽检或全量重算 OSS 文件流 SHA-256 与数据库比对，发现 1-bit 篡改立即锁定标红并生成 `reconcile_issue` 安全告警。 |
-| **M-02** | **接口防重放签名与客户端通道鉴权中间件**<br>（源：`middlewares/transport_crypto_middleware.py`） | `backend/app/core/middlewares/evidence_guard_middleware.py` | 直接赋能 PRD 5.4 / 7.3.5 / 7.4.3 刚性红线：<br>1. 校验请求头 `X-Timestamp`（与服务端 NTP 时间差 >15 分钟自动打上“时间异常漂移”标记）、`X-Nonce`（Redis 防重放）、`X-Sign`（HMAC-SHA256 签名）；<br>2. **PC 端禁拍取证硬拦截**：现场影像上传接口 `/api/v1/mp/evidence/upload` 强制校验微信小程序专属通道签名与设备硬件元数据，PC 端直接调用一律返回 `403 Forbidden`。 |
-| **M-03** | **Agno 多模态视觉 Agent + HTTP SSE 流式引擎**<br>（源：`plugins/ai/service/ai_chat_service.py`、`ai_util.py`） | `backend/app/modules/ai/` | 弥补 `FastapiAdmin` AI 仅支持纯文本 WebSocket 的短板：<br>1. 引入 `agno.media.Image` 多模态输入，现场照片上传后可异步或实时调用视觉大模型自动生成 **B201 AI 风险识别标签、B202 置信度、B010 风险简述建议**；<br>2. 增加标准 HTTP SSE 流式端点，完美兼容微信小程序 `enableChunked: true`；<br>3. 保留 `FastapiAdmin` 原有的 `tools/registry.py` 闭包鉴权工具机制，让 AI 助手能安全查询当前项目的危大节点规范与未闭环隐患。 |
+| **M-01** | **企业级文件证据治理与防篡改对账设计（自研增强模块）**<br>（借鉴 `RuoYi-FastAPI` 文件治理模型，在本底座基于阿里云 OSS / MinIO 重新实现全量流式对账） | `src/backend/app/modules/tenant/media_evidence/reconcile_service.py` 及存证对账表 | 直接赋能 PRD 7.3 节司法防篡改要求：<br>1. 固化归档摘要 `file_sha256` 与原始帧摘要 `raw_frame_sha256` 双哈希分离，以及 `worm_locked_status` / 长期留存保护状态；<br>2. 图单强引用计数（防止已被 F01~F05 表单引用的现场照片被误删）；<br>3. **后台定时防篡改对账任务（`reconcile_run`）**：定期抽检或全量重算 OSS 文件流 SHA-256 与数据库比对，发现 1-bit 篡改立即锁定标红并生成 `reconcile_issue` 安全告警。 |
+| **M-02** | **接口防重放签名与客户端通道鉴权中间件**<br>（源：`middlewares/transport_crypto_middleware.py`） | `src/backend/app/core/middlewares/evidence_guard_middleware.py` | 直接赋能 PRD 5.4 / 7.3.5 / 7.4.3 刚性红线：<br>1. 校验请求头 `X-Timestamp`（与服务端 NTP 时间差 >15 分钟自动打上“时间异常漂移”标记）、`X-Nonce`（Redis 防重放）、`X-Sign`（HMAC-SHA256 签名）；<br>2. **PC 端禁拍取证硬拦截**：现场影像上传接口 `/api/v1/mp/evidence/upload` 强制校验微信小程序专属通道签名与设备硬件元数据，PC 端直接调用一律返回 `403 Forbidden`。 |
+| **M-03** | **Agno 多模态视觉 Agent + HTTP SSE 流式引擎**<br>（源：`plugins/ai/service/ai_chat_service.py`、`ai_util.py`） | `src/backend/app/modules/ai/` | 弥补 `FastapiAdmin` AI 仅支持纯文本 WebSocket 的短板：<br>1. 引入 `agno.media.Image` 多模态输入，现场照片上传后可异步或实时调用视觉大模型自动生成 **B201 AI 风险识别标签、B202 置信度、B010 风险简述建议**；<br>2. 增加标准 HTTP SSE 流式端点，完美兼容微信小程序 `enableChunked: true`；<br>3. 保留 `FastapiAdmin` 原有的 `tools/registry.py` 闭包鉴权工具机制，让 AI 助手能安全查询当前项目的危大节点规范与未闭环隐患。 |
 | **M-04** | **全栈前后端路由与字段契约 AST 静态检查器（本项目自研工具）**<br>（基于 FastAPI 路由 Schema 与三套前端 AST 扫描实现） | `scripts/fullstack_contract_check.py` | 专为 Agent Vibe Coding 打造的防幻觉护栏：自动扫描 FastAPI 路由 Schema 与 `platform-web` (Vue3)、`tenant-web` (React)、`mp-app` (UniApp) 的接口调用代码，确保 URL、Method、请求/响应字段 100% 对齐。 |
 
 ---
@@ -207,9 +207,9 @@ erDiagram
 
 ## 7. Figma Make (`tenant-web` React 工程) 无损接入规范
 
-针对产品负责人正在使用 Figma Make 调优产出的租户端 React 工程，待其定稿移交后，采用 **“保皮换骨、零 UI 重写”** 策略接入 `frontend/tenant-web/`：
+针对产品负责人正在使用 Figma Make 调优产出的租户端 React 工程，待其定稿移交后，采用 **“保皮换骨、零 UI 重写”** 策略接入 `src/tenant-web/`：
 
-1. **目录落位**：直接将 Figma Make 导出的 React + TypeScript + Tailwind + shadcn/ui 工程放入 `frontend/tenant-web/`。
+1. **目录落位**：直接将 Figma Make 导出的 React + TypeScript + Tailwind + shadcn/ui 工程放入 `src/tenant-web/`。
 2. **契约自动同步**：后端 FastAPI 启动后暴露 `/api/v1/tenant/openapi.json`，在 `tenant-web` 中配置 `npx openapi-typescript` 一键生成全量后端 Schema 的 TypeScript 接口定义 `src/types/api-schema.d.ts`。
 3. **注入 3 个核心基础设施文件（不动任何视觉组件）**：
    - `src/lib/http.ts`：统一封装请求客户端，自动在 Header 注入 `Authorization: Bearer <token>` 与当前选中的工程项目 `X-Project-Id: <project_id>`，并处理并发 401 Token 刷新与跨租户 Impersonation 顶栏提示条。
@@ -228,7 +228,7 @@ erDiagram
 
 ### 8.2 分阶段实施路线图（Roadmap）
 - **Phase 1：基础框架搭建与底座加固（当前准备启动）**
-  - 拉取 `FastapiAdmin v3.2.0` 建立 `backend/`、`frontend/platform-web/`、`frontend/mp-app/`；
+  - 以 `vendor/FastapiAdmin`（v3.2.0，固定提交 `6828ba1`）为基线，建立 `src/backend/`、`src/platform-web/`、`src/mp-app/`；
   - 完成 `H-01 ~ H-03` 底座漏洞修补，实现 `TenantModelMixin`、`TenantCRUDBase`、`TenantProjectPermission` 与超管 Impersonation 穿透机制；
   - 从 `RuoYi-FastAPI` 移植文件防篡改对账模块、接口防重放签名中间件、Agno 多模态 SSE 及 `fullstack_contract_check.py`。
 - **Phase 2：平台管理端（`platform-web`）与全局种子数据交付**
@@ -238,7 +238,7 @@ erDiagram
   - 完成租户后端 6 大业务中心 API；
   - 在 `mp-app` 完成微信登录、自适应工作台、原生相机 + Canvas 双哈希水印、150MB 字节离线沙箱队列 + 单调时钟防漂移、5MB 分片续传、单据胶囊、专监移动审核与总监红黄灯看板。
 - **Phase 4：Figma Make 租户工作台（`tenant-web` `P-PC-04~14`）接入与联调**
-  - 接收产品负责人定稿的 Figma Make React 工程放入 `frontend/tenant-web/`；
+  - 接收产品负责人定稿的 Figma Make React 工程放入 `src/tenant-web/`；
   - 执行“保皮换骨”注入路由与 API 层，完成高清看图审核台、双图同屏隐患闭环、GB/T 50319 表单 PDF 导出、五级目录调阅与异步 ZIP 证据包（含离线校验工具）全链路联调验收。
 
 

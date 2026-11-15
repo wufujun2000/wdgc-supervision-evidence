@@ -8,7 +8,7 @@
 
 当前处于**文档与数据基线已建立、前端原型与真实技术基线并行开发**阶段。
 
-本仓库目前主要包含需求、架构、原始研究材料、机器可读数据、生成与校验脚本，以及团队协作和评审记录；尚不是包含完整前后端实现的成品仓库。
+本仓库目前包含需求、架构、原始研究材料、机器可读数据、生成与校验脚本、团队协作与评审记录，以及 `src/backend/` 后端工程骨架（Python 版本与依赖已声明，业务模块待基线搭建）；尚不是包含完整前后端实现的成品仓库。
 
 当前允许开展技术基线、原型和限定范围业务开发。全量上线仍需完成源数据业务校审、真机与云服务 PoC、行为验收及法务合规复核，具体状态见 `docs/04-baseline-data/validation_report.json`。
 
@@ -41,6 +41,19 @@
 ```text
 wdgc-supervision-evidence/
 ├── README.md                         # 项目说明与开发 Agent 总入口
+├── src/                              # 应用工程（自研代码）
+│   ├── backend/                      # FastAPI 后端工程（Python 3.12 + uv）
+│   │   ├── pyproject.toml            # 后端依赖与构建声明
+│   │   ├── .python-version           # 固定 Python 3.12
+│   │   └── app/                      # 后端业务代码（随基线搭建生成）
+│   ├── platform-web/                 # 平台管理端（Vue3 + TS）
+│   ├── tenant-web/                   # 租户监理工作台（React + TS）
+│   └── mp-app/                       # 现场移动采集端（UniApp + TS）
+├── vendor/                           # 上游基线源码（本地克隆，不纳入版本控制）
+│   ├── FastapiAdmin/                 # 后端主骨架基线（固定提交 6828ba1）
+│   └── RuoYi-FastAPI/                # 文件治理、防重放、多模态 SSE 参考基线（固定提交 7f7c66d）
+├── deploy/
+│   └── dev/                          # 项目级 MySQL/Redis/Nginx 隔离环境
 ├── docs/                             # 需求、架构、数据、验证与评审资料
 │   ├── README.md                     # 文档总目录和逐文件说明
 │   ├── 00-source-materials/          # 原始研究报告、附录和履约模板
@@ -50,10 +63,35 @@ wdgc-supervision-evidence/
 │   ├── 04-baseline-data/             # 机器可读基线及校验报告
 │   ├── 05-verification/              # 业务校审与技术 PoC 工作清单
 │   └── 06-collaboration/             # 跨团队协作与交付规则
-└── scripts/                          # 基线生成、PRD 生成和一致性校验脚本
+├── scripts/                          # 基线生成、PRD 生成和一致性校验脚本
+└── tests/                            # 跨端契约、集成与验收测试（随开发落地）
 ```
 
-后续新增后端、平台端、租户端和小程序工程时，应在根目录分别建立对应工程目录，并在本 README 和 `docs/README.md` 中补充入口；不得仅将代码放入文档目录。
+自研代码统一写入 `src/`：`src/backend/` 为后端工程，`src/platform-web/`、`src/tenant-web/`、`src/mp-app/` 为三端前端工程。上游开源框架的基线源码统一放在 `vendor/`，仅作比对与移植参考，禁止直接修改；`vendor/` 为本地克隆、不纳入版本控制，获取方式见 4.1。不得仅将代码放入文档目录。
+
+### 4.1 上游基线源码（vendor/）
+
+首次检出仓库后，在仓库根目录执行：
+
+```bash
+git clone https://github.com/fastapiadmin/FastapiAdmin.git vendor/FastapiAdmin
+git clone https://github.com/insistence/RuoYi-FastAPI.git vendor/RuoYi-FastAPI
+```
+
+网络较慢时可加 `--depth 1`。架构文档与 PRD 锁定的固定基线提交：
+
+| 上游仓库 | 固定提交 | 用途 |
+| :--- | :--- | :--- |
+| `FastapiAdmin` | `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2` | 后端主骨架（RBAC、代码生成、系统监控、fastapp 移动端） |
+| `RuoYi-FastAPI` | `7f7c66d373b6b344899961a42249ff51285cd865` | 文件治理、接口防重放签名、Agno 多模态 SSE 参考 |
+
+克隆到最新主干后如需对齐固定提交：
+
+```bash
+git -C vendor/FastapiAdmin fetch origin 6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2
+git -C vendor/FastapiAdmin checkout 6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2
+git -C vendor/RuoYi-FastAPI checkout 7f7c66d373b6b344899961a42249ff51285cd865
+```
 
 ## 五、生成与校验
 
