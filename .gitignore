@@ -13,13 +13,24 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
 # Node / Frontend
 node_modules/
 dist/
 build/
+!/src/platform-web/build/
+!/src/platform-web/build/**
 .env
+!/src/platform-web/.env
 .env.local
+.env.*.local
+/src/backend/env/.env.*
+!/src/backend/env/.env.example
 
 # Logs & temp
 *.log
@@ -27,6 +38,8 @@ logs/
 output/
 tmp/
 temp/
+/src/mp-app/.husky/_/
+/src/backend/static/upload/
 
 # Upstream baseline checkouts (local only, see README 4.1)
 /vendor/

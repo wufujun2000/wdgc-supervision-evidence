@@ -1,0 +1,27 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.cursorrules
+.history
+
+# Auto-generated files
+# Vite 生成的声明与 ESLint 全局配置纳入源码，保证干净检出后可直接执行 lint/ts:check/build。
+!src/types/auto-imports.d.ts
+!src/types/components.d.ts
+!.eslintrc-auto-import.json
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.local
+
+stats.html
+.stylelintcache
+.eslintcache
+
+# docs and app directories are at frontend root, managed by frontend/.gitignore
