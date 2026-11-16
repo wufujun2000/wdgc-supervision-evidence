@@ -8,8 +8,8 @@
 
 | 维度 | 当前状态 | 查阅位置 |
 | :--- | :--- | :--- |
-| 当前需求版本 | PRD v2.3，评审整改中，可用于原型与限定范围开发 | `02-prd/PRD_v2.3_评审整改中.md` |
-| 当前架构版本 | 总体架构 v1.4，技术基线已确定 | `03-architecture/system-architecture-design.md` |
+| 当前需求版本 | PRD v2.4 基线冻结版（2026-11-16 冻结），技术基线搭建与前端原型开发的当前需求基线 | `02-prd/PRD_v2.4_基线冻结版.md` |
+| 当前架构版本 | 总体架构 v1.5 基线冻结版，技术基线已确定并开始搭建 | `03-architecture/system-architecture-design.md` |
 | 节点结构 | 347 条基线记录、347 个唯一 `node_uid` | `04-baseline-data/hazard_nodes_seed.json` |
 | 标准字段 | 24 个标准编号字段、30 个内部扩展列 | `04-baseline-data/metadata_and_forms_dictionary.json` |
 | 校审人工输入 | 独立保存专家决定，生成器按节点与源指纹合并，重跑不覆盖 | `04-baseline-data/source_review_decisions.json` |
@@ -39,13 +39,13 @@ docs/
 
 | 文件 | 用途与当前定位 |
 | :--- | :--- |
-| `PRD_v2.3_评审整改中.md` | **当前需求阅读版本**。包含角色、功能、任务发生实例、证据链、数据规则、页面和验收要求。由 `scripts/generate_prd_v23.py` 生成，不直接手工修改 |
-| `PRD_v2.2_评审整改中.md` | 历史版本。引入节点唯一身份、原始数据溯源和业务准入状态，供追踪整改过程 |
+| `PRD_v2.4_基线冻结版.md` | **当前需求阅读版本**。v2.3 通过全部静态校验与执行阻断修复后冻结升版而来，是技术基线搭建与前端原型开发的当前需求基线。包含角色、功能、任务发生实例、证据链、数据规则、页面和验收要求。由 `scripts/generate_prd.py` 生成，不直接手工修改 |
+| `PRD_v2.2_评审整改中.md` | 历史版本。引入节点唯一身份、原始数据溯源和业务准入状态，供追踪整改过程。v2.3 已冻结升版为 v2.4，其快照可从 Git 提交记录追溯 |
 | `PRD_v2.1_评审闭环版.md` | 历史版本。首次针对第三方审查进行集中整改，供差异对照 |
 | `PRD_v2.0_架构对齐版.md` | 历史版本。用于产品需求与平台/租户/小程序架构对齐 |
 | `PRD_v1.0_正式版.md` | 初始 PRD，作为原始需求和历史问题对照，不作为当前开发依据 |
 
-阅读规则：新需求开发默认阅读 v2.3；旧版本仅用于理解变更原因。发现 v2.3 与原型或真实业务冲突时，应通过决策记录和生成器修订，而不是从历史版本复制规则。历史 PRD 中可能保留原作者机器的 `file://` 本地链接，这些链接仅作历史留痕，不属于仓库可访问文件，Agent 不应据此判断仓库缺件。
+阅读规则：新需求开发默认阅读 v2.4 基线冻结版；旧版本仅用于理解变更原因。发现 v2.4 与原型或真实业务冲突时，应通过受控变更（GitHub Issue/PR + 决策记录）和生成器修订，而不是从历史版本复制规则。历史 PRD 中可能保留原作者机器的 `file://` 本地链接，这些链接仅作历史留痕，不属于仓库可访问文件，Agent 不应据此判断仓库缺件。
 
 ## 四、架构与选型：`03-architecture/`
 
@@ -132,14 +132,14 @@ docs/
 | 文件 | 用途 |
 | :--- | :--- |
 | `generate_baseline_data.py` | 从原始 Word/Excel 生成节点、字段字典、校审台账和准入报告 |
-| `generate_prd_v23.py` | 从基线和字典生成当前 PRD v2.3 到 `docs/02-prd/` |
+| `generate_prd.py` | 从基线和字典生成当前 PRD（v2.4 基线冻结版）到 `docs/02-prd/` |
 | `validate_prd_consistency.py` | 校验 PRD、架构、节点、示例、命名和关键规则一致性 |
 
 统一执行方式：
 
 ```bash
 python3 scripts/generate_baseline_data.py
-python3 scripts/generate_prd_v23.py
+python3 scripts/generate_prd.py
 python3 scripts/validate_prd_consistency.py
 ```
 
@@ -149,7 +149,7 @@ python3 scripts/validate_prd_consistency.py
 
 ### 产品负责人
 
-1. 当前 PRD v2.3；
+1. 当前 PRD v2.4 基线冻结版；
 2. 协作与交付规则；
 3. 原始履约表及研究报告；
 4. 业务校审清单；
@@ -157,7 +157,7 @@ python3 scripts/validate_prd_consistency.py
 
 ### 技术负责人及后端开发
 
-1. 当前 PRD v2.3；
+1. 当前 PRD v2.4 基线冻结版；
 2. 总体架构和框架选型；
 3. 机器可读字段与节点基线；
 4. 协作规则中的数据模型、API 和迁移要求；

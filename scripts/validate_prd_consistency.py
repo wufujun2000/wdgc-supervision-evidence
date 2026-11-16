@@ -9,7 +9,7 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(BASE_DIR, "docs", "04-baseline-data")
-PRD_PATH = os.path.join(BASE_DIR, "docs", "02-prd", "PRD_v2.3_评审整改中.md")
+PRD_PATH = os.path.join(BASE_DIR, "docs", "02-prd", "PRD_v2.4_基线冻结版.md")
 ARCH_PATH = os.path.join(BASE_DIR, "docs", "03-architecture", "system-architecture-design.md")
 
 errors = []

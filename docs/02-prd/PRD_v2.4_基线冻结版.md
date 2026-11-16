@@ -1,117 +1,33 @@
-"""
-危大工程监理履职证据链系统 —— PRD v2.3 生成器（真实 SSOT 驱动）
-从 docs/04-baseline-data/ 的机器可读字典自动生成全部字段表、节点表、真实示例与法定履职验收用例。
-"""
-import json
-import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(BASE_DIR, "docs", "04-baseline-data")
-
-with open(os.path.join(OUT_DIR, "hazard_nodes_seed.json"), "r", encoding="utf-8") as f:
-    hazard_seed = json.load(f)
-with open(os.path.join(OUT_DIR, "metadata_and_forms_dictionary.json"), "r", encoding="utf-8") as f:
-    dictionary = json.load(f)
-with open(os.path.join(OUT_DIR, "validation_report.json"), "r", encoding="utf-8") as f:
-    validation = json.load(f)
-
-nodes = hazard_seed['nodes']
-node_map = {n['node_uid']: n for n in nodes}
-confirmed_node = next(n for n in nodes if n['review_status'] == 'CONFIRMED' and n['hazard_code'] != '12')
-pending_node = next(n for n in nodes if n['review_status'] == 'PENDING_REVIEW')
-
-# 真实示例 1：已确认节点（CONFIRMED + ★）—— 所有分类、阶段、目录、文件名与部位均由同一节点派生
-n1 = confirmed_node
-example1 = {
-    "tenant_id": 1001, "enterprise_code": "ENT-001", "project_code": "TJ-2026-0089",
-    "hazard_code": n1['hazard_code'], "subcategory_code": n1['subcategory_code'], "stage_code": n1['stage_code'],
-    "legacy_node_code": n1['legacy_node_code'], "node_uid": n1['node_uid'],
-    "risk_level": n1['risk_level'], "review_status": n1['review_status'],
-    "media_type": "照片", "suggested_media_type": n1['suggested_media_type'],
-    "shoot_utc_time": "2026-10-14 14:32:18", "shooter_emp_no": "JL027",
-    "risk_summary": n1['risk_description'], "media_guid": "8f42d17c-903e-471a-b9c4-2d58f3107961",
-    "gps_coordinates": "117.2136,39.0872", "gps_status": 1, "position_desc": None,
-    "client_clock_verified": 1, "is_offline_queued": 0, "time_drift_warning": 0,
-    "example_data_status": "SYNTHETIC",
-    "risk_file_token": "★",
-    "evidence_admission_status": "ADMITTED",
-    "raw_frame_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-    "file_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
-    "deposit_time": "2026-10-14 14:32:20.128", "upload_operator_no": "JL027",
-    "storage_path": f"ENT-001/TJ-2026-0089/{n1['hazard_code']}_{n1['hazard_name']}/{n1['stage_code']}_{n1['stage_name']}/20261014/photo/TJ-2026-0089_{n1['hazard_code']}_{n1['subcategory_code']}_{n1['stage_code']}_{n1['source_sequence']:02d}_{n1['risk_level']}_20261014143218.JPG"
-}
-
-# 真实示例 2：待校审节点（PENDING_REVIEW，风险等级为 null，不参与正式强制采集与完整度考核）
-n2 = pending_node
-example2 = {
-    "tenant_id": 1001, "enterprise_code": "ENT-001", "project_code": "TJ-2026-0089",
-    "hazard_code": n2['hazard_code'], "subcategory_code": n2['subcategory_code'], "stage_code": n2['stage_code'],
-    "legacy_node_code": n2['legacy_node_code'], "node_uid": n2['node_uid'],
-    "risk_level": n2['risk_level'], "review_status": n2['review_status'],
-    "media_type": "照片", "suggested_media_type": n2['suggested_media_type'],
-    "shoot_utc_time": "2026-10-14 16:15:00", "shooter_emp_no": "JL014",
-    "media_guid": "7b19a334-82fe-4912-a7d1-1d54e928f610",
-    "gps_coordinates": None, "gps_status": 2,
-    "is_offline_queued": 1, "client_clock_verified": 1, "time_drift_warning": 0,
-    "example_data_status": "SYNTHETIC",
-    "risk_file_token": "PENDING",
-    "evidence_admission_status": "QUARANTINED",
-    "raw_frame_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
-    "file_sha256": "9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    "storage_path": f"ENT-001/TJ-2026-0089/{n2['hazard_code']}_{n2['hazard_name']}/{n2['stage_code']}_{n2['stage_name']}/20261014/photo/TJ-2026-0089_{n2['hazard_code']}_{n2['subcategory_code']}_{n2['stage_code']}_{n2['source_sequence']:02d}_PENDING_20261014161500.JPG",
-    "business_gate_note": "该节点原始风险等级未标注，review_status=PENDING_REVIEW，evidence_admission_status=QUARANTINED（隔离区草稿），不得进入正式强制采集任务与履职完整度考核分母，需业务专家确认后方可启用。"
-}
-
-# 分类节点统计表
-category_table = "| 分类编码 | 危大工程类别名称 | 原始课题文件/来源 | 基线记录数 | 说明 |\n|:---:|:---|:---|:---:|:---|\n"
-for hc, info in hazard_seed['metadata']['category_counts'].items():
-    note = "通用应急模块（不划分施工三阶段，stage_code=99）" if hc == '12' else "专业危大工序采集记录"
-    category_table += f"| **{hc}** | {info['name']} | 附录 A-{int(hc) if hc != '12' else '12（研究报告4.13节）'} | **{info['record_count']}** | {note} |\n"
-category_table += f"| **合计** | **12 大类全周期覆盖** | - | **{len(nodes)} 条** | 11 类专业危大 342 条 + 通用应急处置 5 条 |\n"
-
-# 标准字段表
-field_table = "| 标准编号 | 标准名称 | 数据库物理列名 | 数据类型与长度 | 约束 | 业务规则与数据源定义 |\n|:---:|:---|:---|:---|:---|:---|\n"
-for f in dictionary['standard_metadata_fields']:
-    field_table += f"| **{f['field_code']}** | {f['field_name']} | `{f['column_name']}` | `{f['data_type']}` | {f['constraint']} | {f['description']}（{f['source_and_writer']}） |\n"
-
-ext_table = "| 内部扩展列名 | 数据类型 | 业务与工程用途说明 |\n|:---|:---|:---|\n"
-for ext in dictionary['internal_database_extensions']:
-    ext_table += f"| `{ext['column_name']}` | `{ext['data_type']}` | {ext['description']} |\n"
-
-forms_table = "| 表单族编号 | 表单族名称 | 正式法规/标准表号映射 | 对应原始 Excel 工作表 | 核心填报角色 | 关联影像存证动作与规则 |\n|:---:|:---|:---|:---:|:---|:---|\n"
-for form in dictionary['core_supervision_forms']:
-    forms_table += f"| **{form['form_family_code']}** | {form['form_family_name']} | {form['official_standard_mapping']} | `{form['source_excel_sheet']}` | 专监/监理员/总监按项目角色 | {form['media_binding_rule']} |\n"
-
-prd = f"""---
+---
 文档名称：危大工程监理履职数字化证据链系统 产品需求文档（PRD）
-系统版本：v2.3 评审整改中版本（真实 SSOT 驱动 + 业务准入状态拆分 + 法定履职全闭环验收用例）
-当前文档状态：评审整改中（结构校验通过，源数据业务校审与真机 PoC 尚未完成，暂不作为全量开发基线）
-前序版本：docs/02-prd/PRD_v2.2_评审整改中.md / docs/02-prd/PRD_v2.1_评审闭环版.md / docs/02-prd/PRD_v2.0_架构对齐版.md / docs/02-prd/PRD_v1.0_正式版.md（历史版本完整保留）
-复审依据：docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md
+系统版本：v2.4 基线冻结版（真实 SSOT 驱动 + 业务准入状态拆分 + 法定履职全闭环验收用例）
+当前文档状态：基线冻结（冻结为技术基线搭建与前端原型开发的当前需求基线；源数据校审、技术 PoC、合规复核与行为验收作为并行工作流推进，不阻塞基线搭建）
+前序版本：docs/02-prd/PRD_v2.3_评审整改中.md（已冻结升版为本版本，历史快照见 Git 提交记录）/ docs/02-prd/PRD_v2.2_评审整改中.md / docs/02-prd/PRD_v2.1_评审闭环版.md / docs/02-prd/PRD_v2.0_架构对齐版.md / docs/02-prd/PRD_v1.0_正式版.md（历史版本完整保留）
+复审依据：docs/01-review-reports/prd-v2.3-business-poc-checklists-review-2026-11-15.md 及此前历次复审报告（见 docs/01-review-reports/）
 原始材料溯源目录：docs/00-source-materials/
 机器可读数据字典与校验报告：docs/04-baseline-data/
-更新时间：2026-11-15
+更新时间：2026-11-16
 编制原则：真实单一事实源（SSOT）驱动、原始数据忠实可溯源、结构验证与业务准入严格分离、法定监理职责全闭环
 密级：内部受限（机密）
 ---
 
-# 危大工程监理履职数字化证据链系统 产品需求文档（PRD v2.3 评审整改中版本）
+# 危大工程监理履职数字化证据链系统 产品需求文档（PRD v2.4 基线冻结版）
 
-> **文档状态与边界声明**：本版本针对第三方《PRD v2.2 重新复审报告》（`WDGC-PRD-V22-FOLLOWUP-20261115`）进行了严格整改。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd_v23.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。  
+> **文档状态与边界声明**：本版本在 v2.3 评审整改中版本通过全部静态一致性校验（94/94 项）并完成校审结果持久化与综合准入门控修复后，经技术负责团队确认不再存在影响技术基线搭建的需求偏移，**冻结为基线版本**，作为后端技术基线搭建与前端原型开发的当前需求基线。本文档的字段表、节点统计、示例数据与验收用例全部由 `scripts/generate_baseline_data.py` 与 `scripts/generate_prd.py` 从 `docs/00-source-materials/` 自动生成，并受 `scripts/validate_prd_consistency.py` 真实校验。冻结后的需求变更须遵循 `docs/06-collaboration/team-collaboration-and-delivery-workflow.md` 的受控变更流程（GitHub Issue/PR + 决策记录），不得直接覆盖修改。
 > **业务准入状态（真实拆分）**：
-> - `structural_status = {validation['structural_status']}`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 30 个内部扩展列）；
-> - `static_consistency_status = {validation['static_consistency_status']}`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
-> - `source_review_status = {validation['source_review_status']}`（CONFIRMED={validation['confirmed_node_count']} 条，PENDING_REVIEW={validation['pending_review_node_count']} 条，待业务专家逐条确认）；
-> - `technical_poc_status = {validation['technical_poc_status']}`（真机/云服务/离线/越权实测证据待提交）；
-> - `compliance_review_status = {validation['compliance_review_status']}`（法务/隐私/档案专项复核待完成）；
-> - `behavioral_acceptance_status = {validation['behavioral_acceptance_status']}`（法定履职状态机与行为级验收待完成）；
-> - `business_readiness = {validation['business_readiness']}`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待全部准入条件完成后方可申请全量开发基线复审）。
+> - `structural_status = PASS`（347 条记录 / 347 个全局唯一 `node_uid` / 24 个标准字段 / 30 个内部扩展列）；
+> - `static_consistency_status = PASS`（由 `scripts/validate_prd_consistency.py` 实际校验后更新）；
+> - `source_review_status = PENDING`（CONFIRMED=16 条，PENDING_REVIEW=331 条，待业务专家逐条确认）；
+> - `technical_poc_status = PENDING`（真机/云服务/离线/越权实测证据待提交）；
+> - `compliance_review_status = PENDING`（法务/隐私/档案专项复核待完成）；
+> - `behavioral_acceptance_status = PENDING`（法定履职状态机与行为级验收待完成）；
+> - `business_readiness = BLOCKED`（**未经业务校审的节点严禁进入正式强制采集任务与完整度考核分母**，待全部准入条件完成后方可申请全量开发基线复审）。
 
 ---
 
 ## 全书宏观目录（Table of Contents）
 
-- [第0章 v2.3 整改说明与真实校验边界](#第0章-v23-整改说明与真实校验边界)
+- [第0章 v2.4 基线冻结说明与真实校验边界](#第0章-v24-基线冻结说明与真实校验边界)
 - [第1章 文档说明](#第1章-文档说明)
 - [第2章 项目背景与问题定义](#第2章-项目背景与问题定义)
 - [第3章 用户与角色分析（平台域与租户域两级解耦体系）](#第3章-用户与角色分析)
@@ -125,9 +41,16 @@ prd = f"""---
 
 ---
 
-# 第0章 v2.3 整改说明与真实校验边界
+# 第0章 v2.4 基线冻结说明与真实校验边界
 
-## 0.1 真实整改内容（对应 v2.2 复审报告）
+## 0.1 基线冻结决策与边界
+
+1. **冻结决策**：v2.3 评审整改中版本完成静态契约整改（94/94 项一致性校验通过）、校审结果持久化（`source_review_decisions.json` 合并机制）与综合业务准入门控修复后，技术负责团队确认不再存在影响技术基线搭建的需求偏移，决定冻结为 v2.4 基线冻结版，作为后端基线搭建与前端原型开发的当前需求基线。
+2. **冻结边界**：`business_readiness = BLOCKED` 状态保留，其含义为**业务试点上线与全量推广**仍须完成全部准入条件；技术基线搭建、前端原型开发与限定范围业务链开发不受阻塞。
+3. **并行工作流**：源数据业务校审（331 条待审节点）、真机/云服务技术 PoC、法务合规复核与行为级验收，按 `docs/05-verification/` 两份清单并行推进，其结果通过受控变更合入后续版本。
+4. **变更规则**：冻结后任何需求修改须通过 GitHub Issue/PR 并更新决策记录，由生成脚本重新产出本文档，禁止手工直接编辑。
+
+## 0.2 v2.3 整改内容回顾（对应 v2.2 复审报告）
 
 1. **标准字段语义严格分离**：`B004` 恢复为原始附录清单业务编号 `legacy_node_code`（非唯一键），内部全局身份 `node_uid` 作为独立扩展列；`B005` 风险等级仅允许 `★/△`，原始空白仅通过 `review_status` 与 `raw_risk_level` 表达；`B006` 单文件介质仅允许“照片/视频”，节点建议介质独立为 `suggested_media_type`。
 2. **验证状态真实拆分**：`validation_report.json` 分别输出 `structural_status`、`source_review_status`、`business_readiness`，杜绝将结构 PASS 误读为业务准入。
@@ -202,7 +125,7 @@ prd = f"""---
 ### 3.2.6 超级管理员（平台级角色 `SUPERADMIN`）
 仅在平台端发起受控代管穿透（Impersonation），通过一次性短效授权码进入目标租户工作台；**默认只读**，导出与督查督办需单独二次授权，**原始取证影像与哈希记录严禁修改或物理删除**。法定签字与终审权由项目实际委派的总监/专监行使，超管不得代替法定责任人签字。
 
-## 3.3 角色权限矩阵（v2.3 统一版）
+## 3.3 角色权限矩阵（v2.4 基线冻结版）
 
 | 功能模块 / 操作权限 | 监理员(SA) | 专监(SP) | 总监(SZ) | 企业管理员(ADMIN) | 系统管理员(SYSADMIN) | 超级管理员(SUPERADMIN) | 终端说明 |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---|
@@ -231,7 +154,7 @@ prd = f"""---
 
 ## 4.2 多租户与三维权限机制
 - **数据库隔离**：所有租户业务表包含 `tenant_id`，由 `TenantCRUDBase` 在 SQL 执行层强制注入 `AND tenant_id = :current_tenant_id`，无全库放行旁路；
-- **对象存储隔离**：OSS 按 `{{enterprise_code}}/{{project_code}}/...` 进行路径前缀逻辑隔离，并由服务端进行对象级签名鉴权；
+- **对象存储隔离**：OSS 按 `{enterprise_code}/{project_code}/...` 进行路径前缀逻辑隔离，并由服务端进行对象级签名鉴权；
 - **项目级权限**：根据用户在当前激活项目（`X-Project-Id`）中的角色（`SZ/SP/SA`）与专监危大绑定关系自动过滤；
 - **超级管理员受控代管**：仅在 `platform-web` 发起 Impersonation，通过一次性短效授权码换取短期目标租户会话，默认只读并全程写入 `plat_privilege_audit_log`。
 
@@ -284,7 +207,7 @@ prd = f"""---
 
 ## 5.6 证据链检索调阅与合规出证中心
 - 按危大分类、施工阶段、风险等级、单据编号、人员工号、日期范围进行四维检索；
-- 五级树形目录调阅：`{{enterprise_code}}/{{project_code}}/{{危大类}}/{{阶段}}/{{日期}}/photo|video|paper`；
+- 五级树形目录调阅：`{enterprise_code}/{project_code}/{危大类}/{阶段}/{日期}/photo|video|paper`；
 - 一键异步打包导出结构化证据包，包含《影像元数据总台账.xlsx》、《SHA-256防篡改指纹校验清单.csv》及离线校验工具（`verify_evidence.py`、`verify_tool.html`）。
 
 ---
@@ -295,24 +218,24 @@ prd = f"""---
 
 ```mermaid
 erDiagram
-    plat_enterprise ||--o{{ biz_tenant_user : "拥有企业员工"
-    plat_enterprise ||--o{{ biz_project : "拥有多个项目"
-    plat_hazard_node_base ||--o{{ biz_tenant_node_ext : "派生企业扩展节点"
-    biz_project ||--o{{ biz_hazard_entity : "危大实体/楼栋/部位实例"
-    biz_project ||--o{{ biz_project_member : "项目成员角色(SZ/SP/SA)"
-    biz_project_member ||--o{{ biz_project_member_hazard : "专监绑定多类危大"
-    plat_hazard_node_base ||--o{{ biz_task_occurrence : "派生任务发生实例"
-    biz_hazard_entity ||--o{{ biz_task_occurrence : "按楼栋/批次实例化"
-    biz_task_occurrence ||--o{{ biz_media_evidence : "采集生成证据"
-    biz_media_evidence }}o--o{{ biz_document : "图单多对多关联"
-    biz_media_evidence ||--o{{ biz_hazard_rectification : "隐患_QZ/_HW双图"
-    biz_hazard_rectification ||--o{{ biz_stop_work_order : "严重隐患停工令(A.0.5)"
-    biz_stop_work_order ||--o{{ biz_document_delivery_record : "送达/拒收记录"
-    biz_hazard_rectification ||--o{{ biz_authority_report_record : "建设单位/主管部门报告"
-    biz_hazard_rectification ||--o{{ biz_rectification_review_round : "多轮复查记录"
-    biz_hazard_rectification ||--o{{ biz_resumption_review : "复工申请与审查"
-    biz_task_occurrence ||--o{{ biz_acceptance_signoff : "验收双签与标识公示"
-    biz_acceptance_signoff ||--o{{ biz_process_gate_rule : "下一道工序门禁"
+    plat_enterprise ||--o{ biz_tenant_user : "拥有企业员工"
+    plat_enterprise ||--o{ biz_project : "拥有多个项目"
+    plat_hazard_node_base ||--o{ biz_tenant_node_ext : "派生企业扩展节点"
+    biz_project ||--o{ biz_hazard_entity : "危大实体/楼栋/部位实例"
+    biz_project ||--o{ biz_project_member : "项目成员角色(SZ/SP/SA)"
+    biz_project_member ||--o{ biz_project_member_hazard : "专监绑定多类危大"
+    plat_hazard_node_base ||--o{ biz_task_occurrence : "派生任务发生实例"
+    biz_hazard_entity ||--o{ biz_task_occurrence : "按楼栋/批次实例化"
+    biz_task_occurrence ||--o{ biz_media_evidence : "采集生成证据"
+    biz_media_evidence }o--o{ biz_document : "图单多对多关联"
+    biz_media_evidence ||--o{ biz_hazard_rectification : "隐患_QZ/_HW双图"
+    biz_hazard_rectification ||--o{ biz_stop_work_order : "严重隐患停工令(A.0.5)"
+    biz_stop_work_order ||--o{ biz_document_delivery_record : "送达/拒收记录"
+    biz_hazard_rectification ||--o{ biz_authority_report_record : "建设单位/主管部门报告"
+    biz_hazard_rectification ||--o{ biz_rectification_review_round : "多轮复查记录"
+    biz_hazard_rectification ||--o{ biz_resumption_review : "复工申请与审查"
+    biz_task_occurrence ||--o{ biz_acceptance_signoff : "验收双签与标识公示"
+    biz_acceptance_signoff ||--o{ biz_process_gate_rule : "下一道工序门禁"
 ```
 
 ### 6.1.1 任务发生实例（Occurrence）与完整度计算规则
@@ -320,10 +243,10 @@ erDiagram
 - **完整度公式**：`已进入施工时点且已审核闭环的任务发生实例数 ÷ 当前已进入施工时点的应采任务发生实例总数 × 100%`（剔除“不适用”“未到工序时点”及全部 `PENDING_REVIEW` 待校审节点）。
 
 ## 6.2 标准化文件命名规则（全链路统一版）
-- **影像命名公式**：`{{project_code}}_{{hazard_code}}_{{subcategory_code}}_{{stage_code}}_{{node_uid_suffix}}_{{risk_file_token}}_{{yyyyMMddHHmmss}}[_{{suffix}}].{{JPG|MP4}}`；
+- **影像命名公式**：`{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{risk_file_token}_{yyyyMMddHHmmss}[_{suffix}].{JPG|MP4}`；
   - 示例：`TJ-2026-0089_04_SC03_01_01_★_20260612143218_QZ.JPG`
   - 说明：`risk_file_token` 为文件命名专用标记，与业务风险等级 `risk_level` 分离；待审节点使用 `PENDING` 且 `evidence_admission_status=QUARANTINED`，不参与正式完整度考核。
-- **单据命名公式**：`{{project_code}}_{{hazard_code}}_{{subcategory_code}}_{{stage_code}}_{{node_uid_suffix}}_{{doc_code}}[_{{suffix}}].pdf`；
+- **单据命名公式**：`{project_code}_{hazard_code}_{subcategory_code}_{stage_code}_{node_uid_suffix}_{doc_code}[_{suffix}].pdf`；
 - 严禁中文空格、特殊符号与非唯一业务编号替代 `node_uid_suffix`。
 
 ## 6.3 分级分类存储周期与到期处置规则
@@ -447,30 +370,169 @@ erDiagram
 
 ## 10.1 附录一：危大工程 12 大分类与精确基线记录对照表（脚本复算版）
 
-{category_table}
+| 分类编码 | 危大工程类别名称 | 原始课题文件/来源 | 基线记录数 | 说明 |
+|:---:|:---|:---|:---:|:---|
+| **01** | 基坑工程 | 附录 A-1 | **25** | 专业危大工序采集记录 |
+| **02** | 模板工程及支撑体系 | 附录 A-2 | **41** | 专业危大工序采集记录 |
+| **03** | 起重吊装及起重机械安装拆卸工程 | 附录 A-3 | **24** | 专业危大工序采集记录 |
+| **04** | 脚手架工程 | 附录 A-4 | **74** | 专业危大工序采集记录 |
+| **05** | 拆除工程 | 附录 A-5 | **24** | 专业危大工序采集记录 |
+| **06** | 暗挖工程 | 附录 A-6 | **63** | 专业危大工序采集记录 |
+| **07** | 建筑幕墙安装工程 | 附录 A-7 | **17** | 专业危大工序采集记录 |
+| **08** | 钢结构、网架和索膜结构安装工程 | 附录 A-8 | **13** | 专业危大工序采集记录 |
+| **09** | 人工挖孔桩工程 | 附录 A-9 | **23** | 专业危大工序采集记录 |
+| **10** | 水下作业工程 | 附录 A-10 | **20** | 专业危大工序采集记录 |
+| **11** | 装配式建筑混凝土预制构件安装工程 | 附录 A-11 | **18** | 专业危大工序采集记录 |
+| **12** | 应急抢险与通用兜底 | 附录 A-12（研究报告4.13节） | **5** | 通用应急模块（不划分施工三阶段，stage_code=99） |
+| **合计** | **12 大类全周期覆盖** | - | **347 条** | 11 类专业危大 342 条 + 通用应急处置 5 条 |
+
 
 ## 10.2 附录二：5 大核心监理表单族（F01~F05）与原始 Excel/GB/T 50319 映射对照表
 
-{forms_table}
+| 表单族编号 | 表单族名称 | 正式法规/标准表号映射 | 对应原始 Excel 工作表 | 核心填报角色 | 关联影像存证动作与规则 |
+|:---:|:---|:---|:---:|:---|:---|
+| **F01** | 危大工程验收记录表族 | 住建部令第37号第二十一条（验收合格双签+验收标识牌公示核查后方可进入下一道工序）；GB/T 50319-2013 分项/检验批/隐蔽验收记录表 | `验收记录表` | 专监/监理员/总监按项目角色 | 强制绑定★验收举牌全景、构件特写及验收标识牌公示照片；双签确认后解锁下一道工序门禁 |
+| **F02** | 监理旁站记录表族 | GB/T 50319-2013 表 A.0.6（监理旁站记录表）；37号令第十八条 | `旁站记录明细` | 专监/监理员/总监按项目角色 | 记录旁站起止时间，绑定连续作业关键时段带水印照片/视频序列，旁站双方签认 |
+| **F03** | 监理专项巡视/安全检查记录表族 | 住建部令第37号第十八条；GB/T 50319-2013 第5.5.5条 | `巡视记录明细` | 专监/监理员/总监按项目角色 | 关联△日常巡视照片；发现缺陷一键触发F05隐患整改/停工报告流 |
+| **F04** | 危大工程报审/报验与履约总表族 | GB/T 50319-2013 表 B.0.1（施工组织设计/专项施工方案报审表）；37号令第十一、十二、十八、二十条 | `履约总表` | 专监/监理员/总监按项目角色 | PC端上传专项方案PDF及专家论证意见书盖章扫描件至paper/ |
+| **F05** | 监理通知单、工程暂停令与整改闭环表族 | GB/T 50319-2013 表 A.0.3（监理通知单）、表 A.0.5（工程暂停令）、表 B.0.9（监理通知回复单）；37号令第十九条 | `整改报告台账` | 专监/监理员/总监按项目角色 | 强制绑定_QZ/_HW双图；一期施工单位线下提交签章回复单，由监理人员登记并扫描(_HF)归入paper/；支持停工送达、建设单位/主管部门报告与多轮复查记录 |
+
 
 ## 10.3 附录三：系统元数据 24 个标准编号字段与数据库物理字段映射全览表（SSOT 驱动版）
 
-{field_table}
+| 标准编号 | 标准名称 | 数据库物理列名 | 数据类型与长度 | 约束 | 业务规则与数据源定义 |
+|:---:|:---|:---|:---|:---|:---|
+| **B001** | 项目唯一编码 | `project_code` | `VARCHAR(32)` | NOT NULL, INDEX | 优先录入住建备案编号（如TJ-2026-0089），未备案时支持按TJ-年份-流水号生成规范编码。（企业管理员PC建档录入/系统生成） |
+| **B002** | 危大工程大类编码 | `hazard_code` | `CHAR(2)` | NOT NULL, INDEX | 01~11专业危大/12通用应急（兼容99）。（节点库自动继承） |
+| **B003** | 施工阶段编码 | `stage_code` | `CHAR(2)` | NOT NULL | 01施工准备/02施工过程/03验收；第12类通用应急使用99。（节点库自动继承） |
+| **B004** | 附录清单节点业务编号 | `legacy_node_code` | `VARCHAR(16)` | NOT NULL, INDEX | 对应原始附录A清单业务编号（如A-04-01），非全局唯一键，与子类别及原始行号联合溯源。（节点库自动继承） |
+| **B005** | 采集风险等级标记 | `risk_level` | `CHAR(1)` | NULL | 仅允许★强制/△常规；原始空白时为NULL，校审状态由review_status独立管理，严禁将UNSPECIFIED作为业务风险等级。（节点库继承+业务校审确认） |
+| **B006** | 单文件影像介质类型 | `media_type` | `VARCHAR(8)` | NOT NULL | 单个证据文件仅允许照片或视频；节点建议采集介质由内部扩展列suggested_media_type独立表达。（相机拍摄模式获取） |
+| **B007** | UTC标准拍摄时间 | `shoot_utc_time` | `DATETIME(3)` | NOT NULL | 拍摄瞬间设备UTC时间，结合单调时钟与最近NTP基准校核。（相机快门底层抓取） |
+| **B008** | 拍摄人员工号 | `shooter_emp_no` | `VARCHAR(32)` | NOT NULL, INDEX | 企业内部监理人员唯一工号（如JL027）。（小程序登录态绑定） |
+| **B009** | 关联纸质单据编号 | `document_no_csv` | `VARCHAR(255)` | NOT NULL | 胶囊标签录入，库内biz_media_document_rel多对多关联，导出以半角英文逗号,拼接，无单据填暂无关联+原因。（小程序扫码/手动录入） |
+| **B010** | 核心风险简述 | `risk_summary` | `VARCHAR(200)` | NOT NULL | 现场风险核心要点，最多支持50个汉字。（节点默认填入+人工微调/AI建议） |
+| **B011** | 影像全局唯一ID | `media_guid` | `VARCHAR(36)` | NOT NULL, UNIQUE | 36位标准UUID（含横杠），端侧离线拍摄暂存时即分配，服务端接收时校验并锁定。（端侧生成/服务端校验锁定） |
+| **B101** | GPS经纬度坐标 | `gps_coordinates` | `VARCHAR(64)` | NULL | WGS-84大地坐标，无信号/固定监控时允许留空，配合gps_status标识。（小程序定位获取(GCJ-02转WGS-84)） |
+| **B102** | BIM构件编码 | `bim_component_code` | `VARCHAR(64)` | NULL | 项目BIM模型构件编码（选填）。（PC/小程序选填） |
+| **B103** | 现场部位描述 | `position_desc` | `VARCHAR(128)` | NULL | 楼栋+楼层+分区。（小程序/PC选填） |
+| **B104** | 影像补充说明 | `media_supplement` | `VARCHAR(200)` | NULL | 补充拍摄背景，最多支持50个汉字。（小程序/PC选填） |
+| **B105** | 整改闭环标识 | `rectification_flag` | `VARCHAR(16)` | NOT NULL DEFAULT '无' | _QZ整改前/_GZ整改中/_HW整改完成/无。（业务流自动注入） |
+| **B106** | 监管督查编号 | `supervision_doc_no` | `VARCHAR(64)` | NULL | 住建现场执法检查文书编号。（PC/小程序选填） |
+| **B201** | AI风险识别标签 | `ai_risk_tags` | `VARCHAR(255)` | NULL | 多模态AI/模型输出的风险识别标签（英文逗号分隔）。（后端AI引擎生成） |
+| **B202** | AI风险置信度 | `ai_confidence` | `DECIMAL(3,2)` | NULL | 0.00~1.00。（后端AI引擎生成） |
+| **B203** | 识别截图关联ID | `ai_snapshot_guid` | `VARCHAR(36)` | NULL | AI截取高风险隐患特写缩略图GUID。（后端AI引擎生成） |
+| **B301** | 归档文件SHA-256哈希值 | `file_sha256` | `CHAR(64)` | NOT NULL, INDEX | 服务端接收带水印归档文件时流式计算的SHA-256并锁定，不与水印自身形成自引用。（服务端入库固化） |
+| **B302** | 系统固化存证时间戳 | `deposit_time` | `DATETIME(3)` | NOT NULL | 服务端接收并持久化时UTC毫秒级时间戳（NTP同步）。（服务端入库固化） |
+| **B303** | 上传操作人工号 | `upload_operator_no` | `VARCHAR(32)` | NOT NULL | 实际执行文件上传的监理人员工号。（服务端入库固化） |
+| **B304** | 归档文件存储路径 | `storage_path` | `VARCHAR(512)` | NOT NULL | 含企业编码前缀的OSS五级目录完整寻址Key。（服务端目录映射引擎） |
+
 
 ### 10.3.2 数据库内部扩展管理列（不占用 B 系列标准编号）
 
-{ext_table}
+| 内部扩展列名 | 数据类型 | 业务与工程用途说明 |
+|:---|:---|:---|
+| `id` | `BIGINT` | 物理自增主键 |
+| `node_uid` | `VARCHAR(32)` | 内部全局唯一节点身份编码（如WDGC-A-04-SC03-01），不替代标准B004业务编号 |
+| `tenant_id` | `BIGINT` | 租户行级隔离字段，由TenantCRUDBase自动注入 |
+| `enterprise_code` | `VARCHAR(32)` | 监理企业编码（如ENT-001） |
+| `project_id` | `BIGINT` | 关联biz_project.id |
+| `task_occurrence_id` | `BIGINT` | 关联biz_task_occurrence.id，支持同节点按楼栋/部位/批次多次发生 |
+| `subcategory_code` | `VARCHAR(8)` | 危大子类别编码（如SC01~SC06/GEN） |
+| `suggested_media_type` | `VARCHAR(16)` | 节点级建议采集介质（照片/视频/照片+视频），与单文件B006严格分离 |
+| `review_status` | `VARCHAR(16)` | 源数据校审状态：CONFIRMED/PENDING_REVIEW/REJECTED_WITH_REASON；待审或驳回节点不得进入正式强制采集任务与完整度考核 |
+| `risk_file_token` | `VARCHAR(16)` | 文件命名专用风险标记（★/△/PENDING），与业务 risk_level 分离 |
+| `evidence_admission_status` | `VARCHAR(16)` | 证据准入状态：ADMITTED（正式归档）/QUARANTINED（隔离区草稿，不参与正式完整度考核） |
+| `role_type` | `VARCHAR(16)` | 拍摄人项目角色（SZ总监/SP专监/SA监理员/ADMIN企业管理员） |
+| `action_type` | `VARCHAR(16)` | 履职动作类型（PZ旁站/XS巡视/YS验收/ZG整改/YJ应急/JC督查） |
+| `altitude` | `DECIMAL(8,2)` | GPS定位高程（米，选填） |
+| `horizontal_accuracy` | `DECIMAL(6,2)` | GPS水平定位精度误差（米） |
+| `building_element` | `VARCHAR(64)` | 所属工程实体构件 |
+| `device_uuid` | `VARCHAR(64)` | 采集手机匿名设备标识 |
+| `device_model` | `VARCHAR(64)` | 手机品牌型号 |
+| `os_version` | `VARCHAR(64)` | 操作系统与小程序版本 |
+| `exif_available_status` | `TINYINT` | 1完整可获取/2仅基础宽高方向(微信getImageInfo标准能力)/3不可获取待核验 |
+| `gps_status` | `TINYINT` | 1围栏内正常/2无信号缺失/3超围栏预警/4定位异常待人工核验 |
+| `client_clock_verified` | `TINYINT(1)` | 端侧单调时钟校验通过标记 |
+| `is_offline_queued` | `TINYINT(1)` | 是否离线排队上传（正常离线延迟不误报漂移） |
+| `time_drift_warning` | `TINYINT(1)` | 设备系统时间人为拨改>15分钟或非离线上传异常延迟标记 |
+| `raw_frame_sha256` | `CHAR(64)` | 原始相机帧摘要（压入水印前16位，与归档file_sha256职责分离） |
+| `watermarked_file_path` | `VARCHAR(512)` | 带水印归档衍生文件路径 |
+| `audit_status` | `TINYINT` | 0待审/1通过/2驳回/3历史作废留存 |
+| `retention_policy_code` | `VARCHAR(32)` | LONGTERM_RETENTION/POST_COMPLETION_1Y/POST_COMPLETION_3Y/LOCAL_90D |
+| `is_deleted` | `TINYINT(1)` | 逻辑软删除标记（原始证据严禁物理删除） |
+| `created_at` | `DATETIME(3)` | 记录创建时间 |
+
 
 ## 10.4 附录四：基于真实节点的合成 JSON 示例（example_data_status=SYNTHETIC）
 
 ### 示例 1：已确认节点（CONFIRMED + ★）完整元数据（合成演示数据，example_data_status=SYNTHETIC）
 ```json
-{json.dumps(example1, ensure_ascii=False, indent=2)}
+{
+  "tenant_id": 1001,
+  "enterprise_code": "ENT-001",
+  "project_code": "TJ-2026-0089",
+  "hazard_code": "08",
+  "subcategory_code": "SC01",
+  "stage_code": "01",
+  "legacy_node_code": "A-08-01",
+  "node_uid": "WDGC-A-08-SC01-01",
+  "risk_level": "★",
+  "review_status": "CONFIRMED",
+  "media_type": "照片",
+  "suggested_media_type": "照片",
+  "shoot_utc_time": "2026-10-14 14:32:18",
+  "shooter_emp_no": "JL027",
+  "risk_summary": "吊点设计、张拉应力计算存在偏差，临时支撑体系验算不足，高空拼装、张拉作业时构件失稳坠落，引发高处坠落、物体打击重大安全事故。",
+  "media_guid": "8f42d17c-903e-471a-b9c4-2d58f3107961",
+  "gps_coordinates": "117.2136,39.0872",
+  "gps_status": 1,
+  "position_desc": null,
+  "client_clock_verified": 1,
+  "is_offline_queued": 0,
+  "time_drift_warning": 0,
+  "example_data_status": "SYNTHETIC",
+  "risk_file_token": "★",
+  "evidence_admission_status": "ADMITTED",
+  "raw_frame_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "file_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+  "deposit_time": "2026-10-14 14:32:20.128",
+  "upload_operator_no": "JL027",
+  "storage_path": "ENT-001/TJ-2026-0089/08_钢结构、网架和索膜结构安装工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_08_SC01_01_01_★_20261014143218.JPG"
+}
 ```
 
 ### 示例 2：待校审节点（PENDING_REVIEW，不参与正式强制采集与完整度考核）
 ```json
-{json.dumps(example2, ensure_ascii=False, indent=2)}
+{
+  "tenant_id": 1001,
+  "enterprise_code": "ENT-001",
+  "project_code": "TJ-2026-0089",
+  "hazard_code": "01",
+  "subcategory_code": "SC01",
+  "stage_code": "01",
+  "legacy_node_code": "A-01-01",
+  "node_uid": "WDGC-A-01-SC01-01",
+  "risk_level": null,
+  "review_status": "PENDING_REVIEW",
+  "media_type": "照片",
+  "suggested_media_type": "照片",
+  "shoot_utc_time": "2026-10-14 16:15:00",
+  "shooter_emp_no": "JL014",
+  "media_guid": "7b19a334-82fe-4912-a7d1-1d54e928f610",
+  "gps_coordinates": null,
+  "gps_status": 2,
+  "is_offline_queued": 1,
+  "client_clock_verified": 1,
+  "time_drift_warning": 0,
+  "example_data_status": "SYNTHETIC",
+  "risk_file_token": "PENDING",
+  "evidence_admission_status": "QUARANTINED",
+  "raw_frame_sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+  "file_sha256": "9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+  "storage_path": "ENT-001/TJ-2026-0089/01_基坑工程/01_施工准备阶段/20261014/photo/TJ-2026-0089_01_SC01_01_01_PENDING_20261014161500.JPG",
+  "business_gate_note": "该节点原始风险等级未标注，review_status=PENDING_REVIEW，evidence_admission_status=QUARANTINED（隔离区草稿），不得进入正式强制采集任务与履职完整度考核分母，需业务专家确认后方可启用。"
+}
 ```
 
 ## 10.5 附录五：PRD 文档修订记录与全生命周期版本历史
@@ -481,14 +543,9 @@ erDiagram
 | v2.0 | 2026-11-12 | 架构对齐版（平台/租户分离、Figma Make 衔接） | 历史保留 |
 | v2.1 | 2026-11-13 | 首次评审整改版 | 历史保留 |
 | v2.2 | 2026-11-15 | 节点唯一身份与原始数据溯源整改版 | 历史保留 |
-| **v2.3** | **2026-11-15** | **真实 SSOT 驱动、业务准入状态拆分、法定履职全闭环验收用例与真实一致性校验** | **评审整改中** |
+| v2.3 | 2026-11-15 | 真实 SSOT 驱动、业务准入状态拆分、法定履职全闭环验收用例与真实一致性校验 | 已冻结升版为 v2.4 |
+| **v2.4** | **2026-11-16** | **基线冻结版：冻结为技术基线搭建与前端原型开发的当前需求基线** | **当前基线** |
 
 ---
 
 > **文档结束。**
-"""
-
-out_path = os.path.join(BASE_DIR, "docs", "02-prd", "PRD_v2.3_评审整改中.md")
-with open(out_path, "w", encoding="utf-8") as f:
-    f.write(prd)
-print(f"Successfully generated {out_path}: {len(prd.splitlines())} lines, {len(prd.encode('utf-8'))} bytes")

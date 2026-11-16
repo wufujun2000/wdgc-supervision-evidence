@@ -1,13 +1,13 @@
 # 危大工程监理履职数字化证据链系统（`wdgc-supervision-evidence`）
-# 总体技术架构与基线融合设计说明书（v1.4 评审整改中版本）
+# 总体技术架构与基线融合设计说明书（v1.5 基线冻结版）
 
-> **文档状态**：评审整改中版本（依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 修正 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型，待源数据业务校审、真机 PoC 与法务复核通过后签收为可开发基线）
-> **编制日期**：2026-11-12；**v1.4 评审整改日期**：2026-11-15
+> **文档状态**：基线冻结版（v1.4 依据 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md` 完成 GB/T 50319 表号、示例跨字段一致性、扩展列数量与任务模型修正，并通过全部静态校验与执行阻断修复后，与 PRD v2.4 同步冻结为当前开发基线。源数据业务校审、真机 PoC 与法务复核作为并行工作流推进，不阻塞技术基线搭建；其完成情况仍是业务试点上线与全量推广的准入条件）
+> **编制日期**：2026-11-12；**v1.5 基线冻结日期**：2026-11-16
 > **审查与复审依据**：`docs/01-review-reports/document-feasibility-review-2026-11-12.md`、`docs/01-review-reports/prd-v2.1-follow-up-review-2026-11-14.md`、`docs/01-review-reports/prd-v2.2-follow-up-review-2026-11-15.md` 及 `docs/01-review-reports/prd-v2.3-github-follow-up-review-2026-11-15.md`
 > **机器可读数据字典**：`docs/04-baseline-data/hazard_nodes_seed.json`（347 条基线记录，347 个唯一 node_uid） & `docs/04-baseline-data/metadata_and_forms_dictionary.json`（24 个标准编号字段 + 30 个内部扩展列 + F01~F05 表单映射）
 > **开发模式**：AI Agent Vibe Coding 主导开发（文档驱动、强类型护栏、垂直切片高内聚）
 > **基线选型决议（锁定完整 Commit SHA）**：以 **`fastapiadmin/FastapiAdmin`（项目包版本 v3.2.0，固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2`）** 为主工程骨架；吸收借鉴 **`insistence/RuoYi-FastAPI`（固定提交 `7f7c66d373b6b344899961a42249ff51285cd865`）** 的文件防篡改治理、接口防重放签名、Agno 视觉多模态 SSE 设计思想，在本底座中构建对应的自研增强模块。
-> **关联需求文档**：`docs/02-prd/PRD_v2.3_评审整改中.md`（已修正 GB/T 50319 表号与示例一致性；历史版本完整保留于 `docs/02-prd/PRD_v1.0_正式版.md`、`docs/02-prd/PRD_v2.0_架构对齐版.md`、`docs/02-prd/PRD_v2.1_评审闭环版.md` 与 `docs/02-prd/PRD_v2.2_评审整改中.md`）
+> **关联需求文档**：`docs/02-prd/PRD_v2.4_基线冻结版.md`（与本文档同步冻结的当前需求基线；历史版本完整保留于 `docs/02-prd/PRD_v1.0_正式版.md`、`docs/02-prd/PRD_v2.0_架构对齐版.md`、`docs/02-prd/PRD_v2.1_评审闭环版.md` 与 `docs/02-prd/PRD_v2.2_评审整改中.md`，v2.3 快照见 Git 提交记录）
 
 ---
 
@@ -287,5 +287,5 @@ erDiagram
 
 ### 10.3 真实 CI 一致性校验链路
 - `scripts/generate_baseline_data.py`：从原始 Word/Excel 生成四份机器可读 JSON；
-- `scripts/generate_prd_v23.py`：从字典自动生成 PRD 字段表、节点统计、真实示例与法定履职验收用例；
+- `scripts/generate_prd.py`：从字典自动生成 PRD 字段表、节点统计、真实示例与法定履职验收用例；
 - `scripts/validate_prd_consistency.py`：执行节点唯一性、字段契约、GB/T 50319 表号、示例真实性与跨字段一致性、命名公式一致性、架构文档旧规则、权限旧词与离线旧配额扫描、法定履职用例覆盖、性能与隐私口径等断言；实际检查数量以 `docs/04-baseline-data/prd_consistency_report.json` 的 `checks_passed/checks_total` 为准，校验后同步 `validation_report.json` 与 PRD 的 `static_consistency_status`。

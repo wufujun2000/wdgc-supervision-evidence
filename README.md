@@ -6,7 +6,7 @@
 
 ## 一、当前项目状态
 
-当前处于**文档与数据基线已建立、FastapiAdmin 原生技术基线已通过本机运行验收**阶段。
+当前处于**PRD v2.4 需求基线已冻结、文档与数据基线已建立、FastapiAdmin 原生技术基线已通过本机运行验收**阶段。产品原型团队以 [`docs/02-prd/PRD_v2.4_基线冻结版.md`](docs/02-prd/PRD_v2.4_基线冻结版.md) 为当前需求基线继续原型开发；冻结后的需求变更走协作规则中的受控变更流程。
 
 `src/backend/`、`src/platform-web/`、`src/mp-app/` 已分别由固定提交 `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2` 的 `backend/`、`frontend/web/`、`frontend/app/` 完整映射导入，保留上游依赖锁文件、测试、配置模板及启动链。当前仅包含上游原生能力，尚未实现本项目业务模块；`tenant-web` 仍等待 Figma Make，未创建。
 
@@ -31,7 +31,7 @@ FastapiAdmin 原生基线已完成自动化测试、真实 MySQL/Redis、接口�
 | 顺序 | 文件                                                                                                                                     | 用途                                             |
 | :--- | :--------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------- |
 | 1    | [`docs/README.md`](docs/README.md)                                                                                                       | 完整文档地图、当前版本、逐文件说明和角色阅读路线 |
-| 2    | [`docs/02-prd/PRD_v2.3_评审整改中.md`](docs/02-prd/PRD_v2.3_评审整改中.md)                                                               | 当前产品需求、角色、功能、数据规则及验收要求     |
+| 2    | [`docs/02-prd/PRD_v2.4_基线冻结版.md`](docs/02-prd/PRD_v2.4_基线冻结版.md)                                                               | 当前产品需求、角色、功能、数据规则及验收要求     |
 | 3    | [`docs/03-architecture/system-architecture-design.md`](docs/03-architecture/system-architecture-design.md)                               | 技术选型、工程拓扑、多租户与证据链架构           |
 | 4    | [`docs/06-collaboration/team-collaboration-and-delivery-workflow.md`](docs/06-collaboration/team-collaboration-and-delivery-workflow.md) | 产品、技术、测试和专家评审团队的协作规则         |
 | 5    | [`docs/04-baseline-data/validation_report.json`](docs/04-baseline-data/validation_report.json)                                           | 当前结构、业务校审和开发准入状态                 |
@@ -166,7 +166,7 @@ pnpm build:mp-weixin
 
 ```bash
 python3 scripts/generate_baseline_data.py
-python3 scripts/generate_prd_v23.py
+python3 scripts/generate_prd.py
 python3 scripts/validate_prd_consistency.py
 ```
 
@@ -176,7 +176,7 @@ python3 scripts/validate_prd_consistency.py
 - `docs/04-baseline-data/metadata_and_forms_dictionary.json`：标准字段、内部扩展和表单映射；
 - `docs/04-baseline-data/validation_report.json`：结构与业务准入状态；
 - `docs/04-baseline-data/prd_consistency_report.json`：实际一致性检查数量与结果（以 `checks_passed/checks_total` 为准）；
-- `docs/02-prd/PRD_v2.3_评审整改中.md`：由生成器输出的当前 PRD。
+- `docs/02-prd/PRD_v2.4_基线冻结版.md`：由生成器输出的当前 PRD（v2.4 基线冻结版，技术基线搭建与前端原型开发的当前需求基线）。
 
 `docs/04-baseline-data/source_review_decisions.json` 是独立、受版本控制的人工校审输入，不是生成输出。生成器按 `(node_uid, issue_type, source_fingerprint)` 合并其中的决定；不要直接编辑派生日志 `source_data_review_log.json` 保存人工结论。
 
