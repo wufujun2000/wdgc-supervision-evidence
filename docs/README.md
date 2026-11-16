@@ -70,8 +70,9 @@ docs/
 | :--- | :--- |
 | `business-source-review-checklist.md` | 源数据业务校审工作清单。用于组织业务专家确认风险等级、适用范围、采集介质、关联单据、原始内容错配及版本签认 |
 | `technical-poc-verification-checklist.md` | 真机与云服务 PoC 工作清单。覆盖相机、离线、续传、时钟、哈希、WORM、双租户、法定履职、性能和合规证据 |
+| `fastapiadmin-baseline-acceptance.md` | FastapiAdmin 原生技术基线实测记录。覆盖固定源码导入、自动化测试、MySQL/Redis、登录、权限、CRUD、代理和移动 H5 验收 |
 
-这两份文件是**待执行工作模板**，不是已完成验证的证明。实际结果应另附签认记录、日志、截图、测试报告和证据链接。
+上述两份 `*-checklist.md` 是**待执行工作模板**，不是已完成验证的证明；实际结果应另附签认记录、日志、截图、测试报告和证据链接。`fastapiadmin-baseline-acceptance.md` 则是已完成的本机原生基线实测记录，两者不得混用。
 
 ## 七、机器可读基线：`04-baseline-data/`
 

@@ -6,18 +6,28 @@
 
 ---
 
+## 〇、系统环境隔离红线（当前执行约束）
+
+1. 禁止执行 `apt`、`sudo`、全局 `pip/npm/pnpm`、系统 Python/Node 替换、系统服务配置、Shell Profile 或系统环境变量修改；未经用户明确授权，不得读写当前仓库以外的路径。
+2. 工具、Python、依赖、缓存和临时文件只能位于仓库 `tmp/`、各工程的 `.venv/` 或 `node_modules/`。每条安装、测试和构建命令都必须在子进程中显式设置 `HOME`、XDG 目录、`TMPDIR/TEMP/TMP` 及包管理缓存到仓库内，禁止依赖工具默认的全局路径。
+3. Docker Engine 与 Compose 插件由用户手动安装。创建项目专用容器、网络或命名卷同样会改变本机 Docker 状态，必须取得用户当次明确许可；不得操作其他项目的容器、网络或卷。
+4. 禁止执行 `docker compose down -v`、`docker system prune` 或删除数据卷。确需删除或重建数据时，必须单独说明影响并取得用户明确授权。
+5. `vendor/` 只读；当前只搭建和验收 FastapiAdmin 原生基线，不进入本项目业务模块开发。
+
+---
+
 ## 一、方案总览
 
 本项目采用 **“Python 3.12 + uv + 项目级 Docker Compose”** 的开发测试环境方案：
 
-| 组成部分 | 选型 | 说明 |
-| :--- | :--- | :--- |
-| **Python 版本** | Python 3.12 | 与 FastapiAdmin 原生要求一致 |
-| **包与虚拟环境管理** | `uv` | 项目级 `.venv`，依赖锁定 `uv.lock` |
-| **数据库** | MySQL 8.0（Docker 容器） | 项目级独立容器与数据卷 |
-| **缓存/会话/锁** | Redis 7.x（Docker 容器） | 项目级独立容器与数据卷 |
-| **反向代理** | Nginx（Docker 容器，可选启用） | 联调/演示/测试时启用，生产环境必须启用 |
-| **工程目录** | `src/backend/`、`src/platform-web/`、`src/tenant-web/`、`src/mp-app/`、`vendor/FastapiAdmin/`、`vendor/RuoYi-FastAPI/`、`deploy/dev/` | 自研代码集中于 `src/`，上游基线源码集中于 `vendor/`，文档目录与代码目录分离 |
+| 组成部分             | 选型                                                                                                                                  | 说明                                                                        |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- |
+| **Python 版本**      | Python 3.12                                                                                                                           | 与 FastapiAdmin 原生要求一致                                                |
+| **包与虚拟环境管理** | `uv`                                                                                                                                  | 项目级 `.venv`，依赖锁定 `uv.lock`                                          |
+| **数据库**           | MySQL 8.0（Docker 容器）                                                                                                              | 项目级独立容器与数据卷                                                      |
+| **缓存/会话/锁**     | Redis 7.x（Docker 容器）                                                                                                              | 项目级独立容器与数据卷                                                      |
+| **反向代理**         | Nginx（Docker 容器，可选启用）                                                                                                        | 联调/演示/测试时启用，生产环境必须启用                                      |
+| **工程目录**         | `src/backend/`、`src/platform-web/`、`src/tenant-web/`、`src/mp-app/`、`vendor/FastapiAdmin/`、`vendor/RuoYi-FastAPI/`、`deploy/dev/` | 自研代码集中于 `src/`，上游基线源码集中于 `vendor/`，文档目录与代码目录分离 |
 
 ---
 
@@ -62,19 +72,36 @@ uv sync
 ### 3.1 项目级 Docker 隔离原则
 
 - 本项目使用独立的 `deploy/dev/docker-compose.yml`；
-- MySQL、Redis、Nginx 容器名称、网络、数据卷均以 `wdgc-supervision-evidence` 为前缀；
-- 不与服务器上其他开发项目共用容器或数据卷；
-- 环境损坏时允许通过 `docker compose down -v && docker compose up -d` 重建。
+- Compose 顶层项目名为 `wdgc-supervision-evidence`，MySQL、Redis 使用项目默认网络，容器与数据卷采用项目专属名称；
+- 不与服务器上其他开发项目共用容器、数据库数据卷或 MySQL/Redis 默认网络；
+- 环境损坏时先保留现场并诊断；删除容器、网络或数据卷及重建操作须按第〇章单独取得用户明确授权。
 
 ### 3.2 服务规划
 
-| 服务 | 容器名 | 端口映射（宿主机→容器） | 数据卷 | 用途 |
-| :--- | :--- | :--- | :--- | :--- |
-| MySQL 8.0 | `wdgc-mysql` | `3307→3306` | `wdgc-mysql-data` | 业务与权限数据 |
-| Redis 7.x | `wdgc-redis` | `6380→6379` | `wdgc-redis-data` | 会话、缓存、分布式锁、Nonce |
-| Nginx | `wdgc-nginx` | `8080→80` | 配置挂载 | 联调/演示反向代理 |
+| 服务          | 容器名       | 端口映射（宿主机→容器）                                | 数据卷            | 用途                        |
+| :------------ | :----------- | :----------------------------------------------------- | :---------------- | :-------------------------- |
+| MySQL 8.0     | `wdgc-mysql` | `3307→3306`                                            | `wdgc-mysql-data` | 业务与权限数据              |
+| Redis 7.x     | `wdgc-redis` | `6380→6379`                                            | `wdgc-redis-data` | 会话、缓存、分布式锁、Nonce |
+| Nginx（可选） | `wdgc-nginx` | 本机 Linux `network_mode: host`，监听 `127.0.0.1:8080` | 配置挂载          | 本机联调反向代理            |
 
-> 端口映射使用非默认端口，避免与服务器已有 MySQL/Redis/Nginx 冲突。
+> MySQL/Redis 使用非默认端口并绑定回环地址，避免与服务器已有服务冲突。Nginx 不使用端口映射或 `host.docker.internal`，详见 3.3。
+
+### 3.3 可选本机 Linux Nginx 联调
+
+`with-nginx` profile **仅用于本机 Linux 开发联调，不是生产配置**。Nginx 容器使用 `network_mode: host`，直接监听 `127.0.0.1:8080`，不配置 `ports` 或 `extra_hosts`。这样容器可以直接访问同样只监听回环地址的后端，无需把后端改为 `0.0.0.0`，也不开放宿主防火墙。
+
+- `/api/` 保留完整 URI 并代理至 `http://127.0.0.1:8001`；后端仍保持 `127.0.0.1:8001`。
+- `/platform/` 代理至 `http://127.0.0.1:5173`，保留 `/platform/` 基础路径；`/tenant/` 代理至 `http://127.0.0.1:5174`。
+- API 与平台代理使用 HTTP 1.1，并传递 `Upgrade`、`Connection`、Host 和 X-Forwarded 头，分别支持 AI WebSocket 与 Vite HMR，不改变业务路由。
+- macOS、Windows 或需要跨主机访问的部署不得套用此配置；生产环境应另行使用隔离网络及明确的回环/内网监听策略。
+
+在用户明确许可 Docker 操作后，本机 Linux 才可执行：
+
+```bash
+docker compose -f deploy/dev/docker-compose.yml --profile with-nginx up -d nginx
+```
+
+当前仅完成静态配置与 YAML 校验，未启动 Docker，也未实测 Nginx、HMR 或 WebSocket。
 
 ---
 
@@ -115,10 +142,10 @@ git clone https://github.com/insistence/RuoYi-FastAPI.git vendor/RuoYi-FastAPI
 
 网络较慢时可加 `--depth 1`。架构文档与 PRD 锁定的固定基线提交：
 
-| 上游仓库 | 固定提交 | 用途 |
-| :--- | :--- | :--- |
-| `FastapiAdmin` | `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2` | 后端主骨架（RBAC、代码生成、系统监控、fastapp 移动端） |
-| `RuoYi-FastAPI` | `7f7c66d373b6b344899961a42249ff51285cd865` | 文件治理、接口防重放签名、Agno 多模态 SSE 参考 |
+| 上游仓库        | 固定提交                                   | 用途                                                   |
+| :-------------- | :----------------------------------------- | :----------------------------------------------------- |
+| `FastapiAdmin`  | `6828ba16a5c14fbce8479fe1b09b9e8d6ee540c2` | 后端主骨架（RBAC、代码生成、系统监控、fastapp 移动端） |
+| `RuoYi-FastAPI` | `7f7c66d373b6b344899961a42249ff51285cd865` | 文件治理、接口防重放签名、Agno 多模态 SSE 参考         |
 
 克隆到最新主干后如需对齐固定提交：
 
@@ -135,44 +162,47 @@ git -C vendor/RuoYi-FastAPI checkout 7f7c66d373b6b344899961a42249ff51285cd865
 ## 五、环境初始化步骤
 
 ### 5.1 前置条件
-- 已安装 Docker 与 Docker Compose；
-- 已安装 `uv`；
-- 已安装 Python 3.12（或由 `uv python install 3.12` 安装）。
+
+- Docker Engine 与 Compose 插件由用户手动安装；创建项目容器、网络或卷前必须取得当次明确许可；
+- Node.js 满足上游 `package.json` 的 engines 要求；
+- `uv`、Python 3.12、pnpm 与所有缓存使用根 README 第 4.2 节的仓库内工具链，不要求全局安装。
 
 ### 5.2 启动项目级基础服务
 
+获得用户当次明确许可后，在仓库根目录执行：
+
 ```bash
-cd deploy/dev
-docker compose up -d
+docker compose -f deploy/dev/docker-compose.yml up -d --wait mysql redis
 ```
 
 ### 5.3 初始化后端环境
 
+先按根 README 第 4.2 节在子进程中设置仓库内 `HOME`、XDG、临时目录和包缓存，再执行：
+
 ```bash
 cd src/backend
-uv python pin 3.12
-uv venv
-uv sync
+uv sync --extra mysql
 ```
 
 ### 5.4 环境自检
 
 ```bash
-docker ps | grep wdgc
-uv run python --version
-uv run python -c "import fastapi, sqlalchemy, redis; print('backend deps ok')"
+docker compose -f deploy/dev/docker-compose.yml ps
+uv run --no-sync python --version
+uv run --no-sync python -c "import fastapi, sqlalchemy, redis; print('backend deps ok')"
 ```
 
 ---
 
 ## 六、后续基线搭建立即事项
 
-环境确认后，按以下顺序进入基线搭建：
-1. 以 `vendor/FastapiAdmin`（固定提交 `6828ba1`）为基线，在 `src/backend/` 初始化后端工程；
-2. 建立 `TenantModelMixin`、`TenantCRUDBase`、`TenantProjectPermission`；
-3. 实现文件防篡改、接口防重放、离线沙箱与分片续传底层模块；
-4. 建立 `src/platform-web/`、`src/tenant-web/`、`src/mp-app/` 工程；
-5. 开始 MVP 核心业务闭环开发。
+环境确认后，按以下顺序推进：
+
+1. 从固定提交导入 `src/backend/`、`src/platform-web/`、`src/mp-app/`，保留锁文件、测试、配置模板和 MIT 许可；`tenant-web` 继续等待 Figma Make；
+2. 完成上游 pytest、pyright、前端类型/测试/lint/构建及真实 MySQL/Redis/登录/页面验收；
+3. 原生基线验收通过后，再单独实施 `TenantModelMixin`、`TenantCRUDBase`、`TenantProjectPermission` 与 H-01～H-03 加固；
+4. 文件防篡改、接口防重放、离线沙箱与分片续传按架构和 PoC 分阶段验证；
+5. 当前阶段不进入 MVP 业务模块开发，后续业务任务须在基线验收后单独下达。
 
 ---
 
