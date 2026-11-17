@@ -1,0 +1,1474 @@
+{
+  "total_auto_confirmed": 292,
+  "total_ambiguous": 50,
+  "total_conflicts": 4,
+  "by_mapping_type": {
+    "explicit_node": 61,
+    "batch_stage": 14,
+    "inferred_stage_pattern": 28,
+    "inferred_keyword": 122,
+    "batch_category": 67
+  },
+  "mapping_details": [
+    {
+      "node_uid": "WDGC-A-01-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点6"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点7"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.2.1 节点8"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-19",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-20",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-21",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-22",
+      "status": "auto_confirmed",
+      "basis": "4.2.2 批量声明"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-23",
+      "status": "auto_confirmed",
+      "basis": "4.2.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-24",
+      "status": "auto_confirmed",
+      "basis": "4.2.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-25",
+      "status": "auto_confirmed",
+      "basis": "4.2.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.3.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-01",
+      "status": "auto_confirmed",
+      "basis": "4.3.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-01",
+      "status": "auto_confirmed",
+      "basis": "4.3.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-01",
+      "status": "auto_confirmed",
+      "basis": "4.3.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.3.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-05",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-06",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-06",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-06",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-07",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-07",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-07",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-08",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-08",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-08",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-09",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-09",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-09",
+      "status": "auto_confirmed",
+      "basis": "4.3.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.3.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-10",
+      "status": "auto_confirmed",
+      "basis": "4.3.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-10",
+      "status": "auto_confirmed",
+      "basis": "4.3.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-10",
+      "status": "auto_confirmed",
+      "basis": "4.3.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-11",
+      "status": "auto_confirmed",
+      "basis": "4.3.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.4.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-01",
+      "status": "auto_confirmed",
+      "basis": "4.4.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-01",
+      "status": "auto_confirmed",
+      "basis": "4.4.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.4.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-02",
+      "status": "auto_confirmed",
+      "basis": "4.4.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-03",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配高风险工序关键词'安装'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-04",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-04",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-05",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-06",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-06",
+      "status": "auto_confirmed",
+      "basis": "4.4.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.4.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-07",
+      "status": "auto_confirmed",
+      "basis": "4.4.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-07",
+      "status": "auto_confirmed",
+      "basis": "4.4.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.5.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-01",
+      "status": "auto_confirmed",
+      "basis": "4.5.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-01",
+      "status": "auto_confirmed",
+      "basis": "4.5.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-01",
+      "status": "auto_confirmed",
+      "basis": "4.5.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-01",
+      "status": "auto_confirmed",
+      "basis": "4.5.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-04",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-05",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-05",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-05",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-05",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配高风险工序关键词'架体'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-06",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-07",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-09",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-09",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-09",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-10",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'运行'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-10",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-10",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-11",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配高风险工序关键词'架体'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-11",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-12",
+      "status": "auto_confirmed",
+      "basis": "4.5.2 关键词推断：匹配常规巡视关键词'每日'"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-08",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-09",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-10",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-11",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-11",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-12",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-12",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-13",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-13",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-13",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-14",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-15",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-16",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-17",
+      "status": "auto_confirmed",
+      "basis": "4.5.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-19",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-20",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-21",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-22",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-23",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-24",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.6节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.7.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.7.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "4.7.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "4.7.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.7.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'爆破'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'日常'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'每日'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'安装'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-19",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-20",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'安装'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-21",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'喷射'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-22",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-23",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'安装'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-24",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-25",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-26",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-27",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'盾构'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-28",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-29",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-30",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-31",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-32",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'锚杆'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-34",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-35",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-36",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'注浆'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-37",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-38",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-39",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-40",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-41",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-42",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'每日'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-43",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-45",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-46",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'日常'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-47",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'每日'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-48",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'每日'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-49",
+      "status": "auto_confirmed",
+      "basis": "4.7.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-50",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-51",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-52",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-53",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-54",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-55",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-56",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-57",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-58",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-59",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-60",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-61",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-62",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-63",
+      "status": "auto_confirmed",
+      "basis": "4.7.3 阶段模式推断"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.8.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.8.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "4.8.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "4.8.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.8.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "4.8.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "4.8.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.9.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.9.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "4.9.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "4.9.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配常规巡视关键词'检查'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.9.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "4.9.3 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.9.3 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "4.9.3 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-19",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-20",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-21",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-22",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-23",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.10节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-06",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-19",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-20",
+      "status": "auto_confirmed",
+      "basis": "研究报告4.11节全类强制"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-01",
+      "status": "auto_confirmed",
+      "basis": "4.12.1 节点1"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-02",
+      "status": "auto_confirmed",
+      "basis": "4.12.1 节点2"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-03",
+      "status": "auto_confirmed",
+      "basis": "4.12.1 节点3"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-04",
+      "status": "auto_confirmed",
+      "basis": "4.12.1 节点4"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-05",
+      "status": "auto_confirmed",
+      "basis": "4.12.1 节点5"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-07",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-08",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-09",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-10",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-11",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-12",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-13",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-14",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-15",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'运行'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-16",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配常规巡视关键词'巡视'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-17",
+      "status": "auto_confirmed",
+      "basis": "4.12.2 关键词推断：匹配高风险工序关键词'旁站'"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-18",
+      "status": "auto_confirmed",
+      "basis": "4.12.3 节点1"
+    }
+  ]
+}

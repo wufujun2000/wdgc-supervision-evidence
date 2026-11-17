@@ -1,0 +1,2049 @@
+{
+  "count": 292,
+  "items": [
+    {
+      "node_uid": "WDGC-A-01-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点1：危大工程专项方案编审与专家论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-02",
+      "node_name": "分包单位资质及主要管理人员、特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点2：分包单位、管理人员及特种作业人员资质核查",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-03",
+      "node_name": "主要施工机械设备进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点3：桩基、降水大型机械设备进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-04",
+      "node_name": "降水设备、井管进场验收",
+      "risk_level": "△",
+      "basis": "研究报告4.2.1节节点4：降水管材、水泵等配套材料进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-05",
+      "node_name": "工程材料进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点5：钢筋、型钢等支护主材进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-06",
+      "node_name": "测量放线复核",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点6：测量控制网与基坑边线放线复核",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-07",
+      "node_name": "地下管线探查与保护措施落实",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点7：地下管线探查与保护措施落实",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-08",
+      "node_name": "基坑临边防护及安全设施布置验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.1节节点8：基坑临边防护、安全通道验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-09",
+      "node_name": "支护桩（墙）钢筋笼加工与隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-10",
+      "node_name": "支护桩成孔验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-11",
+      "node_name": "支护桩混凝土灌注旁站",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-12",
+      "node_name": "止水帷幕（水泥土搅拌桩/高压旋喷桩）施工",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-13",
+      "node_name": "立柱桩及格构柱（钢立柱）施工",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-14",
+      "node_name": "冠梁及钢筋混凝土支撑施工（钢筋、模板、混凝土）",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-15",
+      "node_name": "钢支撑安装与预加轴力施工",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-16",
+      "node_name": "土方分层分块开挖",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-17",
+      "node_name": "降排水系统运行巡视",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-18",
+      "node_name": "锚杆（索）施工与张拉锁定",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-19",
+      "node_name": "土钉墙施工（成孔、土钉安装、注浆、挂网、喷混凝土）",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-20",
+      "node_name": "基坑监测",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-21",
+      "node_name": "支撑拆除施工",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-22",
+      "node_name": "降水效果及坑底疏干情况检查",
+      "risk_level": "★",
+      "basis": "研究报告4.2.2节：全部节点强制采集",
+      "mapping_type": "batch_stage"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-23",
+      "node_name": "围护结构质量检测见证与验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.3节节点2：支撑体系分阶段验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-24",
+      "node_name": "支撑体系验收",
+      "risk_level": "★",
+      "basis": "研究报告4.2.3节节点3：地基五方联合验槽",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-01-SC01-25",
+      "node_name": "基坑底部地基验槽",
+      "risk_level": "★",
+      "basis": "研究报告4.2.3节：该阶段已列2节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.3.1节节点1：模板支撑专项方案编审与专家论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.3.1节节点2：钢管、扣件、可调托撑构配件进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.3.1节节点3：搭设场地地基处理验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.3.1节节点4：滑模 / 爬模 / 飞模专用设备进场核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-02",
+      "node_name": "分包单位资质及主要管理人员、特种作业人员资格核查",
+      "risk_level": "△",
+      "basis": "研究报告4.3.1节节点5：模板搭设特种作业人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-05",
+      "node_name": "支撑体系搭设过程",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-06",
+      "node_name": "初滑与正常滑升",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-06",
+      "node_name": "爬模爬升作业",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-06",
+      "node_name": "飞模吊运与就位",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-06",
+      "node_name": "高支模实时监测",
+      "risk_level": "★",
+      "basis": "研究报告4.3.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-07",
+      "node_name": "支承杆接长与加固",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-07",
+      "node_name": "模板合模与混凝土浇筑",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-07",
+      "node_name": "飞模调节、固定与模板安装",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-07",
+      "node_name": "模板铺设与钢筋绑扎",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-08",
+      "node_name": "停滑措施与复滑",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-08",
+      "node_name": "爬升后架体固定与维护",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-08",
+      "node_name": "混凝土浇筑与监护",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-08",
+      "node_name": "混凝土浇筑",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-09",
+      "node_name": "滑模装置拆除",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-09",
+      "node_name": "爬模系统拆除",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-09",
+      "node_name": "飞模脱模与转移",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-09",
+      "node_name": "模板支撑体系拆除",
+      "risk_level": "△",
+      "basis": "研究报告4.3.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC01-10",
+      "node_name": "滑模工程浇筑混凝土前验收",
+      "risk_level": "★",
+      "basis": "研究报告4.3.3节节点1：支撑体系搭设联合举牌验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC02-10",
+      "node_name": "爬模工程浇筑混凝土前验收",
+      "risk_level": "★",
+      "basis": "研究报告4.3.3节节点2：混凝土浇筑条件验收（浇筑令签署）",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-10",
+      "node_name": "飞模工程浇筑混凝土前验收",
+      "risk_level": "★",
+      "basis": "研究报告4.3.3节节点3：拆模强度核查与拆除过程验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC04-10",
+      "node_name": "支撑体系搭设完成验收",
+      "risk_level": "★",
+      "basis": "研究报告4.3.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-02-SC03-11",
+      "node_name": "飞模拆除后楼面验收",
+      "risk_level": "★",
+      "basis": "研究报告4.3.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证（超危大必须论证）",
+      "risk_level": "★",
+      "basis": "研究报告4.4.1节节点1：起重安拆 / 吊装专项方案论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-01",
+      "node_name": "起重机械整机与资质文件核验",
+      "risk_level": "★",
+      "basis": "研究报告4.4.1节节点2：起重机械、吊索具进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-01",
+      "node_name": "设备及安拆配件验收",
+      "risk_level": "★",
+      "basis": "研究报告4.4.1节节点3：安拆、起重特种人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-02",
+      "node_name": "分包单位资质及主要管理人员、特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.4.1节节点4：设备基础、作业场地验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-02",
+      "node_name": "吊装索具及配件进场验收",
+      "risk_level": "△",
+      "basis": "研究报告4.4.1节节点5：吊装警戒与隔离防护布设",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-03",
+      "node_name": "基础及附着装置验收",
+      "risk_level": "★",
+      "basis": "研究报告4.4.2节规则：匹配高风险工序关键词'安装'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-04",
+      "node_name": "机械安装就位与连接",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-04",
+      "node_name": "安装关键工序旁站（顶升、加节、起重臂拼接等）",
+      "risk_level": "★",
+      "basis": "研究报告4.4.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-05",
+      "node_name": "试吊",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-05",
+      "node_name": "安拆安全防护监督",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-06",
+      "node_name": "起吊、回转、就位与固定",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-06",
+      "node_name": "吊装作业过程巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-06",
+      "node_name": "拆卸全过程管控",
+      "risk_level": "△",
+      "basis": "研究报告4.4.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC01-07",
+      "node_name": "设备拆除与清场",
+      "risk_level": "★",
+      "basis": "研究报告4.4.3节节点1：起重机械安装四方联合验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC02-07",
+      "node_name": "设备安装整体验收",
+      "risk_level": "△",
+      "basis": "研究报告4.4.3节节点2：吊装作业分段过程验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-03-SC03-07",
+      "node_name": "安装完成联合验收",
+      "risk_level": "★",
+      "basis": "研究报告4.4.3节节点3：设备拆除退场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证（超危大必须论证）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.1节节点1：超高脚手架专项方案专家论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-01",
+      "node_name": "资质与方案审查（含专家论证）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.1节节点2：钢管、扣件、安全网进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-01",
+      "node_name": "悬挑型钢（工字钢/槽钢）进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.1节节点3：架子工特种作业资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-01",
+      "node_name": "悬挂机构及捆绑固定件验收",
+      "risk_level": "△",
+      "basis": "研究报告4.5.1节节点4：搭设地基与排水系统验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-01",
+      "node_name": "专项施工方案审查",
+      "risk_level": "★",
+      "basis": "研究报告4.5.1节节点5：吊篮 / 悬挑型钢专用材料核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-04",
+      "node_name": "附着支座安装验收",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-05",
+      "node_name": "地基与基础处理巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-05",
+      "node_name": "防坠与防倾装置安装验收",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-05",
+      "node_name": "悬挑梁锚固方式与安装巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-05",
+      "node_name": "钢丝绳捆绑固定（特殊部位）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-05",
+      "node_name": "异型部位定位放线与立杆布置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-06",
+      "node_name": "扫地杆及水平杆设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-06",
+      "node_name": "架体搭设验收（含全貌、转角、底部密封、作业层、悬挑端、垂直度）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.2节规则：匹配高风险工序关键词'架体'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-06",
+      "node_name": "钢丝绳拉结节点及绳卡设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-06",
+      "node_name": "悬吊平台组装及提升机、安全锁安装",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-06",
+      "node_name": "悬挑梁锚固方式与安装巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-06",
+      "node_name": "水平杆弯曲连接与节点构造巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-07",
+      "node_name": "竖向及水平剪刀撑设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-07",
+      "node_name": "首次安装完毕及使用前联合验收（含电气、同步控制、试运行）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-07",
+      "node_name": "架体搭设及连墙件设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-07",
+      "node_name": "上限位及限位挡块安装",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-07",
+      "node_name": "钢丝绳拉结节点及绳卡设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-07",
+      "node_name": "剪刀撑及连墙件设置巡视（异型部位加强）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-08",
+      "node_name": "自由端高度及顶托设置巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-08",
+      "node_name": "日常巡视检查（架体、附着支座、防坠装置、底部密封、作业面）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-08",
+      "node_name": "安全绳独立固定及自锁器安装",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-08",
+      "node_name": "平台板铺设（材质规格、平整度、固定牢固）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-08",
+      "node_name": "作业面安全防护巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-09",
+      "node_name": "作业面安全防护巡视",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-09",
+      "node_name": "每次升降作业前条件验收",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-09",
+      "node_name": "整机安装质量及安全锁锁绳试验（使用前验收）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-09",
+      "node_name": "防护栏杆（高度、强度、封闭）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-10",
+      "node_name": "升降过程旁站监理",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'运行'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-10",
+      "node_name": "电气系统及漏电保护",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-10",
+      "node_name": "限载标识、警示标识、操作规程牌",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-11",
+      "node_name": "升降后复查",
+      "risk_level": "★",
+      "basis": "研究报告4.5.2节规则：匹配高风险工序关键词'架体'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-11",
+      "node_name": "作业人员持证及安全带系挂（使用中巡视）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-12",
+      "node_name": "钢丝绳、安全绳磨损及限位状态（日常检查）",
+      "risk_level": "△",
+      "basis": "研究报告4.5.2节规则：匹配常规巡视关键词'每日'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC03-08",
+      "node_name": "分段验收（每段不超过20m）及联合验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节节点1：脚手架分段搭设举牌验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-09",
+      "node_name": "异型节点专项验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节节点2：吊篮整机荷载、安全锁试验验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-10",
+      "node_name": "架体整体稳定性及关键节点验收（每6m验收一次）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节节点3：脚手架拆除完工验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-10",
+      "node_name": "整体验收与举牌验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-11",
+      "node_name": "验收程序履行及挂牌",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-11",
+      "node_name": "平台整体观感及与结构连接验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC06-11",
+      "node_name": "使用前复查",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC01-12",
+      "node_name": "混凝土浇筑前复查",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-12",
+      "node_name": "拆除前条件检查（交底、警戒）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-12",
+      "node_name": "关键节点构造验收",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC02-13",
+      "node_name": "拆除过程旁站监理（顺序、人员防护、警戒、构件堆放）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC04-13",
+      "node_name": "拆卸前确认及拆卸过程监管",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-13",
+      "node_name": "验收程序履行及荷载试验",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-14",
+      "node_name": "荷载日常检查及超载警示",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-15",
+      "node_name": "钢丝绳、锚固点等关键部件定期检查（每周）",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-16",
+      "node_name": "日常维护保养记录及故障处理",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-04-SC05-17",
+      "node_name": "拆卸前确认及拆卸过程监管",
+      "risk_level": "★",
+      "basis": "研究报告4.5.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-01",
+      "node_name": "拆除超危大专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-02",
+      "node_name": "分包单位、管理人员及特种作业人员资质核查",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-03",
+      "node_name": "拆除大型机械设备进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-04",
+      "node_name": "安全、消防、监测物资进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-05",
+      "node_name": "围挡、防护、警示材料进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-06",
+      "node_name": "现场测量、结构复核放线",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-07",
+      "node_name": "地下管线探查、断管封堵及保护落实",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-08",
+      "node_name": "现场封闭围挡、警戒区、临边防护搭设验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-09",
+      "node_name": "室内外附属构件拆除（门窗、吊顶、管线、外墙装饰）",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-10",
+      "node_name": "屋面、顶层结构拆除作业",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-11",
+      "node_name": "楼层填充墙、隔墙拆除施工",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-12",
+      "node_name": "梁板承重构件拆除前临时支撑回顶",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-13",
+      "node_name": "柱、承重主体构件拆除施工",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-14",
+      "node_name": "楼梯、电梯井、天井竖向构件分段拆除",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-15",
+      "node_name": "大型机械破碎、回转吊装作业",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-16",
+      "node_name": "现场动火作业（切割钢构件、易燃层拆除）",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-17",
+      "node_name": "建筑垃圾破碎、场内堆放及密闭清运",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-18",
+      "node_name": "周边建（构）筑物、管线全过程监测",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-19",
+      "node_name": "每日停工安全隐患排查",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-20",
+      "node_name": "底层结构、基础拆除施工",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-21",
+      "node_name": "拆除开工前置条件整体验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-22",
+      "node_name": "分层分段拆除过程中间验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-23",
+      "node_name": "整体拆除完工竣工验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-05-SC01-24",
+      "node_name": "全套安全技术资料归档验收",
+      "risk_level": "★",
+      "basis": "研究报告4.6节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.7.1节节点1：暗挖专项及地质风险处置方案论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-02",
+      "node_name": "图纸会审与设计交底、地质勘察资料复核",
+      "risk_level": "★",
+      "basis": "研究报告4.7.1节节点2：超前支护、防水材料进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-03",
+      "node_name": "分包单位资质、管理人员及特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.7.1节节点3：通风、四合一气体检测设备核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-04",
+      "node_name": "主要施工机械设备进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.1节节点4：竖井锁口、降水系统前置验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-05",
+      "node_name": "工程材料进场验收",
+      "risk_level": "△",
+      "basis": "研究报告4.7.1节节点5：暗挖特种作业人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-12",
+      "node_name": "竖井开挖及起重提升系统安装",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-13",
+      "node_name": "竖井井口截排水、地面硬化防护施工",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-14",
+      "node_name": "掌子面开挖施工",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'爆破'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-15",
+      "node_name": "超前支护实体施工",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-16",
+      "node_name": "洞内爆破作业",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'日常'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-17",
+      "node_name": "爆破器材储存、运输、领用管控",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'每日'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-18",
+      "node_name": "初期支护拱架安装",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'安装'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-19",
+      "node_name": "初期支护钢筋网片安装",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-20",
+      "node_name": "临时仰拱安装及喷射混凝土封闭",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'安装'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-21",
+      "node_name": "喷射混凝土施工",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'喷射'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-22",
+      "node_name": "锚杆/锁脚锚管施工",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-23",
+      "node_name": "围岩监测传感器、测线埋设布设（监测施工阶段）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'安装'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-24",
+      "node_name": "盾构始发/接收端头",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-25",
+      "node_name": "盾构机井下组装、整机空载调试验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-26",
+      "node_name": "盾构掘进专用耗材进场验收",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-27",
+      "node_name": "盾构掘进施工",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'盾构'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-28",
+      "node_name": "盾构常压/带压开仓换刀专项管控",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-29",
+      "node_name": "管片拼装",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-30",
+      "node_name": "盾构管片同步/二次注浆",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-31",
+      "node_name": "洞内排水盲管、环纵向排水盲沟安装",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-32",
+      "node_name": "防水基面处理",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'锚杆'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-34",
+      "node_name": "止水构造安装",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-35",
+      "node_name": "二衬钢筋绑扎",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-36",
+      "node_name": "二衬预埋注浆管、观测管、电缆套管专项验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'注浆'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-37",
+      "node_name": "衬砌台车及模板",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-38",
+      "node_name": "二衬混凝土浇筑、养护拆模",
+      "risk_level": "★",
+      "basis": "研究报告4.7.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-39",
+      "node_name": "洞内有轨+无轨运输",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-40",
+      "node_name": "洞内通风系统",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-41",
+      "node_name": "洞内临时用电",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-42",
+      "node_name": "洞内有毒有害气体检查",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'每日'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-43",
+      "node_name": "洞内消防设施检查",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-45",
+      "node_name": "洞内排水系统日常管控",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-46",
+      "node_name": "洞内材料、危化品堆放管控",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'日常'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-47",
+      "node_name": "洞内逃生通道、救生设施检查",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'每日'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-48",
+      "node_name": "班前安全技术交底",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'每日'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-49",
+      "node_name": "季节性施工（雨季/高温/冬季）管控",
+      "risk_level": "△",
+      "basis": "研究报告4.7.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-50",
+      "node_name": "竖井开挖及支护安全验收（竖井整体完工验收）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节节点1：初期支护隐蔽举牌验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-51",
+      "node_name": "超前支护及注浆隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节节点2：防水层、止水构造验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-52",
+      "node_name": "系统锚杆/锁脚锚管隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节节点3：隧道全线竣工联合验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-53",
+      "node_name": "钢格栅/型钢钢架隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-54",
+      "node_name": "初期支护喷射混凝土隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-55",
+      "node_name": "防水层系统隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-56",
+      "node_name": "二衬钢筋及预埋件隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-57",
+      "node_name": "二衬背后回填注浆隐蔽验收（二衬配套补浆）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-58",
+      "node_name": "竖井回填、封井完工验收（竖井收尾封闭）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-59",
+      "node_name": "隧道全线贯通初期支护整体验收（贯通监测汇总）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-60",
+      "node_name": "隧道全线贯通结构实体外观验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-61",
+      "node_name": "隧道永久附属设施安装验收（永久逃生设施验收）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-62",
+      "node_name": "全线竣工测量复测（竣工监测阶段）",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-06-SC01-63",
+      "node_name": "单位工程竣工验收",
+      "risk_level": "★",
+      "basis": "研究报告4.7.3节：该阶段已列3节点全部★，推断未列节点同为★",
+      "mapping_type": "inferred_stage_pattern"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "△",
+      "basis": "研究报告4.8.1节节点1：幕墙高处作业专项方案审批",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-02",
+      "node_name": "分包单位资质及主要管理人员、特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.8.1节节点2：龙骨、结构胶、玻璃进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-03",
+      "node_name": "临时用电系统布设",
+      "risk_level": "★",
+      "basis": "研究报告4.8.1节节点3：高处吊篮设备进场核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-04",
+      "node_name": "消防安全设施配置",
+      "risk_level": "★",
+      "basis": "研究报告4.8.1节节点4：幕墙安装高空人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-05",
+      "node_name": "极端天气应急准备",
+      "risk_level": "△",
+      "basis": "研究报告4.8.1节节点5：临电、消防设施前置验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-06",
+      "node_name": "高处作业吊篮的安装与移位",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-07",
+      "node_name": "脚手架及操作平台搭设",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-08",
+      "node_name": "高处作业吊篮使用",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-09",
+      "node_name": "高处作业",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-10",
+      "node_name": "起重吊装",
+      "risk_level": "★",
+      "basis": "研究报告4.8.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-11",
+      "node_name": "焊接与动火作业",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-12",
+      "node_name": "临时用电过程管理",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-13",
+      "node_name": "消防安全过程管理",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-14",
+      "node_name": "极端天气过程应对",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-15",
+      "node_name": "高处作业吊篮拆除安全控制",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-16",
+      "node_name": "脚手架及操作平台拆除安全控制",
+      "risk_level": "△",
+      "basis": "研究报告4.8.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-07-SC01-17",
+      "node_name": "施工条件整体验收",
+      "risk_level": "★",
+      "basis": "研究报告4.8.3节节点1：后置埋板、龙骨隐蔽验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-01",
+      "node_name": "钢结构吊装、索膜张拉专项方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.9.1节节点1：钢结构吊装、索膜张拉专项方案论证",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-02",
+      "node_name": "钢梁、高强螺栓、索材进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.9.1节节点2：钢梁、高强螺栓、索材进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-03",
+      "node_name": "起重、高空特种作业人员资质核验",
+      "risk_level": "★",
+      "basis": "研究报告4.9.1节节点3：起重、高空作业人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-04",
+      "node_name": "拼装场地、临时支撑地基验收",
+      "risk_level": "△",
+      "basis": "研究报告4.9.1节节点3：拼装场地、临时支撑地基验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-05",
+      "node_name": "钢柱吊装施工",
+      "risk_level": "△",
+      "basis": "研究报告4.9.2节规则：匹配常规巡视关键词'检查'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-06",
+      "node_name": "高强螺栓安装及终拧施工",
+      "risk_level": "★",
+      "basis": "研究报告4.9.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-07",
+      "node_name": "高空焊接作业",
+      "risk_level": "△",
+      "basis": "研究报告4.9.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-08",
+      "node_name": "索膜张拉施工",
+      "risk_level": "★",
+      "basis": "研究报告4.9.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-09",
+      "node_name": "现场焊接探伤过程管控",
+      "risk_level": "★",
+      "basis": "研究报告4.9.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-10",
+      "node_name": "构件安装变形隐患巡视闭环",
+      "risk_level": "△",
+      "basis": "研究报告4.9.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-11",
+      "node_name": "焊缝无损检测见证验收",
+      "risk_level": "★",
+      "basis": "研究报告4.9.3节节点1：焊缝无损检测见证验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-12",
+      "node_name": "网架 / 索膜张拉终验",
+      "risk_level": "★",
+      "basis": "研究报告4.9.3节节点2：网架 / 索膜张拉终验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-08-SC01-13",
+      "node_name": "钢结构分部竣工验收",
+      "risk_level": "★",
+      "basis": "研究报告4.9.3节节点3：钢结构分部竣工验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-01",
+      "node_name": "人工挖孔桩超危大专项方案编审、专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-02",
+      "node_name": "分包、管理人员及特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-03",
+      "node_name": "挖孔施工机械设备进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-04",
+      "node_name": "护壁、桩身材料进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-05",
+      "node_name": "桩位测量放线复核",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-06",
+      "node_name": "场地管线、周边建构筑物探查保护",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-07",
+      "node_name": "孔口安全防护设施验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-08",
+      "node_name": "孔口锁口混凝土施工及隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-09",
+      "node_name": "分段土方开挖施工全过程管控",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-10",
+      "node_name": "护壁钢筋、模板、混凝土浇筑隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-11",
+      "node_name": "孔内通风、四合一气体检测旁站",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-12",
+      "node_name": "井下作业双人监护管控",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-13",
+      "node_name": "钢筋笼加工、吊装就位隐蔽验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-14",
+      "node_name": "桩身混凝土浇筑全过程旁站",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-15",
+      "node_name": "孔内临时用电安全管控",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-16",
+      "node_name": "场地及孔口排水、恶劣天气管控",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-17",
+      "node_name": "孔口沉降、周边环境监测巡视",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-18",
+      "node_name": "应急物资、应急演练检查",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-19",
+      "node_name": "分段护壁、成孔联合验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-20",
+      "node_name": "钢筋笼隐蔽工程验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-21",
+      "node_name": "单桩混凝土成型验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-22",
+      "node_name": "桩基完整性、承载力检测见证验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-09-SC01-23",
+      "node_name": "人工挖孔桩整体竣工验收",
+      "risk_level": "★",
+      "basis": "研究报告4.10节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-01",
+      "node_name": "水下作业专项施工方案编审与专家论证",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-02",
+      "node_name": "潜水 / 水上作业分包、管理人员、特种潜水人员资质核查",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-03",
+      "node_name": "潜水设备、作业船舶、应急设备进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-04",
+      "node_name": "水下施工材料、封堵 / 加固材料进场验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-05",
+      "node_name": "水域水文、水下管线、障碍物勘察测量放线复核",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-06",
+      "node_name": "水上警戒、通航防护、临边安全设施布设验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-07",
+      "node_name": "水下前期探摸、淤泥杂物预处理清淤",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-08",
+      "node_name": "水下切割、焊接作业施工",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-09",
+      "node_name": "水下构件安装、桩基加固作业施工",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-10",
+      "node_name": "水下封堵、防渗加固施工",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-11",
+      "node_name": "潜水员水下作业全过程监护（供氧、通信、减压管控）",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-12",
+      "node_name": "作业船舶锚泊、水上定位动态管控",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-13",
+      "node_name": "水下用电、动火作业安全管控",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-14",
+      "node_name": "水下全过程质量检测、工序中间验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-15",
+      "node_name": "水域环保、泥浆、废弃物处置管控",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-16",
+      "node_name": "水下作业动态风险巡视（坍塌、管线破损、绞缠）",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-17",
+      "node_name": "恶劣水文气象应急停工管控",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-18",
+      "node_name": "水下作业成品清理、成品保护验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-19",
+      "node_name": "水下分项工程质量竣工验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-10-SC01-20",
+      "node_name": "水上警戒拆除、船舶设备撤场、水域环境恢复验收",
+      "risk_level": "★",
+      "basis": "研究报告4.11节：全类强制采集",
+      "mapping_type": "batch_category"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-01",
+      "node_name": "危大工程专项施工方案编审与专家论证",
+      "risk_level": "△",
+      "basis": "研究报告4.12.1节节点1：预制构件吊装专项方案审批",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-02",
+      "node_name": "分包单位资质及主要管理人员、特种作业人员资格核查",
+      "risk_level": "★",
+      "basis": "研究报告4.12.1节节点2：墙板、楼梯预制构件进场验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-03",
+      "node_name": "临时用电系统布设",
+      "risk_level": "★",
+      "basis": "研究报告4.12.1节节点3：起重吊装设备、吊索具核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-04",
+      "node_name": "消防安全设施配置",
+      "risk_level": "★",
+      "basis": "研究报告4.12.1节节点4：起重、灌浆特种人员资质核验",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-05",
+      "node_name": "起重机械安装",
+      "risk_level": "△",
+      "basis": "研究报告4.12.1节节点5：构件堆放场地、支撑垫板验收",
+      "mapping_type": "explicit_node"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-07",
+      "node_name": "预制构件起重吊运",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-08",
+      "node_name": "脚手架及操作平台搭设",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-09",
+      "node_name": "构件临时支撑与固定",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-10",
+      "node_name": "高处作业与临边防护",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-11",
+      "node_name": "起重吊装",
+      "risk_level": "★",
+      "basis": "研究报告4.12.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-12",
+      "node_name": "焊接、切割与动火作业",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-13",
+      "node_name": "临时用电过程管理",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-14",
+      "node_name": "消防安全过程管理",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-15",
+      "node_name": "交叉作业",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'运行'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-16",
+      "node_name": "脚手架及操作平台拆除安全控制",
+      "risk_level": "△",
+      "basis": "研究报告4.12.2节规则：匹配常规巡视关键词'巡视'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-17",
+      "node_name": "起重机械拆除",
+      "risk_level": "★",
+      "basis": "研究报告4.12.2节规则：匹配高风险工序关键词'旁站'",
+      "mapping_type": "inferred_keyword"
+    },
+    {
+      "node_uid": "WDGC-A-11-SC01-18",
+      "node_name": "施工条件整体验收",
+      "risk_level": "★",
+      "basis": "研究报告4.12.3节节点1：套筒灌浆隐蔽验收",
+      "mapping_type": "explicit_node"
+    }
+  ]
+}
