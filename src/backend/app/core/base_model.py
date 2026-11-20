@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, Index, Integer, MetaData, String
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, MetaData, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
@@ -125,6 +125,28 @@ class ModelMixin(MappedBase):
         default=None,
         nullable=True,
         comment="删除时间",
+    )
+
+
+class TenantModelMixin(ModelMixin):
+    """租户业务模型混入（biz_* 表空间强制）。
+
+    隔离铁律：所有 biz_* 模型必须继承本混入，CRUD 必须走 TenantCRUDBase；
+    do_orm_execute 钩子（core/tenant_events.py）对裸 select 与关联预加载兜底过滤。
+    tenant_id 外键指向 plat_enterprise.id（ondelete RESTRICT：租户存在绑定数据时禁止物理删除）。
+
+    注意：ModelMixin 默认 __table_args__ 依赖 status 列建索引，
+    无 status 列的具体模型须自行覆盖 __table_args__（参照 UserModel）。
+    """
+
+    __abstract__: bool = True
+
+    tenant_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("plat_enterprise.id", ondelete="RESTRICT"),
+        index=True,
+        nullable=False,
+        comment="所属监理企业租户ID",
     )
 
 

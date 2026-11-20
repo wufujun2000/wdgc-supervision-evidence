@@ -22,6 +22,7 @@ from app.core.security import (
     create_access_token,
     decode_access_token,
 )
+from app.core.tenant_context import TenantRequestContext
 from app.modules.system.auth.captcha_puzzle import build_puzzle
 from app.modules.system.log.crud import LoginLogCRUD
 from app.modules.system.log.schema import LoginLogCreateSchema
@@ -257,6 +258,7 @@ class LoginService:
             user=user,
             login_type=login_form.login_type,
             login_location=login_location,
+            db=db,
         )
 
         await _write_login_log(
@@ -311,6 +313,7 @@ class LoginService:
         login_location: str | None,
         ua_result: Any,
         login_type: str,
+        tenant_id: int | None = None,
     ) -> dict:
         """构建会话信息字典
 
@@ -323,6 +326,7 @@ class LoginService:
         - login_location (str): 登录地点
         - ua_result: User-Agent 解析结果
         - login_type (str): 登录类型
+        - tenant_id (int | None): 所属租户ID（经 biz_tenant_user 绑定解析；平台域用户为 None）
 
         返回:
         - dict: 会话信息字典
@@ -347,6 +351,7 @@ class LoginService:
             "browser": ua_result.user_agent.family if ua_result.user_agent else "Unknown",
             "login_time": user.last_login,
             "login_type": login_type,
+            "tenant_id": tenant_id,
         }
 
     @classmethod
@@ -357,11 +362,15 @@ class LoginService:
         user: UserModel,
         login_type: str,
         login_location: str | None = None,
+        db: AsyncSession | None = None,
     ) -> JWTOutSchema:
         """创建访问令牌和刷新令牌。
 
         login_location 由调用方在登录前置流程中已解析时直接透传（账号密码登录），
         避免同一 IP 重复解析；为 None 时（OAuth/微信直连路径）在此解析。
+
+        db 传入时经 biz_tenant_user 绑定解析 tenant_id 写入会话快照（B0 只加字段，不改登录流程）；
+        不传 db 的调用方（单元测试直签）快照 tenant_id 为 None。
         """
         session_id = str(uuid.uuid4())
         ua_result = ua_parser.parse(request.headers.get("user-agent") or "")
@@ -377,6 +386,16 @@ class LoginService:
 
         permissions, menu_ids = LoginService._collect_permissions(user)
 
+        tenant_id: int | None = None
+        if db is not None and user.id:
+            from app.modules.platform.tenant_user.crud import TenantUserCRUD  # 延迟导入：登录链路不新增导入期依赖
+
+            # 登录是平台域动作：显式清空残留租户上下文，防钩子误过滤绑定查询
+            # （快照 tenant_id 误写 None、一人一租户查重失明）
+            TenantRequestContext.clear()
+            binding = await TenantUserCRUD(AuthSchema(), db).get(user_id=user.id)
+            tenant_id = binding.tenant_id if binding else None
+
         session_dict = LoginService._build_session_dict(
             user=user,
             session_id=session_id,
@@ -386,6 +405,7 @@ class LoginService:
             login_location=login_location,
             ua_result=ua_result,
             login_type=login_type,
+            tenant_id=tenant_id,
         )
         # 会话创建时间（UTC）：滑动续期的绝对存活上限判据，见 dependencies._authenticate
         session_dict["created_at"] = datetime.now(UTC).isoformat()

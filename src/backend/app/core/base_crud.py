@@ -11,10 +11,11 @@ from sqlalchemy.orm import joinedload, load_only, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.common.enums import RET
-from app.core.base_model import ModelMixin
+from app.core.base_model import ModelMixin, TenantModelMixin
 from app.core.base_schema import AuthSchema, PageResultSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
+from app.core.tenant_context import TenantRequestContext
 
 OutSchemaType = TypeVar("OutSchemaType", bound=BaseModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -210,18 +211,9 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
             await self.db.flush()
             await self.db.refresh(obj)
 
-            preload_options = []
-            mapper = sa_inspect(self.model)
-            if hasattr(mapper, "relationships"):
-                for rel_name in ("created_by", "updated_by"):
-                    if rel_name in mapper.relationships:
-                        preload_options.append(joinedload(getattr(self.model, rel_name)))
+            preload_options = self._audit_preload_options()
             if preload_options:
-                result = await self.db.execute(
-                    select(self.model).options(*preload_options).where(self._get_pk_col() == obj.id)
-                )
-                obj = result.scalar_one()
-
+                obj = await self._reload_with_options(obj.id, preload_options)
             return obj
         except Exception:
             logger.exception('创建失败')
@@ -247,18 +239,9 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
             await self.db.flush()
             await self.db.refresh(obj)
 
-            preload_options = []
-            mapper = sa_inspect(self.model)
-            if hasattr(mapper, "relationships"):
-                for rel_name in ("created_by", "updated_by"):
-                    if rel_name in mapper.relationships:
-                        preload_options.append(joinedload(getattr(self.model, rel_name)))
+            preload_options = self._audit_preload_options()
             if preload_options:
-                result = await self.db.execute(
-                    select(self.model).options(*preload_options).where(self._get_pk_col() == obj.id)
-                )
-                obj = result.scalar_one()
-
+                obj = await self._reload_with_options(obj.id, preload_options)
             return obj
         except CustomException:
             raise
@@ -267,16 +250,19 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
             raise
 
     async def delete(self, ids: list[int]) -> None:
-        """软删除优先，无软删除则物理删除。"""
+        """软删除优先，无软删除则物理删除。
+
+        H-01：批量 SQL 统一合并 _build_conditions（软删除语义＋数据权限；
+        TenantCRUDBase 子类自动叠加租户条件），杜绝跨租户/跨项目越权删除。
+        """
         try:
             pk = self._get_pk_col()
+            conditions = await self._build_conditions()
             if self._supports_soft_delete:
-                # 加 is_deleted=false() 条件，防止重复软删除（幂等）
-                sql = update(self.model).where(pk.in_(ids)).where(
-                    getattr(self.model, "is_deleted") == false()
-                ).values(**self._soft_delete_values())
+                # _build_conditions 已含 is_deleted=false()，防止重复软删除（幂等）
+                sql = update(self.model).where(pk.in_(ids), *conditions).values(**self._soft_delete_values())
             else:
-                sql = delete(self.model).where(pk.in_(ids))
+                sql = delete(self.model).where(pk.in_(ids), *conditions)
             await self.db.execute(sql)
             await self.db.flush()
         except Exception:
@@ -284,14 +270,19 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
             raise
 
     async def clear(self) -> None:
-        """清空整表。软删除模式下相当于"回收站清空"，只清理已删标记的记录。"""
+        """清空整表。软删除模式下相当于"回收站清空"，只清理已删标记的记录。
+
+        H-01：叠加 _build_conditions 的数据权限条件（TenantCRUDBase 子类自动叠加租户条件），
+        保留「只清已软删」语义。
+        """
         try:
+            conditions = await self._build_conditions(include_deleted=True)
             if self._supports_soft_delete:
                 sql = update(self.model).where(
-                    getattr(self.model, "is_deleted") == true()
+                    getattr(self.model, "is_deleted") == true(), *conditions
                 ).values(**self._soft_delete_values())
             else:
-                sql = delete(self.model)
+                sql = delete(self.model).where(*conditions)
             await self.db.execute(sql)
             await self.db.flush()
         except Exception:
@@ -299,13 +290,15 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
             raise
 
     async def set(self, ids: list[int], include_deleted: bool = False, **kwargs) -> None:
-        """批量更新。软删除模式下默认跳过已删除的记录。"""
+        """批量更新。软删除模式下默认跳过已删除的记录。
+
+        H-01：批量 SQL 统一合并 _build_conditions（软删除语义＋数据权限；
+        TenantCRUDBase 子类自动叠加租户条件），杜绝跨租户/跨项目越权修改。
+        """
         try:
             pk = self._get_pk_col()
-            sql = update(self.model).where(pk.in_(ids))
-            if self._supports_soft_delete and not include_deleted:
-                sql = sql.where(getattr(self.model, "is_deleted") == false())
-            sql = sql.values(**kwargs)
+            conditions = await self._build_conditions(include_deleted=include_deleted)
+            sql = update(self.model).where(pk.in_(ids), *conditions).values(**kwargs)
             await self.db.execute(sql)
             await self.db.flush()
         except Exception:
@@ -332,11 +325,15 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
         if hasattr(self.model, "is_deleted") and not include_deleted:
             conditions.append(getattr(self.model, "is_deleted") == false())
 
-        from app.core.permission import Permission
+        # 租户模型不走平台域 Permission：data_scope 基于 created_id/dept，会把同租户互查
+        # 过滤为空（租户数据并非按创建人归属）。租户域数据权限由 H-03 TenantProjectPermission
+        # 随 B3 业务落地自己的权限引擎；本期租户隔离只认 tenant_id 铁律。
+        if not issubclass(self.model, TenantModelMixin):
+            from app.core.permission import Permission
 
-        permission_condition = await Permission(self.model, self.auth, self.db)._permission_condition()
-        if permission_condition is not None:
-            conditions.append(permission_condition)
+            permission_condition = await Permission(self.model, self.auth, self.db)._permission_condition()
+            if permission_condition is not None:
+                conditions.append(permission_condition)
 
         for key, value in kwargs.items():
             if value is None or value == "":
@@ -471,3 +468,90 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
                     options.append(joinedload(attr))
 
         return options
+
+    def _audit_preload_options(self) -> list[Any]:
+        """create/update 写后回查的审计关系预加载选项（created_by/updated_by）。"""
+        options: list[Any] = []
+        mapper = sa_inspect(self.model)
+        if hasattr(mapper, "relationships"):
+            for rel_name in ("created_by", "updated_by"):
+                if rel_name in mapper.relationships:
+                    options.append(joinedload(getattr(self.model, rel_name)))
+        return options
+
+    async def _reload_with_options(self, obj_id: int, options: list[Any]) -> ModelType:
+        """写后按 PK 回查（带预加载选项）。TenantCRUDBase 覆盖此方法叠加租户条件（H-01）。"""
+        result = await self.db.execute(
+            select(self.model).options(*options).where(self._get_pk_col() == obj_id)
+        )
+        return result.scalar_one()
+
+
+class TenantCRUDBase[ModelType: TenantModelMixin, CreateSchemaType, UpdateSchemaType](CRUDBase[ModelType, CreateSchemaType, UpdateSchemaType]):
+    """租户域 CRUD 基类 —— 唯一铁律：model.tenant_id == 当前上下文租户。
+
+    - 任何读写都要求租户上下文（fail-closed），绝不退化为全表；
+    - create 自动注入上下文 tenant_id；payload 携带他租户 tenant_id → 403 拒绝（不许静默改写），
+      携带一致值也以上下文为准；update 同样拒绝篡改 tenant_id；
+    - read_only（代管态预留）时 create/update/delete/set/clear 一律 403；
+    - H-01：delete/set/clear 继承基类统一条件合并，自动叠加租户条件；
+      create/update 写后按 PK 回查的 select 也带租户条件。
+    """
+
+    def _require_writable(self) -> int:
+        """写操作前置校验：fail-closed ＋ 代管只读强制，返回当前租户ID。"""
+        context = TenantRequestContext.get()
+        if context is None or context.tenant_id is None:
+            raise CustomException(msg="缺少租户上下文，禁止访问租户数据", code=RET.FORBIDDEN.code)
+        if context.read_only:
+            raise CustomException(msg="代管只读态，禁止写操作", code=RET.FORBIDDEN.code)
+        return context.tenant_id
+
+    async def _build_conditions(self, include_deleted: bool = False, **kwargs) -> list[ColumnElement]:
+        tenant_id = TenantRequestContext.require_tenant_id()
+        conditions = await super()._build_conditions(include_deleted=include_deleted, **kwargs)
+        conditions.append(self.model.tenant_id == tenant_id)
+        return conditions
+
+    async def create(self, data: CreateSchemaType | dict[str, Any]) -> ModelType:
+        tenant_id = self._require_writable()
+        obj_dict = data.model_dump(exclude_none=True) if isinstance(data, BaseModel) else dict(cast("dict[str, Any]", data))
+        payload_tenant_id = obj_dict.get("tenant_id")
+        if payload_tenant_id is not None and payload_tenant_id != tenant_id:
+            raise CustomException(msg="tenant_id 与当前租户不一致，禁止伪造", code=RET.FORBIDDEN.code)
+        obj_dict["tenant_id"] = tenant_id
+        return await super().create(obj_dict)
+
+    async def update(self, id: int, data: UpdateSchemaType | dict[str, Any]) -> ModelType:
+        tenant_id = self._require_writable()
+        obj_dict = data.model_dump(exclude_unset=True, exclude={"id"}) if isinstance(data, BaseModel) else dict(cast("dict[str, Any]", data))
+        payload_tenant_id = obj_dict.get("tenant_id")
+        if payload_tenant_id is not None and payload_tenant_id != tenant_id:
+            raise CustomException(msg="tenant_id 与当前租户不一致，禁止伪造", code=RET.FORBIDDEN.code)
+        obj_dict.pop("tenant_id", None)
+        return await super().update(id, obj_dict)
+
+    async def delete(self, ids: list[int]) -> None:
+        self._require_writable()
+        await super().delete(ids)
+
+    async def set(self, ids: list[int], include_deleted: bool = False, **kwargs) -> None:
+        tenant_id = self._require_writable()
+        # 与 create/update 对齐：禁止经批量 SET 篡改租户归属（钩子只加 WHERE 不拦 SET）
+        payload_tenant_id = kwargs.pop("tenant_id", None)
+        if payload_tenant_id is not None and payload_tenant_id != tenant_id:
+            raise CustomException(msg="tenant_id 与当前租户不一致，禁止伪造", code=RET.FORBIDDEN.code)
+        await super().set(ids, include_deleted=include_deleted, **kwargs)
+
+    async def clear(self) -> None:
+        self._require_writable()
+        await super().clear()
+
+    async def _reload_with_options(self, obj_id: int, options: list[Any]) -> ModelType:
+        result = await self.db.execute(
+            select(self.model).options(*options).where(
+                self._get_pk_col() == obj_id,
+                self.model.tenant_id == TenantRequestContext.require_tenant_id(),
+            )
+        )
+        return result.scalar_one()

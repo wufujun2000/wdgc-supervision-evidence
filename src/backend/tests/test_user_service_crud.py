@@ -17,7 +17,7 @@ def _svc(monkeypatch: pytest.MonkeyPatch, user_crud, dept_crud=None):
     if dept_crud is not None:
         monkeypatch.setattr(mod, "DeptCRUD", dept_crud)
     s = UserService.__new__(UserService)
-    s.auth = SimpleNamespace(user=SimpleNamespace(id=99))
+    s.auth = SimpleNamespace(user=SimpleNamespace(id=99, tenant_id=None))
     s.db = object()
     return s
 

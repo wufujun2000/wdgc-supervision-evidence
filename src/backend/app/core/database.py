@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.config.setting import settings
 from app.core.base_model import MappedBase
 from app.core.logger import logger
+from app.core.tenant_events import register_tenant_guard
 
 
 def create_sync_engine(db_url: str = settings.DB_URI) -> Engine:
@@ -89,6 +90,9 @@ def create_async_engine_and_session(db_url: str = settings.ASYNC_DB_URI) -> tupl
 
 engine = create_sync_engine()
 async_engine, async_db_session = create_async_engine_and_session()
+
+# B0 多租户兜底：租户上下文存在时，ORM select/预加载/DML 自动注入租户过滤
+register_tenant_guard()
 
 async def create_tables() -> None:
     """创建数据库表（根据 ORM metadata）。

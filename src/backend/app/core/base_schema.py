@@ -94,6 +94,11 @@ class SessionInfoSchema(BaseModel):
     browser: str | None = Field(default=None, description="浏览器")
     login_time: DateTimeStr | None = Field(default=None, description="登录时间")
     login_type: str | None = Field(default=None, description="登录类型")
+    tenant_id: int | None = Field(default=None, description="所属租户ID（经 biz_tenant_user 绑定解析；平台域用户为 None，向后兼容存量会话）")
+    is_impersonated: bool = Field(default=False, description="是否代管穿透态（平台二期 P-PC-03 预留）")
+    impersonator_id: int | None = Field(default=None, description="代管操作人用户ID（平台二期 P-PC-03 预留）")
+    read_only: bool = Field(default=False, description="是否只读（代管态默认只读，平台二期 P-PC-03 预留）")
+    scope: str | None = Field(default=None, description="会话作用域（如 read_only，平台二期 P-PC-03 预留）")
 
 
 class JWTPayloadSchema(BaseModel):
@@ -199,6 +204,7 @@ class CoreUserSchema(BaseModel):
     name: str | None = Field(default=None, description="名称")
     dept_id: int | None = Field(default=None, description="部门ID")
     is_superuser: bool = Field(default=False, description="是否超管")
+    tenant_id: int | None = Field(default=None, description="所属租户ID（平台域用户为 None）")
 
 
 class AuthSchema(BaseModel):

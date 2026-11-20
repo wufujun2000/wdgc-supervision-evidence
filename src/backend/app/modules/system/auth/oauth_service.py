@@ -370,7 +370,7 @@ async def complete_oauth_login(
     try:
         user = await LoginService.prepare_user_for_login(db=db, user=user)
         login_type = f"oauth_{provider}"
-        token = await LoginService.create_token(request=request, redis=redis, user=user, login_type=login_type)
+        token = await LoginService.create_token(request=request, redis=redis, user=user, login_type=login_type, db=db)
         return token, frontend
     finally:
         await rc.delete(f"{STATE_PREFIX}{state}")

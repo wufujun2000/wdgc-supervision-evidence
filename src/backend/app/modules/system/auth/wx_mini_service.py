@@ -339,6 +339,7 @@ async def wx_mini_login(
         redis=redis,
         user=user,
         login_type="wx_mini",
+        db=db,
     )
     logger.info(f"微信小程序用户登录成功: {user.username}")
     return LoginService.build_login_out(token=token, user=user)
@@ -362,6 +363,7 @@ async def wx_mini_phone_login(
         redis=redis,
         user=user,
         login_type="wx_mini_phone",
+        db=db,
     )
     logger.info(f"微信手机号用户登录成功: {user.username}")
     return LoginService.build_login_out(token=token, user=user, with_mobile=True)

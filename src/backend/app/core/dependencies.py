@@ -16,6 +16,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.core.redis_crud import RedisCURD
 from app.core.security import OAuth2Schema, decode_access_token
+from app.core.tenant_context import TenantRequestContext
 
 
 async def db_getter() -> AsyncGenerator[AsyncSession, None]:
@@ -25,7 +26,11 @@ async def db_getter() -> AsyncGenerator[AsyncSession, None]:
     读操作也走这个事务（牺牲一点 MVCC 隔离换取读已写一致性）。
     """
     async with async_db_session() as session, session.begin():
-        yield session
+        try:
+            yield session
+        finally:
+            # 请求结束即清理租户上下文：防残留上下文误过滤后续平台域查询/登录绑定解析
+            TenantRequestContext.clear()
 
 
 async def redis_getter(request: Request) -> Redis:
@@ -87,12 +92,23 @@ async def websocket_authenticate(websocket: WebSocket) -> tuple[AuthSchema, str 
     return auth, subprotocol
 
 
+async def _purge_session(redis: Redis, session_id: str) -> None:
+    """清理会话全套 Redis 键（USER_SESSION/ACCESS/REFRESH），停用/冻结会话不留存。"""
+    await RedisCURD(redis).delete(
+        f"{RedisInitKeyConfig.USER_SESSION.key}:{session_id}",
+        f"{RedisInitKeyConfig.ACCESS_TOKEN.key}:{session_id}",
+        f"{RedisInitKeyConfig.REFRESH_TOKEN.key}:{session_id}",
+    )
+
+
 async def _authenticate(
     token: str,
     db: AsyncSession,
     redis: Redis,
 ) -> AuthSchema:
     """核心认证逻辑（HTTP 与 WebSocket 共享）"""
+    # 每次认证先清空租户上下文：TestClient 复用线程/后台任务防串号
+    TenantRequestContext.clear()
     if not token:
         raise CustomException(msg="认证已失效", code=RET.UNAUTHORIZED.code)
 
@@ -163,6 +179,7 @@ async def _authenticate(
     user_id = user_info.get("user_id")
 
     if user_status == 1:
+        await _purge_session(redis, session_id)
         raise CustomException(msg="用户已被停用", code=RET.UNAUTHORIZED.code)
 
     if not user_id:
@@ -179,9 +196,60 @@ async def _authenticate(
         .first()
     )
     if not user_obj:
+        await _purge_session(redis, session_id)
         raise CustomException(msg="用户不存在", code=RET.UNAUTHORIZED.code)
 
+    # H-02：实时校验用户启用状态（sys_user 0=启用 1=停用），快照 user_status 可能滞后
+    if user_obj.status != 0:
+        await _purge_session(redis, session_id)
+        raise CustomException(msg="用户已被停用", code=RET.UNAUTHORIZED.code)
+
+    # H-02：经绑定解析当前用户租户；有租户则实时校验企业状态（plat_enterprise 1=正常 0=冻结）
+    from app.modules.platform.enterprise.model import EnterpriseModel  # 延迟导入：core 导入期不依赖业务层
+    from app.modules.platform.tenant_user.model import BizTenantUserModel
+
+    tenant_id: int | None = None
+    binding = (
+        (
+            await db.execute(
+                select(BizTenantUserModel).where(BizTenantUserModel.user_id == user_id, BizTenantUserModel.is_deleted == False)  # noqa: E712
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if binding:
+        tenant_id = binding.tenant_id
+    elif user_info.get("is_impersonated"):
+        # 代管穿透（平台二期 P-PC-03 预留）：超管禁绑，目标租户来自会话快照
+        tenant_id = user_info.get("tenant_id")
+    if tenant_id is not None:
+        enterprise = (
+            (
+                await db.execute(
+                    select(EnterpriseModel).where(EnterpriseModel.id == tenant_id, EnterpriseModel.is_deleted == False)  # noqa: E712
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if not enterprise or enterprise.status != 1:
+            await _purge_session(redis, session_id)
+            raise CustomException(msg="企业租户已被冻结", code=RET.UNAUTHORIZED.code)
+
     user = CoreUserSchema.model_validate(user_obj)
+    user.tenant_id = tenant_id
+
+    # 认证末尾注入请求级租户上下文（会话快照含代管/只读标记时透传，平台二期 P-PC-03 预留）
+    TenantRequestContext.set(
+        TenantRequestContext(
+            tenant_id=tenant_id,
+            is_impersonated=bool(user_info.get("is_impersonated", False)),
+            impersonator_id=user_info.get("impersonator_id"),
+            read_only=bool(user_info.get("read_only", False)),
+        )
+    )
+
     return AuthSchema(
         user=user,
         permissions=user_info.get("permissions", []),

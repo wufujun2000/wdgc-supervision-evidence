@@ -212,12 +212,14 @@ class UserService:
             # 轻量模式：只刷新菜单/权限，不加载用户嵌套数据
             menus_raw = await self._load_menus()
             menu_tree = [MenuTreeOutSchema(**item) for item in traversal_to_tree([menu.model_dump(mode="json") for menu in menus_raw])]
-            return CurrentUserOutSchema(menus=menu_tree)
+            return CurrentUserOutSchema(menus=menu_tree, tenant_id=self.auth.user.tenant_id)
 
         user = await UserCRUD(self.auth, self.db).get(id=user_id, preload=_USER_CURRENT_PRELOAD)
         if user is None:
             raise CustomException(msg="该数据不存在")
         user_dict = CurrentUserOutSchema.model_validate(user)
+        # UserModel 无 tenant_id 列：租户归属来自认证上下文（经绑定解析），须显式透传
+        user_dict.tenant_id = self.auth.user.tenant_id
         if user.dept:
             user_dict.dept_name = user.dept.name
         user_dict.is_superuser = user.is_superuser
