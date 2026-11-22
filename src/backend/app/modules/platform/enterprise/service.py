@@ -21,7 +21,7 @@ from app.modules.platform.tenant_user.service import TenantUserService
 from app.utils.common_util import search_to_dict
 
 from .crud import EnterpriseCRUD
-from .schema import EnterpriseCreateSchema, EnterpriseOutSchema, EnterpriseQueryParam, EnterpriseUpdateSchema
+from .schema import EnterpriseCreateSchema, EnterpriseOutSchema, EnterpriseProvisionOutSchema, EnterpriseQueryParam, EnterpriseUpdateSchema
 
 
 class EnterpriseService:
@@ -35,8 +35,8 @@ class EnterpriseService:
         if not self.auth.user.is_superuser:
             raise CustomException(msg="仅平台管理员可操作", code=RET.FORBIDDEN.code)
 
-    async def create(self, data: EnterpriseCreateSchema) -> EnterpriseOutSchema:
-        """开通租户：创建企业，可同请求绑定企业管理员（同一事务，绑定失败整体回滚）。"""
+    async def create(self, data: EnterpriseCreateSchema) -> EnterpriseProvisionOutSchema:
+        """开通租户：创建企业，可同请求绑定已有账号或一步新建管理员（同一事务，失败整体回滚）。"""
         self._require_superadmin()
         crud = EnterpriseCRUD(self.auth, self.db)
 
@@ -55,11 +55,58 @@ class EnterpriseService:
                 "status": 1,
             }
         )
-        if data.admin_user_id:
-            await TenantUserService(self.auth, self.db).bind(
-                enterprise.id, TenantUserBindSchema(user_id=data.admin_user_id, is_enterprise_admin=True)
+
+        admin_user_id = data.admin_user_id
+        admin_username: str | None = None
+        admin_initial_password: str | None = None
+        if data.admin_account:
+            # 一步开通：先建账号再绑定；username 重复等任何失败都在请求事务内整体回滚
+            from app.modules.system.user.crud import UserCRUD
+            from app.utils.password_util import PwdUtil
+
+            account = data.admin_account
+            if await UserCRUD(self.auth, self.db).get(username=account.username):
+                raise CustomException(msg="已存在相同用户名称的账号", code=RET.DATAEXIST.code)
+            raw_password = account.password
+            if raw_password is None:
+                raw_password = PwdUtil.generate_strong_password()
+                admin_initial_password = raw_password
+            new_user = await UserCRUD(self.auth, self.db).create(
+                data={
+                    "username": account.username,
+                    "name": account.name,
+                    "mobile": account.mobile,
+                    "password": await PwdUtil.ahash_password(password=raw_password),
+                    "is_superuser": False,
+                    "status": 0,
+                }
             )
-        return await self.detail(enterprise.id)
+            admin_user_id = new_user.id
+            admin_username = new_user.username
+            # 无角色用户在原生数据权限下连 current/info 自查都受限（Permission 兜底 created_id==self）。
+            # 赋予种子 USER（普通用户，data_scope=1 仅本人）角色保证账号开箱可用；
+            # 租户域业务模型已跳过平台 Permission，该角色不影响租户数据可见性。
+            from app.modules.system.role.crud import RoleCRUD
+            from app.modules.system.user.model import UserRolesModel
+
+            default_role = await RoleCRUD(self.auth, self.db).get(code="USER")
+            if default_role:
+                self.db.add(UserRolesModel(user_id=new_user.id, role_id=default_role.id))
+                await self.db.flush()
+            else:
+                logger.warning("种子角色 USER（普通用户）缺失，一步开通账号 {} 未分配默认角色", new_user.username)
+        if admin_user_id:
+            binding = await TenantUserService(self.auth, self.db).bind(
+                enterprise.id, TenantUserBindSchema(user_id=admin_user_id, is_enterprise_admin=True)
+            )
+            admin_username = admin_username or binding.username
+        enterprise_out = await self.detail(enterprise.id)
+        return EnterpriseProvisionOutSchema(
+            **enterprise_out.model_dump(),
+            admin_user_id=admin_user_id,
+            admin_username=admin_username,
+            admin_initial_password=admin_initial_password,
+        )
 
     async def detail(self, id: int) -> EnterpriseOutSchema:
         self._require_superadmin()

@@ -4420,5 +4420,54 @@
                                 ]
                         }
                 ]
+        },
+        {
+                "name": "平台管理",
+                "type": 1,
+                "icon": "ri:building-4-line",
+                "order": 8,
+                "permission": null,
+                "route_name": "Platform",
+                "route_path": "/platform",
+                "component_path": null,
+                "status": 0,
+                "keep_alive": true,
+                "hidden": false,
+                "always_show": false,
+                "title": "平台管理",
+                "params": null,
+                "affix": false,
+                "redirect": "/platform/enterprise",
+                "description": "初始化数据",
+                "children": [
+                        {
+                                "name": "租户开通",
+                                "type": 2,
+                                "icon": "ri:building-2-line",
+                                "order": 1,
+                                "permission": "module_platform:enterprise:query",
+                                "route_name": "PlatformEnterprise",
+                                "route_path": "enterprise",
+                                "component_path": "module_platform/enterprise/index",
+                                "status": 0,
+                                "keep_alive": true,
+                                "hidden": false,
+                                "always_show": false,
+                                "title": "租户开通",
+                                "params": null,
+                                "affix": false,
+                                "redirect": null,
+                                "description": "初始化数据",
+                                "children": [
+                                        {"name": "开通租户", "type": 3, "icon": null, "order": 1, "permission": "module_platform:enterprise:create", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "开通租户", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "开通租户权限"},
+                                        {"name": "企业详情", "type": 3, "icon": null, "order": 2, "permission": "module_platform:enterprise:detail", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "企业详情", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "企业详情权限"},
+                                        {"name": "更新企业", "type": 3, "icon": null, "order": 3, "permission": "module_platform:enterprise:update", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "更新企业", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "更新企业权限"},
+                                        {"name": "冻结企业", "type": 3, "icon": null, "order": 4, "permission": "module_platform:enterprise:freeze", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "冻结企业", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "冻结企业权限"},
+                                        {"name": "解冻企业", "type": 3, "icon": null, "order": 5, "permission": "module_platform:enterprise:unfreeze", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "解冻企业", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "解冻企业权限"},
+                                        {"name": "绑定用户", "type": 3, "icon": null, "order": 6, "permission": "module_platform:enterprise:bind", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "绑定用户", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "绑定用户权限"},
+                                        {"name": "解绑用户", "type": 3, "icon": null, "order": 7, "permission": "module_platform:enterprise:unbind", "route_name": null, "route_path": null, "component_path": null, "status": 0, "keep_alive": true, "hidden": false, "always_show": false, "title": "解绑用户", "params": null, "affix": false, "redirect": null, "link": null, "is_iframe": false, "is_hide_tab": false, "active_path": null, "show_badge": false, "show_text_badge": null, "description": "解绑用户权限"}
+                                ]
+                        }
+                ]
         }
 ]

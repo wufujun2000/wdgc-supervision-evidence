@@ -294,3 +294,125 @@ class TestPlatformDomainAndSysRegression:
         uid, username, _ = _mk_user(test_client, auth_headers)
         detail = test_client.get(f"/system/user/detail/{uid}", headers=auth_headers).json()["data"]
         assert detail["username"] == username
+
+
+class TestOneStepProvision:
+    """B0.1 一步开通：同事务建管理员账号＋绑定，初始密码线下告知。"""
+
+    def _create(self, test_client: TestClient, auth_headers: dict, account: dict, name: str | None = None):
+        return test_client.post(
+            "/platform/enterprise/create",
+            json={"name": name or f"一步企业-{uuid.uuid4().hex[:8]}", "admin_account": account},
+            headers=auth_headers,
+        )
+
+    def test_generated_password_returned_once_and_login(self, test_client: TestClient, auth_headers: dict) -> None:
+        username = f"b0op_{uuid.uuid4().hex[:8]}"
+        resp = self._create(test_client, auth_headers, {"username": username, "name": "企业管理员", "mobile": "13812345678"})
+        assert resp.status_code < 300, resp.text
+        data = resp.json()["data"]
+        assert data["admin_username"] == username
+        assert data["admin_user_id"] is not None
+        initial_password = data["admin_initial_password"]
+        assert initial_password, "未显式指定密码时必须返回一次自动生成密码"
+        assert len(initial_password) >= 8
+
+        bindings = test_client.get(f"/platform/enterprise/{data['id']}/bindings", headers=auth_headers).json()["data"]
+        assert len(bindings) == 1
+        assert bindings[0]["user_id"] == data["admin_user_id"]
+        assert bindings[0]["is_enterprise_admin"] is True
+        assert bindings[0]["username"] == username
+
+        # 生成密码可直接登录（入库为哈希，PwdUtil 校验通过），会话自动带租户
+        user_headers = _login(test_client, username, initial_password)
+        assert _snapshot(_token(user_headers))["tenant_id"] == data["id"]
+        info = test_client.get("/system/user/current/info", headers=user_headers).json()["data"]
+        assert info["tenant_id"] == data["id"]
+        assert info["is_superuser"] is False
+
+    def test_supplied_password_never_echoed(self, test_client: TestClient, auth_headers: dict) -> None:
+        username = f"b0op_{uuid.uuid4().hex[:8]}"
+        resp = self._create(test_client, auth_headers, {"username": username, "name": "企业管理员", "password": "Abc123!x"})
+        assert resp.status_code < 300, resp.text
+        data = resp.json()["data"]
+        assert data["admin_initial_password"] is None, "调用方自带密码绝不回显"
+        assert data["admin_username"] == username
+        user_headers = _login(test_client, username, "Abc123!x")
+        assert _snapshot(_token(user_headers))["tenant_id"] == data["id"]
+
+    def test_duplicate_username_rolls_back_enterprise(self, test_client: TestClient, auth_headers: dict) -> None:
+        _, username, _ = _mk_user(test_client, auth_headers)
+        ent_name = f"回滚企业-{uuid.uuid4().hex[:8]}"
+        resp = self._create(test_client, auth_headers, {"username": username, "name": "重复账号"}, name=ent_name)
+        assert resp.json()["success"] is False, resp.text
+        # 整体回滚：企业行不落库
+        page = test_client.get(
+            "/platform/enterprise/list",
+            params={"page_no": 1, "page_size": 10, "name": ent_name},
+            headers=auth_headers,
+        ).json()["data"]
+        assert page["total"] == 0
+
+    def test_admin_fields_mutually_exclusive(self, test_client: TestClient, auth_headers: dict) -> None:
+        uid, _, _ = _mk_user(test_client, auth_headers)
+        resp = test_client.post(
+            "/platform/enterprise/create",
+            json={"name": "互斥企业", "admin_user_id": uid, "admin_account": {"username": "b0op_both", "name": "互斥"}},
+            headers=auth_headers,
+        )
+        assert resp.json()["success"] is False
+        assert "互斥" in resp.text
+
+    def test_admin_user_id_path_unchanged(self, test_client: TestClient, auth_headers: dict) -> None:
+        uid, username, _ = _mk_user(test_client, auth_headers)
+        ent = _provision(test_client, auth_headers, admin_user_id=uid)
+        assert ent["admin_user_id"] == uid
+        assert ent["admin_username"] == username
+        assert ent["admin_initial_password"] is None
+
+
+class TestProvisionLogRedaction:
+    """操作日志脱敏：嵌套请求密码与一次性响应初始密码均不落明文。"""
+
+    def test_redacts_nested_request_and_response(self) -> None:
+        from app.core.router_class import _redact_sensitive
+
+        body = {"name": "企业", "admin_account": {"username": "admin01", "password": "Secret1!"}}
+        redacted = _redact_sensitive(body)
+        assert redacted["admin_account"]["password"] == "******"
+        assert redacted["admin_account"]["username"] == "admin01"
+        assert body["admin_account"]["password"] == "Secret1!"  # 原对象不被改写
+
+        response = {"data": {"admin_initial_password": "Generated1!", "admin_username": "admin01"}}
+        redacted_resp = _redact_sensitive(response)
+        assert redacted_resp["data"]["admin_initial_password"] == "******"
+        assert redacted_resp["data"]["admin_username"] == "admin01"
+
+
+class TestPlatformMenuSeed:
+    """菜单双轨之种子轨：空库 init_db 后「平台管理/租户开通」可见且字段与页面契约一致。"""
+
+    def test_platform_menu_seeded(self, test_client: TestClient, auth_headers: dict) -> None:
+        resp = test_client.get("/system/menu/tree", headers=auth_headers)
+        assert resp.json()["success"] is True, resp.text
+        tree = resp.json()["data"]
+
+        def find(nodes, route_name):
+            for node in nodes:
+                if node.get("route_name") == route_name:
+                    return node
+                found = find(node.get("children") or [], route_name)
+                if found:
+                    return found
+            return None
+
+        directory = find(tree, "Platform")
+        menu = find(tree, "PlatformEnterprise")
+        assert directory is not None and menu is not None
+        assert directory["redirect"] == "/platform/enterprise"
+        assert menu["parent_id"] == directory["id"]
+        assert menu["component_path"] == "module_platform/enterprise/index"
+        assert menu["permission"] == "module_platform:enterprise:query"
+        button_perms = {c["permission"] for c in menu.get("children") or [] if c.get("type") == 3}
+        assert button_perms == {f"module_platform:enterprise:{a}" for a in ("create", "detail", "update", "freeze", "unfreeze", "bind", "unbind")}
+

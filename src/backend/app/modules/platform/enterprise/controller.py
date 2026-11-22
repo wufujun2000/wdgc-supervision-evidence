@@ -13,13 +13,13 @@ from app.core.dependencies import db_getter, get_current_user, redis_getter
 from app.core.router_class import OperationLogRoute
 from app.modules.platform.tenant_user.schema import TenantUserBindSchema, TenantUserOutSchema
 
-from .schema import EnterpriseCreateSchema, EnterpriseOutSchema, EnterpriseQueryParam, EnterpriseUpdateSchema
+from .schema import EnterpriseCreateSchema, EnterpriseOutSchema, EnterpriseProvisionOutSchema, EnterpriseQueryParam, EnterpriseUpdateSchema
 from .service import EnterpriseService
 
 EnterpriseRouter = APIRouter(route_class=OperationLogRoute, prefix="/enterprise", tags=["平台-租户开通"])
 
 
-@EnterpriseRouter.post("/create", status_code=status.HTTP_201_CREATED, summary="开通租户", response_model=ResponseSchema[EnterpriseOutSchema])
+@EnterpriseRouter.post("/create", status_code=status.HTTP_201_CREATED, summary="开通租户", response_model=ResponseSchema[EnterpriseProvisionOutSchema])
 async def create_enterprise_controller(
     auth: Annotated[AuthSchema, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(db_getter)],

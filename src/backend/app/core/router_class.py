@@ -18,6 +18,8 @@ _SENSITIVE_KEYS: set[str] = {
     "old_password",
     "new_password",
     "confirm_password",
+    # 开通租户自动生成初始密码：仅本次响应返回一次，操作日志 response_json 同样脱敏
+    "admin_initial_password",
     "captcha_key",
     "token",
     "access_token",
