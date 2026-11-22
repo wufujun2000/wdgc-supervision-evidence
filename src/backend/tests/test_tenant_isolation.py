@@ -37,10 +37,11 @@ from app.core.dependencies import db_getter
 from app.core.exceptions import CustomException
 from app.core.security import create_access_token
 from app.core.tenant_context import TenantRequestContext
-from app.modules.platform.tenant_user.crud import TenantUserCRUD, TenantUserIsolatedCRUD
-from app.modules.platform.tenant_user.model import BizTenantUserModel
+from app.modules.platform.member.crud import MemberCRUD as TenantUserCRUD
+from app.modules.platform.member.crud import MemberIsolatedCRUD as TenantUserIsolatedCRUD
 from app.modules.system.auth.service import LoginService
 from app.modules.system.user.crud import UserCRUD
+from app.modules.tenant.member.model import BizTenantMemberModel as BizTenantUserModel
 
 
 @pytest.fixture
@@ -296,7 +297,7 @@ class TestTenantReadOnly:
 
 
 class TestBindingIsolation:
-    """biz_tenant_user 本身作为具体租户模型的隔离（平台侧显式 tenant_id vs 租户上下文铁律）。"""
+    """biz_tenant_member 本身作为具体租户模型的隔离（平台侧显式 tenant_id vs 租户上下文铁律）。"""
 
     async def test_binding_crud_isolation(self, db) -> None:
         ent_a = await make_enterprise(db, "绑定-A")
@@ -307,9 +308,9 @@ class TestBindingIsolation:
 
         # 平台侧：无上下文，CRUDBase＋显式 tenant_id 建绑定
         platform_crud = TenantUserCRUD(AuthSchema(), db)
-        bind_a1 = await platform_crud.create({"tenant_id": ent_a.id, "user_id": user_a1.id, "is_enterprise_admin": True})
-        bind_a2 = await platform_crud.create({"tenant_id": ent_a.id, "user_id": user_a2.id, "is_enterprise_admin": False})
-        bind_b1 = await platform_crud.create({"tenant_id": ent_b.id, "user_id": user_b1.id, "is_enterprise_admin": False})
+        bind_a1 = await platform_crud.create({"tenant_id": ent_a.id, "user_id": user_a1.id, "status": 0})
+        bind_a2 = await platform_crud.create({"tenant_id": ent_a.id, "user_id": user_a2.id, "status": 0})
+        bind_b1 = await platform_crud.create({"tenant_id": ent_b.id, "user_id": user_b1.id, "status": 0})
 
         isolated = TenantUserIsolatedCRUD(AuthSchema(), db)
         set_ctx(ent_a.id)
@@ -319,7 +320,7 @@ class TestBindingIsolation:
 
         # 租户上下文内 create 自动注入；伪造他租户 → 403
         user_a3 = await make_user(db, "bind_a3")
-        created = await isolated.create({"user_id": user_a3.id, "is_enterprise_admin": False})
+        created = await isolated.create({"user_id": user_a3.id, "status": 0})
         assert created.tenant_id == ent_a.id
         user_a4 = await make_user(db, "bind_a4")
         with pytest.raises(CustomException) as exc_info:
@@ -371,7 +372,7 @@ class TestRealAuthIsolation:
         member = await make_user(db, "real_member")
         # 绑定由超管开通创建（created_id=超管），租户用户本人必须查得到自身绑定
         binding = await TenantUserCRUD(AuthSchema(user=CoreUserSchema(id=admin.id, is_superuser=True)), db).create(
-            {"tenant_id": ent.id, "user_id": member.id, "is_enterprise_admin": False}
+            {"tenant_id": ent.id, "user_id": member.id, "status": 0}
         )
         assert binding.created_id == admin.id
         set_ctx(ent.id)
@@ -486,7 +487,7 @@ class TestContextLifecycle:
         ent_b = await make_enterprise(db, "生命周期-B")
         user_b = await make_user(db, "lc_user_b")
         binding_b = await TenantUserCRUD(AuthSchema(), db).create(
-            {"tenant_id": ent_b.id, "user_id": user_b.id, "is_enterprise_admin": False}
+            {"tenant_id": ent_b.id, "user_id": user_b.id, "status": 0}
         )
         # 残留上下文（模拟上一请求未清理）→ 请求级生命周期退出即清理
         set_ctx(ent_a.id)
@@ -507,7 +508,7 @@ class TestContextLifecycle:
         ent_a = await make_enterprise(db, "登录残留-A")
         ent_b = await make_enterprise(db, "登录残留-B")
         user_b = await make_user(db, "login_user_b")
-        await TenantUserCRUD(AuthSchema(), db).create({"tenant_id": ent_b.id, "user_id": user_b.id, "is_enterprise_admin": False})
+        await TenantUserCRUD(AuthSchema(), db).create({"tenant_id": ent_b.id, "user_id": user_b.id, "status": 0})
         # roles 预加载：_collect_permissions 需要（异步懒加载会 MissingGreenlet）
         user = await UserCRUD(AuthSchema(), db).get(id=user_b.id, preload=["roles"])
 

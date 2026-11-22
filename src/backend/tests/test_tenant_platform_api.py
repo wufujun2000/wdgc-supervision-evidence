@@ -1,7 +1,7 @@
 """B0 平台域开通租户 API 验收：契约验收第 7/8 组。
 
 7. 创建+绑定管理员、分页、冻结/解冻；冻结后该租户用户会话立即失效（H-02）；
-   停用用户拒绝＋会话清理；超管禁止绑定；一人一租户。
+   停用用户拒绝＋会话清理；超管禁止绑定；(tenant_id,user_id) 唯一（ADR-001）。
 8. 平台域 CRUD 无租户上下文正常工作；sys_* 原生行为不回归。
 """
 
@@ -59,9 +59,11 @@ def _mk_user(client: TestClient, auth_headers: dict) -> tuple[int, str, str]:
 
 
 def _provision(client: TestClient, auth_headers: dict, *, admin_user_id: int | None = None) -> dict:
+    """ADR-001：开通必须首名成员＋Owner，未指定时新建一个 Owner 账号。"""
     payload: dict = {"name": f"企业-{uuid.uuid4().hex[:8]}"}
-    if admin_user_id is not None:
-        payload["admin_user_id"] = admin_user_id
+    if admin_user_id is None:
+        admin_user_id, _, _ = _mk_user(client, auth_headers)
+    payload["admin_user_id"] = admin_user_id
     resp = client.post("/platform/enterprise/create", json=payload, headers=auth_headers)
     assert resp.status_code < 300, resp.text
     assert resp.json()["success"] is True, resp.text
@@ -104,11 +106,12 @@ class TestProvisionLifecycle:
         assert ent["status"] == 1
         assert ent["enterprise_code"].startswith("ENT-")
 
-        # 绑定管理员：is_enterprise_admin=True，携带用户账号信息
-        bindings = test_client.get(f"/platform/enterprise/{eid}/bindings", headers=auth_headers).json()["data"]
+        # 首名成员自动成为唯一 Owner（ADR-001），携带用户账号信息
+        bindings = test_client.get(f"/platform/enterprise/{eid}/members", headers=auth_headers).json()["data"]
         assert len(bindings) == 1
         assert bindings[0]["user_id"] == uid
-        assert bindings[0]["is_enterprise_admin"] is True
+        assert bindings[0]["is_owner"] is True
+        assert bindings[0]["is_admin"] is False
         assert bindings[0]["username"] == username
 
         # 分页 + 名称搜索
@@ -198,63 +201,81 @@ class TestBindingRules:
         assert page["total"] == 0
 
         ent = _provision(test_client, auth_headers)
-        resp = test_client.post(f"/platform/enterprise/{ent['id']}/bindings", json={"user_id": admin_id}, headers=auth_headers)
+        resp = test_client.post(f"/platform/enterprise/{ent['id']}/members", json={"user_id": admin_id}, headers=auth_headers)
         assert resp.status_code == 403
-        assert test_client.get(f"/platform/enterprise/{ent['id']}/bindings", headers=auth_headers).json()["data"] == []
+        # 已有 Owner 不被影响，超管未进入成员列表
+        members = test_client.get(f"/platform/enterprise/{ent['id']}/members", headers=auth_headers).json()["data"]
+        assert len(members) == 1
+        assert all(m["user_id"] != admin_id for m in members)
 
     def test_frozen_enterprise_rejects_binding(self, test_client: TestClient, auth_headers: dict) -> None:
         """评审 Major-1：冻结企业禁止绑定用户。"""
         uid, _, _ = _mk_user(test_client, auth_headers)
         ent = _provision(test_client, auth_headers)
         assert test_client.post(f"/platform/enterprise/freeze/{ent['id']}", headers=auth_headers).json()["data"]["status"] == 0
-        resp = test_client.post(f"/platform/enterprise/{ent['id']}/bindings", json={"user_id": uid}, headers=auth_headers)
+        resp = test_client.post(f"/platform/enterprise/{ent['id']}/members", json={"user_id": uid}, headers=auth_headers)
         assert resp.status_code == 403
         assert "冻结" in resp.json()["msg"]
-        assert test_client.get(f"/platform/enterprise/{ent['id']}/bindings", headers=auth_headers).json()["data"] == []
+        # 冻结绑定被拒绝，既有 Owner 成员不变
+        assert len(test_client.get(f"/platform/enterprise/{ent['id']}/members", headers=auth_headers).json()["data"]) == 1
 
-    def test_one_user_one_tenant_and_unbind_rebind(self, test_client: TestClient, auth_headers: dict) -> None:
+    def test_multi_tenant_membership_and_disable(self, test_client: TestClient, auth_headers: dict) -> None:
         uid, username, password = _mk_user(test_client, auth_headers)
         ent1 = _provision(test_client, auth_headers, admin_user_id=uid)
         ent2 = _provision(test_client, auth_headers)
 
-        # 一人一租户：已绑定用户不能再绑他租户；同租户重复绑定亦拒绝
-        resp = test_client.post(f"/platform/enterprise/{ent2['id']}/bindings", json={"user_id": uid}, headers=auth_headers)
-        assert resp.status_code == 409
-        resp = test_client.post(f"/platform/enterprise/{ent1['id']}/bindings", json={"user_id": uid}, headers=auth_headers)
+        # (tenant_id,user_id) 唯一：同账号可加入多个租户；同租户重复绑定 409
+        resp = test_client.post(f"/platform/enterprise/{ent2['id']}/members", json={"user_id": uid}, headers=auth_headers)
+        assert resp.status_code < 300, resp.text
+        resp = test_client.post(f"/platform/enterprise/{ent1['id']}/members", json={"user_id": uid}, headers=auth_headers)
         assert resp.status_code == 409
 
         headers = _login(test_client, username, password)
         assert _snapshot(_token(headers))["tenant_id"] == ent1["id"]
+        # X-Tenant-Id 仅作选择，服务端校验归属：第二租户可访问，非成员租户 403
+        assert test_client.get("/tenant/members/list", headers={**headers, "X-Tenant-Id": str(ent2["id"])}).status_code == 200
+        assert test_client.get("/tenant/members/list", headers={**headers, "X-Tenant-Id": "999999"}).status_code == 403
 
-        # 解绑后快照 tenant_id 回到 None，可改绑他租户
-        binding_id = test_client.get(f"/platform/enterprise/{ent1['id']}/bindings", headers=auth_headers).json()["data"][0]["id"]
-        resp = test_client.delete(f"/platform/enterprise/bindings/{binding_id}", headers=auth_headers)
+        # 停用非 Owner 成员：status=1 且旧会话失效；不物理删除，历史成员记录保留
+        uid2, username2, password2 = _mk_user(test_client, auth_headers)
+        assert test_client.post(f"/platform/enterprise/{ent1['id']}/members", json={"user_id": uid2}, headers=auth_headers).status_code < 300
+        member2_headers = _login(test_client, username2, password2)
+        member2_id = next(m for m in test_client.get(f"/platform/enterprise/{ent1['id']}/members", headers=auth_headers).json()["data"] if m["user_id"] == uid2)["id"]
+        resp = test_client.post(f"/platform/enterprise/members/{member2_id}/disable", headers=auth_headers)
         assert resp.json()["success"] is True, resp.text
-        assert test_client.get(f"/platform/enterprise/{ent1['id']}/bindings", headers=auth_headers).json()["data"] == []
-
-        unbound = _login(test_client, username, password)
-        assert _snapshot(_token(unbound))["tenant_id"] is None
-
-        resp = test_client.post(f"/platform/enterprise/{ent2['id']}/bindings", json={"user_id": uid, "emp_no": "E001"}, headers=auth_headers)
-        assert resp.status_code < 300, resp.text
-        assert resp.json()["data"]["tenant_id"] == ent2["id"]
-        rebound = _login(test_client, username, password)
-        assert _snapshot(_token(rebound))["tenant_id"] == ent2["id"]
+        target = next(m for m in test_client.get(f"/platform/enterprise/{ent1['id']}/members", headers=auth_headers).json()["data"] if m["id"] == member2_id)
+        assert target["status"] == 1
+        assert test_client.get("/system/user/current/info", headers=member2_headers).status_code == 401
+        # 停用成员重新登录后无有效成员：租户接口 fail-closed 403
+        renewed2 = _login(test_client, username2, password2)
+        assert test_client.get("/tenant/members/list", headers=renewed2).status_code == 403
+        # Owner 不受影响，仍默认 ent1；停用记录仍在，重复绑定同租户 409
+        renewed_owner = _login(test_client, username, password)
+        assert _snapshot(_token(renewed_owner))["tenant_id"] == ent1["id"]
+        resp = test_client.post(f"/platform/enterprise/{ent1['id']}/members", json={"user_id": uid2}, headers=auth_headers)
+        assert resp.status_code == 409
 
     def test_non_superadmin_forbidden(self, test_client: TestClient, auth_headers: dict) -> None:
         _, username, password = _mk_user(test_client, auth_headers)
         headers = _login(test_client, username, password)
         ent = _provision(test_client, auth_headers)
 
-        assert test_client.post("/platform/enterprise/create", json={"name": "越权企业"}, headers=headers).status_code == 403
+        # ADR-001：开通必须首名 Owner（schema 校验 422），越权账号同样被拦截
+        assert test_client.post("/platform/enterprise/create", json={"name": "越权企业"}, headers=headers).status_code == 422
         assert test_client.get("/platform/enterprise/list", headers=headers).status_code == 403
         assert test_client.get(f"/platform/enterprise/detail/{ent['id']}", headers=headers).status_code == 403
         assert test_client.put(f"/platform/enterprise/update/{ent['id']}", json={"name": "越权改名"}, headers=headers).status_code == 403
         assert test_client.post(f"/platform/enterprise/freeze/{ent['id']}", headers=headers).status_code == 403
         assert test_client.post(f"/platform/enterprise/unfreeze/{ent['id']}", headers=headers).status_code == 403
-        assert test_client.get(f"/platform/enterprise/{ent['id']}/bindings", headers=headers).status_code == 403
-        assert test_client.post(f"/platform/enterprise/{ent['id']}/bindings", json={"user_id": 1}, headers=headers).status_code == 403
-        assert test_client.delete("/platform/enterprise/bindings/1", headers=headers).status_code == 403
+        assert test_client.get(f"/platform/enterprise/{ent['id']}/members", headers=headers).status_code == 403
+        assert test_client.post(f"/platform/enterprise/{ent['id']}/members", json={"user_id": 1}, headers=headers).status_code == 403
+        assert test_client.post("/platform/enterprise/members/1/disable", headers=headers).status_code == 403
+        assert test_client.post(
+            f"/platform/enterprise/{ent['id']}/owner/transfer",
+            json={"target_member_id": 1, "reason": "越权移交", "confirm": True},
+            headers=headers,
+        ).status_code == 403
+        assert test_client.get(f"/platform/enterprise/{ent['id']}/owner-audit", headers=headers).status_code == 403
 
     def test_requires_auth(self, test_client: TestClient) -> None:
         assert test_client.get("/platform/enterprise/list").status_code == 401
@@ -277,12 +298,13 @@ class TestPlatformDomainAndSysRegression:
         resp = test_client.put(f"/platform/enterprise/update/{other['id']}", json={"credit_code": credit_code}, headers=auth_headers)
         assert resp.status_code == 409
 
-        # 显式 enterprise_code 开通 + 重复编码拒绝
+        # 显式 enterprise_code 开通 + 重复编码拒绝（开通必填 Owner）
+        uid, _, _ = _mk_user(test_client, auth_headers)
         code = f"ENT-{uuid.uuid4().hex[:8].upper()}"
-        resp = test_client.post("/platform/enterprise/create", json={"name": "编码企业", "enterprise_code": code}, headers=auth_headers)
+        resp = test_client.post("/platform/enterprise/create", json={"name": "编码企业", "enterprise_code": code, "admin_user_id": uid}, headers=auth_headers)
         assert resp.status_code < 300
         assert resp.json()["data"]["enterprise_code"] == code
-        resp = test_client.post("/platform/enterprise/create", json={"name": "编码重复", "enterprise_code": code}, headers=auth_headers)
+        resp = test_client.post("/platform/enterprise/create", json={"name": "编码重复", "enterprise_code": code, "admin_user_id": uid}, headers=auth_headers)
         assert resp.status_code == 409
 
     def test_sys_native_behavior_no_regression(self, test_client: TestClient, auth_headers: dict) -> None:
@@ -317,10 +339,11 @@ class TestOneStepProvision:
         assert initial_password, "未显式指定密码时必须返回一次自动生成密码"
         assert len(initial_password) >= 8
 
-        bindings = test_client.get(f"/platform/enterprise/{data['id']}/bindings", headers=auth_headers).json()["data"]
+        bindings = test_client.get(f"/platform/enterprise/{data['id']}/members", headers=auth_headers).json()["data"]
         assert len(bindings) == 1
         assert bindings[0]["user_id"] == data["admin_user_id"]
-        assert bindings[0]["is_enterprise_admin"] is True
+        assert bindings[0]["is_owner"] is True
+        assert bindings[0]["is_admin"] is False
         assert bindings[0]["username"] == username
 
         # 生成密码可直接登录（入库为哈希，PwdUtil 校验通过），会话自动带租户
@@ -414,5 +437,5 @@ class TestPlatformMenuSeed:
         assert menu["component_path"] == "module_platform/enterprise/index"
         assert menu["permission"] == "module_platform:enterprise:query"
         button_perms = {c["permission"] for c in menu.get("children") or [] if c.get("type") == 3}
-        assert button_perms == {f"module_platform:enterprise:{a}" for a in ("create", "detail", "update", "freeze", "unfreeze", "bind", "unbind")}
+        assert button_perms == {f"module_platform:enterprise:{a}" for a in ("create", "detail", "update", "freeze", "unfreeze", "bind", "unbind", "transfer", "audit")}
 

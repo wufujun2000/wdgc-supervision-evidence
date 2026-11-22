@@ -24,6 +24,7 @@ class TenantRequestContext:
     """当前请求的租户上下文（不可变值对象，认证末尾一次性注入）。"""
 
     tenant_id: int | None = None
+    member_id: int | None = None
     is_impersonated: bool = False
     impersonator_id: int | None = None
     read_only: bool = False

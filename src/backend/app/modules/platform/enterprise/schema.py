@@ -48,9 +48,11 @@ class EnterpriseCreateSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_admin_exclusive(self):
-        """admin_user_id 与 admin_account 互斥；都不传则开空企业。"""
+        """ADR-001：开通必须原子创建首名成员＋唯一 Owner，两个字段互斥且必填其一。"""
         if self.admin_user_id is not None and self.admin_account is not None:
             raise ValueError("admin_user_id 与 admin_account 互斥，只能二选一")
+        if self.admin_user_id is None and self.admin_account is None:
+            raise ValueError("开通租户必须指定首名企业拥有者：admin_user_id 与 admin_account 二选一")
         return self
 
 

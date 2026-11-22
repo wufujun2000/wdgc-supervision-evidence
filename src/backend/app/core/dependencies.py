@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import Depends, Request, WebSocket
+from fastapi import Depends, Header, Request, WebSocket
 from redis.asyncio.client import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,9 +49,10 @@ async def get_current_user(
     db: AsyncSession = Depends(db_getter),
     redis: Redis = Depends(redis_getter),
     token: str = Depends(OAuth2Schema),
+    x_tenant_id: int | None = Header(default=None, alias="X-Tenant-Id"),
 ) -> AuthSchema:
-    """获取当前用户"""
-    return await _authenticate(token, db, redis)
+    """获取当前用户（X-Tenant-Id 仅作租户选择，成员归属由服务端校验）"""
+    return await _authenticate(token, db, redis, selected_tenant_id=x_tenant_id)
 
 
 WS_TOKEN_SUBPROTOCOL = "access_token"
@@ -105,6 +106,7 @@ async def _authenticate(
     token: str,
     db: AsyncSession,
     redis: Redis,
+    selected_tenant_id: int | None = None,
 ) -> AuthSchema:
     """核心认证逻辑（HTTP 与 WebSocket 共享）"""
     # 每次认证先清空租户上下文：TestClient 复用线程/后台任务防串号
@@ -204,24 +206,36 @@ async def _authenticate(
         await _purge_session(redis, session_id)
         raise CustomException(msg="用户已被停用", code=RET.UNAUTHORIZED.code)
 
-    # H-02：经绑定解析当前用户租户；有租户则实时校验企业状态（plat_enterprise 1=正常 0=冻结）
+    # ADR-001：经有效租户成员（status=0）解析 tenant_id + member_id；X-Tenant-Id 仅作选择
     from app.modules.platform.enterprise.model import EnterpriseModel  # 延迟导入：core 导入期不依赖业务层
-    from app.modules.platform.tenant_user.model import BizTenantUserModel
+    from app.modules.tenant.member.model import BizTenantMemberModel
 
-    tenant_id: int | None = None
-    binding = (
+    members = (
         (
             await db.execute(
-                select(BizTenantUserModel).where(BizTenantUserModel.user_id == user_id, BizTenantUserModel.is_deleted == False)  # noqa: E712
+                select(BizTenantMemberModel)
+                .where(
+                    BizTenantMemberModel.user_id == user_id,
+                    BizTenantMemberModel.status == 0,
+                    BizTenantMemberModel.is_deleted == False,  # noqa: E712
+                )
+                .order_by(BizTenantMemberModel.id)
             )
         )
         .scalars()
-        .first()
+        .all()
     )
-    if binding:
-        tenant_id = binding.tenant_id
+    tenant_id: int | None = None
+    member_id: int | None = None
+    if selected_tenant_id is not None:
+        target = next((m for m in members if m.tenant_id == selected_tenant_id), None)
+        if target is None:
+            raise CustomException(msg="当前账号不是所选租户的有效成员", code=RET.FORBIDDEN.code)
+        tenant_id, member_id = target.tenant_id, target.id
+    elif members:
+        tenant_id, member_id = members[0].tenant_id, members[0].id
     elif user_info.get("is_impersonated"):
-        # 代管穿透（平台二期 P-PC-03 预留）：超管禁绑，目标租户来自会话快照
+        # 代管穿透（平台二期 P-PC-03 预留）：超管不做成员，目标租户来自会话快照
         tenant_id = user_info.get("tenant_id")
     if tenant_id is not None:
         enterprise = (
@@ -244,6 +258,7 @@ async def _authenticate(
     TenantRequestContext.set(
         TenantRequestContext(
             tenant_id=tenant_id,
+            member_id=member_id,
             is_impersonated=bool(user_info.get("is_impersonated", False)),
             impersonator_id=user_info.get("impersonator_id"),
             read_only=bool(user_info.get("read_only", False)),

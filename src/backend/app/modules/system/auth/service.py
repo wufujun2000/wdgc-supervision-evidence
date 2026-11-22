@@ -388,13 +388,12 @@ class LoginService:
 
         tenant_id: int | None = None
         if db is not None and user.id:
-            from app.modules.platform.tenant_user.crud import TenantUserCRUD  # 延迟导入：登录链路不新增导入期依赖
+            from app.modules.platform.member.crud import get_first_active_member  # 延迟导入：登录链路不新增导入期依赖
 
-            # 登录是平台域动作：显式清空残留租户上下文，防钩子误过滤绑定查询
-            # （快照 tenant_id 误写 None、一人一租户查重失明）
+            # 登录是平台域动作：显式清空残留租户上下文，防钩子误过滤成员查询
             TenantRequestContext.clear()
-            binding = await TenantUserCRUD(AuthSchema(), db).get(user_id=user.id)
-            tenant_id = binding.tenant_id if binding else None
+            member = await get_first_active_member(db, user.id)
+            tenant_id = member.tenant_id if member else None
 
         session_dict = LoginService._build_session_dict(
             user=user,

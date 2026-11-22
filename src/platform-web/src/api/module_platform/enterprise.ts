@@ -49,25 +49,40 @@ export const EnterpriseAPI = {
     });
   },
 
-  listBindings(id: number) {
-    return request<ApiResponse<TenantUserBinding[]>>({
-      url: `${API_PATH}/${id}/bindings`,
+  listMembers(id: number) {
+    return request<ApiResponse<TenantMember[]>>({
+      url: `${API_PATH}/${id}/members`,
       method: "get",
     });
   },
 
-  bindUser(id: number, body: TenantUserBindForm) {
-    return request<ApiResponse<TenantUserBinding>>({
-      url: `${API_PATH}/${id}/bindings`,
+  bindMember(id: number, body: TenantMemberBindForm) {
+    return request<ApiResponse<TenantMember>>({
+      url: `${API_PATH}/${id}/members`,
       method: "post",
       data: body,
     });
   },
 
-  unbindUser(bindingId: number) {
+  disableMember(memberId: number) {
     return request<ApiResponse>({
-      url: `${API_PATH}/bindings/${bindingId}`,
-      method: "delete",
+      url: `${API_PATH}/members/${memberId}/disable`,
+      method: "post",
+    });
+  },
+
+  transferOwner(id: number, body: OwnerTransferForm) {
+    return request<ApiResponse<OwnerTransferResult>>({
+      url: `${API_PATH}/${id}/owner/transfer`,
+      method: "post",
+      data: body,
+    });
+  },
+
+  listOwnerAudit(id: number) {
+    return request<ApiResponse<OwnerAuditItem[]>>({
+      url: `${API_PATH}/${id}/owner-audit`,
+      method: "get",
     });
   },
 };
@@ -120,17 +135,42 @@ export interface EnterprisePageQuery extends PageQuery {
   status?: number;
 }
 
-export interface TenantUserBinding extends BaseType {
+export interface TenantMember extends BaseType {
   tenant_id?: number;
   user_id?: number;
-  is_enterprise_admin?: boolean;
   emp_no?: string;
+  /** 0 正常 / 1 停用 */
+  status?: number;
   username?: string;
   name?: string;
+  is_owner?: boolean;
+  is_admin?: boolean;
 }
 
-export interface TenantUserBindForm {
+export interface TenantMemberBindForm {
   user_id: number;
-  is_enterprise_admin?: boolean;
   emp_no?: string;
+}
+
+export interface OwnerTransferForm {
+  target_member_id: number;
+  reason: string;
+  confirm: true;
+}
+
+export interface OwnerTransferResult {
+  tenant_id: number;
+  from_member_id?: number;
+  to_member_id: number;
+  version: number;
+}
+
+export interface OwnerAuditItem extends BaseType {
+  source?: string;
+  operator_user_id?: number;
+  tenant_id?: number;
+  from_member_id?: number;
+  to_member_id?: number;
+  reason?: string;
+  result?: string;
 }

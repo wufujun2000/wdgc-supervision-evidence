@@ -65,7 +65,7 @@ flowchart TB
 | :---: | :--- | :--- | :--- |
 | **H-01** | `vendor/FastapiAdmin/backend/app/core/base_crud.py` | `delete()`、`set()`、`clear()` 直接构造 `WHERE id IN (...)`，绕过了 `_build_conditions()` 中的软删除与数据权限过滤；`update()` 也未复用统一的数据权限条件。 | 强制所有写/删方法（`update`、`delete`、`set`、`clear`）统一合并 `await self._build_conditions()` 生成的租户与数据权限条件，杜绝跨租户/跨项目越权修改或删除。 |
 | **H-02** | `vendor/FastapiAdmin/backend/app/core/dependencies.py` | `_authenticate()` 会检查 Redis 会话快照中的 `user_status`，但数据库回查仅校验 `is_deleted == False`，未实时校验当前 `UserModel.status`；原生模型也没有企业租户冻结状态。停用用户时仅更新数据库而不清理既有会话，快照状态可能滞后。 | 认证依赖同时校验 **`user.status == 0`（正常启用，`FastapiAdmin` 源码中 0=启用，1=停用）** 及所属租户 `enterprise.status == 1`（正常未冻结）；一旦平台冻结某监理企业租户或企业停用某员工，立即清理其 Redis Token 会话并实时阻断请求。 |
-| **H-03** | `vendor/FastapiAdmin/backend/app/core/permission.py` | 原 `Permission` 仅实现 3 级且通过 `created_by.has(UserModel.dept_id...)` 动态关联，不契合监理工程按“项目 + 危大分类”授权的业务模型。 | 平台域保留基础权限；租户域新增专门的 **`TenantProjectPermission`**（见第 4 节），基于业务表固化的 `(tenant_id, project_id, hazard_code)` 进行高性能索引过滤。 |
+| **H-03** | `vendor/FastapiAdmin/backend/app/core/permission.py` | 原 `Permission` 仅实现 3 级且通过 `created_by.has(UserModel.dept_id...)` 动态关联，不契合监理工程按“项目 + 危大分类”授权的业务模型。 | 平台域保留基础权限；租户域新增专门的 **`TenantProjectPermission`**（见第 4 节），基于业务表固化的 `(tenant_id, project_id, hazard_code)` 进行高性能索引过滤。**【ADR-001 修订】落地为 `app/core/tenant_permission.py`：`require_permission`（Owner 默认通过，Admin 按授权）＋`require_owner`（只认有效所有权记录）＋`require_project_role`/`require_hazard_scope`（按当前项目任命与专监危大集合）；租户模型在 `CRUDBase._build_conditions` 中跳过平台域 `Permission`（避免 `created_id==self` 误拦）。** |
 
 ### 2.2 从 `RuoYi-FastAPI` (v2.0.0) 吸收移植的 4 大核心模块
 
@@ -85,17 +85,19 @@ flowchart TB
 为彻底避免平台管理与租户业务相互干扰，数据库表按前缀划分为三大命名空间（共存于同一个 MySQL 8.0 实例中）：
 
 1. **`sys_*`（框架原生平台系统表，无 `tenant_id`）**：
-   - `sys_user`、`sys_role`、`sys_menu`、`sys_dept`、`sys_dict_*`、`sys_log`：100% 留给 **平台管理端 (`platform-web`)** 的平台运维管理员（`ROLE_SYSADMIN`）和超级管理员（`ROLE_SUPERADMIN`）使用。
+   - `sys_user`、`sys_role`、`sys_menu`、`sys_dept`、`sys_dict_*`、`sys_log`：平台管理端 (`platform-web`) 原生系统表。
+   - **【ADR-001 修订】`sys_user` 是统一登录账号，不再「100% 仅供平台人员使用」**：登录认证、密码哈希、微信身份、账号状态、会话管理复用 FastapiAdmin 能力；`sys_role/sys_user_roles` 只承载平台域角色与权限，**严禁把租户角色或项目角色写入 `sys_user_roles`**；账号是否具有租户身份必须经 `biz_tenant_member` 解析，是否具有项目身份必须经当前租户下的 `biz_project_member` 解析；`sys_user.is_superuser` 仅表示平台超级管理员，不表示任何租户的企业拥有者。
 2. **`plat_*`（平台级危大业务基线表，无 `tenant_id` 或 `tenant_id=0`）**：
    - `plat_enterprise`（监理企业租户主表：管理入驻企业 `ENT-001`、社会信用代码、状态 `1正常/0冻结`、存储配额、OSS 根路径前缀）。
    - `plat_hazard_node_base`（课题研究成果 12 大类 347 个危大采集节点只读基线库，含 11 类专业危大 342 项 + 通用应急 5 项，版本号 `v1.1`，由 `docs/04-baseline-data/hazard_nodes_seed.json` 导入）。
    - `plat_privilege_audit_log`（超级管理员跨租户穿透调阅与特权操作 WORM 只读审计日志表）。
+   - **【ADR-001 新增】`plat_owner_transfer_audit`**（企业拥有者移交审计表：开通初始化/平台补设或移交/租户侧移交，append-only，记录来源、操作人、租户、原/新 Owner、原因、结果、时间）。
 3. **`biz_*`（租户业务域表，100% 强制包含 `tenant_id` 字段）**：
-   - 所有表继承 `TenantModelMixin`，包含 `tenant_id: Mapped[int] = mapped_column(BigInteger, index=True, nullable=False, comment="所属监理企业租户ID")`。
+   - 所有表继承 `TenantModelMixin`，包含 `tenant_id`（与 `plat_enterprise.id` 主键同型的 `Integer`，FK `ondelete=RESTRICT`；MySQL 3780 要求 FK 两侧列型完全一致，故不使用架构稿原 `BigInteger`）。
    - 涵盖：
-     - 租户组织与人员：`biz_tenant_user`（监理企业员工表，含工号 `emp_no`、手机号、微信 `openid`、`is_enterprise_admin`）、`biz_tenant_dept`；
+     - **【ADR-001 身份权限】租户成员与所有权**：`biz_tenant_member`（租户成员：`(tenant_id, user_id)` 唯一、工号 `emp_no`、状态 `status`；替代 B0 过渡表 `biz_tenant_user`＋`is_enterprise_admin`＋`user_id` 单列唯一）、`biz_tenant_owner`（企业拥有者单持有人记录：`tenant_id` 唯一＋`version` 乐观锁，只能经开通初始化或专门移交变更）、`biz_tenant_admin`＋`biz_tenant_admin_permission`（企业管理员及其独立可委托权限授予）；
+     - **【ADR-001 项目任命】**：`biz_project`、`biz_project_member`（项目级 SZ/SP/SA 任命，`(project_id, member_id)` 唯一）、`biz_project_member_hazard`（专监在该项目绑定的多类危大 `01~12`）；
      - 租户扩展节点库：`biz_tenant_node_ext`（企业基于课题 347 项基线库派生的地方/企业扩展节点，编码如 `A-01-E01`）；
-     - 项目与成员权限：`biz_project`、`biz_project_hazard`（项目挂载的危大类别）、`biz_project_member`（项目成员角色：总监/专监/监理员）、`biz_project_member_hazard`（专监在该项目绑定的多类危大 `01~12`）；
      - 核心业务流转：`biz_task_occurrence`（任务发生实例，支持按楼栋/部位/施工批次多次发生）、`biz_media_evidence`（现场防篡改影像证据主表）、`biz_document`（F01~F05 核心表单与纸质扫描单据表）、`biz_media_document_rel`（图单多对多关联表）、`biz_hazard_rectification`（安全隐患下发 `_QZ` 与复查 `_HW` 闭环台账表）、`biz_evidence_export_task`（证据包异步打包导出任务表）、`biz_retention_destroy_approval`（常规影像到期销毁审批表）、`biz_tenant_audit_log`（租户内全生命周期操作审计表）。
 
 ### 3.2 `TenantCRUDBase` 自动租户隔离与超级管理员“代管穿透（Impersonation）”机制
@@ -134,16 +136,19 @@ sequenceDiagram
 - **同一名监理工程师（如张工）在项目 A 可能是“专业监理工程师（负责 01 基坑 + 03 起重）”，而在项目 B 可能是“项目总监”**；
 - 权限边界取决于用户在 **当前激活项目（`current_project_id`，通过请求头 `X-Project-Id` 传递）** 中的项目角色与危大绑定关系。
 
-### 4.2 三维数据权限过滤矩阵（`TenantProjectPermission`）
+### 4.2 身份权限引擎（【ADR-001 修订】取代原 `TenantProjectPermission` 与 `is_enterprise_admin` 旧口径）
 
-当请求进入 `/api/v1/tenant/*` 或 `/api/v1/mp/*` 时，系统自动根据当前用户在 `biz_tenant_user` 与 `biz_project_member` 中的身份注入过滤条件：
+当请求进入 `/api/v1/tenant/*` 或 `/api/v1/mp/*` 时，服务端先经 `biz_tenant_member`（`status=0` 有效）解析 `tenant_id + member_id`（`X-Tenant-Id` 仅作选择、归属必校验），再按以下规则校验（实现：`app/core/tenant_permission.py`）：
 
-| 用户身份层级 | 判定依据 | 自动注入的 SQL 过滤条件（在 `tenant_id == X` 基础上） |
+| 用户身份层级 | 判定依据 | 授权语义 |
 | :--- | :--- | :--- |
-| **1. 企业管理员**<br>（或超管穿透态） | `user.is_enterprise_admin == True` | 可查看/管理本企业（`tenant_id = X`）下的所有工程项目；若前端顶部选定了某个 `X-Project-Id`，则按该 `project_id` 过滤。 |
-| **2. 项目总监**<br>（`PROJECT_SUPERVISOR`） | 在当前 `project_id` 的 `biz_project_member.role == 'SZ'` | 强制 `project_id == current_project_id`；可查看、审批、督办该项目下 **全部 12 类危大工程** 的任务、影像、隐患与表单。 |
-| **3. 专业监理工程师**<br>（`PROJECT_ENGINEER`） | 在当前 `project_id` 的 `biz_project_member.role == 'SP'` | 强制 `project_id == current_project_id` **且 `hazard_code IN (该专监在本项目绑定的危大编码集合)`**（来自 `biz_project_member_hazard`）。 |
-| **4. 现场监理员**<br>（`PROJECT_MONITOR`） | 在当前 `project_id` 的 `biz_project_member.role == 'SA'` | 强制 `project_id == current_project_id` 且仅限 **分派给本人（`assignee_id == user.id`）或本人采集提交（`shooter_user_id == user.id`）** 的任务与记录。 |
+| **1. 企业拥有者（TENANT_OWNER）** | `biz_tenant_owner` 单持有人记录（每租户恰好一名） | 默认拥有全部租户管理权限；`require_owner()` 只认该记录——所有权移交、Owner 创建/停用/降权等专属动作不因其拥有全部可委托权限的 `TENANT_ADMIN` 而放行；Owner 未经项目任命不能代行项目法定签署。 |
+| **2. 企业管理员（TENANT_ADMIN）** | `biz_tenant_admin`＋`biz_tenant_admin_permission` | `require_permission(code)` 按授权判断，权限仅限 delegable 目录（`tenant_member_manage`/`tenant_admin_manage`/`project_manage`/`project_member_assign`），授权不得超过操作者自身可转授范围；不能移交所有权、创建/停用/降权 Owner，不能跨租户授权。 |
+| **3. 项目总监（SZ）** | 当前 `project_id` 的 `biz_project_member.role_code == 'SZ'`（在任） | `require_project_role(project_id, ['SZ'])`；覆盖本项目全部危大类别。 |
+| **4. 专业监理工程师（SP）** | 当前 `project_id` 的 `biz_project_member.role_code == 'SP'`（在任） | `require_project_role`＋`require_hazard_scope`：`hazard_code` 必须命中 `biz_project_member_hazard` 绑定集合。 |
+| **5. 现场监理员（SA）** | 当前 `project_id` 的 `biz_project_member.role_code == 'SA'`（在任） | 以项目内本人任务和本人采集记录为主要范围（由业务层另行过滤，不适用专监危大动作）。 |
+
+补充铁律：租户角色不会自动派生项目角色（企业 Owner/Admin 履行项目法定职责必须单独获得项目任命）；项目任命变化不改写历史证据中的当时角色、签署人和采集人归属；所有权移交必须防并发双 Owner、二次确认、完整审计并使双方旧会话失效，原 Owner 不自动保留 `TENANT_ADMIN`。
 
 ---
 

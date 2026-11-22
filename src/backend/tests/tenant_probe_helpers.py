@@ -21,10 +21,10 @@ from app.core.base_schema import AuthSchema
 from app.core.database import async_engine
 from app.core.tenant_context import TenantRequestContext
 from app.modules.platform.enterprise.model import EnterpriseModel
-from app.modules.platform.tenant_user.model import BizTenantUserModel
 from app.modules.system.dept.model import DeptModel
 from app.modules.system.role.model import RoleModel
 from app.modules.system.user.model import UserModel, UserRolesModel
+from app.modules.tenant.member.model import BizTenantMemberModel as BizTenantUserModel
 
 
 class TenantProbeModel(TenantModelMixin, UserMixin):

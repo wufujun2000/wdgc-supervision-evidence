@@ -1,0 +1,65 @@
+# ADR-001 身份权限体系实施记录（2026-11-22）
+
+> 基线：ADR-001（Accepted）＋迁移方案 `ADR-001-migration-plan-2026-11-22.md`。
+> 分支：`feat/b0-multi-tenant`（B0~B0.2 成果保留：TenantCRUDBase 行级隔离、开通、冻结清退会话、platform-web 最小开通）。
+> 范围纪律：未开展节点库/V/P/采集证据/D-1~D-6/PRD 生成器；vendor 未改；ADR-001 原文未改。
+
+## 一、模型映射
+
+| 旧（B0 过渡） | 新（ADR-001） | 说明 |
+| :--- | :--- | :--- |
+| `biz_tenant_user`＋`user_id` 单列唯一＋`is_enterprise_admin` | `biz_tenant_member`：`(tenant_id, user_id)` 唯一＋`status`（0正常/1停用） | 改名重建保留存量；停用不物理删除 |
+| 无 | `biz_tenant_owner`：`tenant_id` 唯一＋`member_id`＋`version` | 单持有人记录，仅开通初始化/补设/移交变更；version 乐观锁防并发双 Owner |
+| `is_enterprise_admin` 布尔 | `biz_tenant_admin`＋`biz_tenant_admin_permission` | 管理员 0~N 名，独立可委托权限授予；Owner 不得作为目标 |
+| 无 | `biz_project`、`biz_project_member`(SZ/SP/SA)、`biz_project_member_hazard` | 项目级任命，`(project_id, member_id)` 唯一；SP 必须绑定危大集合 |
+| 无 | `plat_owner_transfer_audit`（平台域） | 开通/补设/移交全路径审计（来源、操作人、原/新 Owner、原因、结果、时间） |
+
+存量映射（Alembic `e5f6a7b8c9d0`）：`is_enterprise_admin=True` → Admin＋全部 delegable 权限；每租户最早 admin 成员 → 初始 Owner（version=1）。
+移交/审计按钮菜单（Alembic `f6a7b8c9d0e1`）与 `sql/sys_menu.json` 种子双轨一致。
+
+## 二、权限目录与引擎（`app/core/tenant_permission.py`）
+
+- delegable：`tenant_member_manage`、`tenant_admin_manage`、`project_manage`、`project_member_assign`。
+- owner_only：`tenant_owner_transfer`（平台默认仅 SUPERADMIN，预留 `platform:owner:transfer`）。
+- `require_permission(code)`：当前有效 Owner 默认通过；Admin 按授权；`require_owner()` 只认 `biz_tenant_owner` 有效记录，Admin 全权限也拒绝。
+- `require_project_role(project_id, roles)`：按当前项目有效任命；Owner/Admin 未任命同样 403（法定签署场景）。
+- `require_hazard_scope(pm, code)`：SZ 全部；SP 按 `biz_project_member_hazard`；SA 由业务层按本人任务另行过滤。
+- 授权不得超过操作者自身可转授范围（`get_delegable_scope`），owner_only 永不可委托。
+- 严禁租户/项目角色写入 `sys_user_roles`；`sys_user.is_superuser` 禁止加入租户成员。
+
+## 三、认证与上下文
+
+`_authenticate` 经 `biz_tenant_member`（status=0）解析 `tenant_id + member_id`；`X-Tenant-Id` 仅作选择、归属必校验，缺省最早有效成员；成员停用/租户冻结即清退会话（401）；登录快照同样按最早有效成员写入 `tenant_id`。
+
+## 四、所有权移交（平台/租户共用 `execute_owner_transfer`）
+
+- 校验：发起方（平台专门权限/当前 Owner）、目标为本租户有效成员且非当前 Owner、原因必填、confirm=true；租户侧冻结禁止（认证层 401），平台侧保留处置。
+- 原子：`UPDATE biz_tenant_owner SET member_id=:new, version=version+1 WHERE tenant_id AND version=:v`，rowcount≠1 → 409；无 Owner 路径经 tenant_id 唯一约束兜底。
+- 同事务写审计（append-only；拒绝事件由 OperationLogRoute 请求级日志覆盖）；双方旧会话三键清退；原 Owner 不自动保留 Admin；项目任命与历史归属不变。
+
+## 五、API 清单
+
+平台域（/platform/enterprise，仅超管或平台专门权限）：
+- `POST /create`（管理员必填，原子企业＋账号＋成员＋Owner＋审计）；
+- `GET/POST /{id}/members`、`POST /members/{member_id}/disable`、`POST /{id}/owner/transfer`、`GET /{id}/owner-audit`。
+
+租户域（/tenant，经 TenantCRUDBase＋权限引擎）：
+- members：`POST /members`、`GET /members/list`、`POST /members/{member_id}/disable`（Owner 目标拒绝）；
+- admins：`POST /admins`、`PUT /admins/{member_id}/permissions`、`DELETE /admins/{member_id}`；
+- `POST /owner/transfer`（require_owner）、`GET /owner-audit`（require_owner）；
+- projects：`POST /projects`、`GET /projects/list`、`POST /projects/{id}/members`、`GET /projects/{id}/members`（require_project_role）、`POST /projects/{id}/members/{appointment_id}/disable`。
+
+platform-web：成员管理（Owner/Admin/状态标识、停用、移交记录）、平台移交弹窗（目标成员＋原因＋二次确认）、开通移除「暂不指定」。
+
+## 六、验证（最终数字以提交说明为准）
+
+- 既有 B0 测试适配（成员模型/端点/语义）后全绿；
+- 新增 `tests/test_tenant_adr001.py`：Owner 唯一与不可分配、Admin 全权限仍被 require_owner 拒绝、Admin 不得停用/降权 Owner、平台有/无权限移交、冻结规则、并发移交（asyncio.gather 仅一成、version=2）、多租户成员与 X-Tenant-Id、项目角色独立与 SP 危大范围、成员停用与历史保留；
+- 真实 MySQL 迁移（dev 自动迁移产生的空表清理后 upgrade head）＋关键流程 E2E（UI＋API）证据。
+
+## 七、实施中修正的缺陷
+
+1. `create_login_account` 返回二元组，租户成员创建处未拆包（已修）。
+2. 成员/任命输出的 `member.user` 关系懒加载在异步会话中 MissingGreenlet，改为显式查询/预加载（已修）。
+3. 冻结企业租户侧移交在认证层即 401（H-02），服务层冻结校验作纵深防御保留。
+4. dev 自动迁移对新增模型产生空表与额外 head，已清理后以手写迁移为唯一事实来源。

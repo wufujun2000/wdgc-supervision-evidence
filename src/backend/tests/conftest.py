@@ -256,6 +256,24 @@ def auth_headers(_api_client: TestClient) -> dict[str, str]:
 # ============================================================
 
 
+@pytest.fixture(autouse=True)
+def _redis_keys_str_compat(monkeypatch: pytest.MonkeyPatch):
+    """全局限定 mock redis 的 keys 支持 str 模式（真实 redis decode_responses=True 行为）。
+
+    B0 的 redis_keys_compat 是 opt-in fixture；ADR-001 移交/开通路径都会清退会话，
+    故改为全局 autouse，避免各测试重复声明。
+    """
+
+    async def _keys(pattern=None):
+        if pattern is None:
+            return list(_mock_redis_store.keys())
+        text = pattern.decode() if isinstance(pattern, bytes) else str(pattern)
+        prefix = text.replace("*", "")
+        return [key for key in _mock_redis_store if str(key).startswith(prefix)]
+
+    monkeypatch.setattr(_mock_redis, "keys", AsyncMock(side_effect=_keys))
+
+
 def assert_route(
     test_client: TestClient,
     method: str,

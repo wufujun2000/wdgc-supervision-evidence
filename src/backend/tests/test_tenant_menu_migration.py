@@ -16,17 +16,23 @@ from fastapi.testclient import TestClient
 from app.core.base_model import MappedBase
 
 _BACKEND_DIR = Path(__file__).parent.parent
-_MIGRATION_PATH = _BACKEND_DIR / "app/alembic/versions/2026_11_22_1000_d4e5f6a7b8c9.py"
+_MIGRATION_PATHS = [
+    _BACKEND_DIR / "app/alembic/versions/2026_11_22_1000_d4e5f6a7b8c9.py",
+    _BACKEND_DIR / "app/alembic/versions/2026_11_22_1900_f6a7b8c9d0e1.py",
+]
 _SEED_PATH = _BACKEND_DIR / "sql/sys_menu.json"
-_BUTTON_ACTIONS = ["create", "detail", "update", "freeze", "unfreeze", "bind", "unbind"]
+_BUTTON_ACTIONS = ["create", "detail", "update", "freeze", "unfreeze", "bind", "unbind", "transfer", "audit"]
 
 
-def _load_migration():
-    spec = importlib.util.spec_from_file_location("b01_menu_migration", _MIGRATION_PATH)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _load_migrations():
+    modules = []
+    for index, path in enumerate(_MIGRATION_PATHS):
+        spec = importlib.util.spec_from_file_location(f"menu_migration_{index}", path)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        modules.append(module)
+    return modules
 
 
 def _seed_nodes() -> tuple[dict, dict, list[dict]]:
@@ -48,15 +54,17 @@ def test_menu_migration_roundtrip_and_idempotent(test_client: TestClient, tmp_pa
     engine = sa.create_engine(f"sqlite:///{tmp_path}/menu_migration.db")
     try:
         MappedBase.metadata.create_all(engine)
-        migration = _load_migration()
+        migrations = _load_migrations()
         seed_dir, seed_menu, seed_buttons = _seed_nodes()
 
         with engine.begin() as conn:
             assert _counts(conn) == (0, 0, 0)
             ctx = MigrationContext.configure(conn)
             with Operations.context(ctx):
-                migration.upgrade()
-                migration.upgrade()  # 幂等：不产生重复行
+                for migration in migrations:
+                    migration.upgrade()
+                for migration in migrations:
+                    migration.upgrade()  # 幂等：不产生重复行
             assert _counts(conn) == (1, 1, len(_BUTTON_ACTIONS))
 
             dir_row = conn.execute(sa.text("SELECT * FROM sys_menu WHERE route_name='Platform'")).mappings().one()
@@ -76,8 +84,10 @@ def test_menu_migration_roundtrip_and_idempotent(test_client: TestClient, tmp_pa
             assert {b["name"] for b in button_rows} == {b["name"] for b in seed_buttons}
 
             with Operations.context(ctx):
-                migration.downgrade()
-                migration.downgrade()  # 重复回滚安全
+                for migration in reversed(migrations):
+                    migration.downgrade()
+                for migration in reversed(migrations):
+                    migration.downgrade()  # 重复回滚安全
             assert _counts(conn) == (0, 0, 0)
     finally:
         engine.dispose()

@@ -15,9 +15,9 @@ from app.core.base_schema import AuthSchema, PageResultSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.core.redis_crud import RedisCURD
-from app.modules.platform.tenant_user.crud import TenantUserCRUD
-from app.modules.platform.tenant_user.schema import TenantUserBindSchema, TenantUserOutSchema
-from app.modules.platform.tenant_user.service import TenantUserService
+from app.modules.platform.member.crud import MemberCRUD
+from app.modules.platform.member.service import execute_owner_transfer
+from app.modules.system.user.crud import UserCRUD
 from app.utils.common_util import search_to_dict
 
 from .crud import EnterpriseCRUD
@@ -35,10 +35,18 @@ class EnterpriseService:
         if not self.auth.user.is_superuser:
             raise CustomException(msg="仅平台管理员可操作", code=RET.FORBIDDEN.code)
 
-    async def create(self, data: EnterpriseCreateSchema) -> EnterpriseProvisionOutSchema:
-        """开通租户：创建企业，可同请求绑定已有账号或一步新建管理员（同一事务，失败整体回滚）。"""
+    async def create(self, data: EnterpriseCreateSchema, redis: Redis) -> EnterpriseProvisionOutSchema:
+        """开通租户（ADR-001）：同事务完成企业＋首名成员＋唯一 Owner＋审计，失败整体回滚。"""
         self._require_superadmin()
         crud = EnterpriseCRUD(self.auth, self.db)
+
+        admin_user = None
+        if data.admin_user_id is not None:
+            admin_user = await UserCRUD(self.auth, self.db).get(id=data.admin_user_id)
+            if not admin_user:
+                raise CustomException(msg="绑定用户不存在", code=RET.NOT_FOUND.code)
+            if admin_user.is_superuser:
+                raise CustomException(msg="超级管理员账号禁止加入租户成员（超管走平台域）", code=RET.FORBIDDEN.code)
 
         enterprise_code = data.enterprise_code or f"ENT-{uuid.uuid4().hex[:8].upper()}"
         if await crud.get(enterprise_code=enterprise_code):
@@ -60,47 +68,32 @@ class EnterpriseService:
         admin_username: str | None = None
         admin_initial_password: str | None = None
         if data.admin_account:
-            # 一步开通：先建账号再绑定；username 重复等任何失败都在请求事务内整体回滚
-            from app.modules.system.user.crud import UserCRUD
-            from app.utils.password_util import PwdUtil
+            # 一步开通：先建账号再建成员；username 重复等任何失败都在请求事务内整体回滚
+            from app.modules.platform.member.service import create_login_account
 
-            account = data.admin_account
-            if await UserCRUD(self.auth, self.db).get(username=account.username):
-                raise CustomException(msg="已存在相同用户名称的账号", code=RET.DATAEXIST.code)
-            raw_password = account.password
-            if raw_password is None:
-                raw_password = PwdUtil.generate_strong_password()
-                admin_initial_password = raw_password
-            new_user = await UserCRUD(self.auth, self.db).create(
-                data={
-                    "username": account.username,
-                    "name": account.name,
-                    "mobile": account.mobile,
-                    "password": await PwdUtil.ahash_password(password=raw_password),
-                    "is_superuser": False,
-                    "status": 0,
-                }
-            )
+            new_user, admin_initial_password = await create_login_account(self.auth, self.db, data.admin_account)
             admin_user_id = new_user.id
             admin_username = new_user.username
-            # 无角色用户在原生数据权限下连 current/info 自查都受限（Permission 兜底 created_id==self）。
-            # 赋予种子 USER（普通用户，data_scope=1 仅本人）角色保证账号开箱可用；
-            # 租户域业务模型已跳过平台 Permission，该角色不影响租户数据可见性。
-            from app.modules.system.role.crud import RoleCRUD
-            from app.modules.system.user.model import UserRolesModel
-
-            default_role = await RoleCRUD(self.auth, self.db).get(code="USER")
-            if default_role:
-                self.db.add(UserRolesModel(user_id=new_user.id, role_id=default_role.id))
-                await self.db.flush()
-            else:
-                logger.warning("种子角色 USER（普通用户）缺失，一步开通账号 {} 未分配默认角色", new_user.username)
-        if admin_user_id:
-            binding = await TenantUserService(self.auth, self.db).bind(
-                enterprise.id, TenantUserBindSchema(user_id=admin_user_id, is_enterprise_admin=True)
-            )
-            admin_username = admin_username or binding.username
+        # ADR-001：首名成员＋唯一 Owner＋开通审计（任一步失败整体回滚，不留无 Owner 可用租户）
+        member = await MemberCRUD(self.auth, self.db).create(
+            data={"tenant_id": enterprise.id, "user_id": admin_user_id, "emp_no": None, "status": 0}
+        )
+        await execute_owner_transfer(
+            self.db,
+            redis,
+            tenant_id=enterprise.id,
+            target_member_id=member.id,
+            operator_user_id=self.auth.user.id,
+            source="platform",
+            reason="开通租户初始化企业拥有者",
+        )
+        if not admin_username:
+            admin_user = await UserCRUD(self.auth, self.db).get(id=admin_user_id)
+            admin_username = admin_user.username if admin_user else None
         enterprise_out = await self.detail(enterprise.id)
+        # 写后读竞态：db_getter 在响应后才提交，开通后续调用（登录/授权）须读到已提交状态；
+        # session.begin() 上下文内 commit 后不得再查询，故提交放在所有读取之后。
+        await self.db.commit()
         return EnterpriseProvisionOutSchema(
             **enterprise_out.model_dump(),
             admin_user_id=admin_user_id,
@@ -150,7 +143,9 @@ class EnterpriseService:
         await crud.update(id=id, data={"status": 0})
         purged = await self._purge_tenant_sessions(redis, id)
         logger.info(f"企业租户已冻结: id={id}, 清退会话数={purged}")
-        return await self.detail(id)
+        result = await self.detail(id)
+        await self.db.commit()
+        return result
 
     async def unfreeze(self, id: int) -> EnterpriseOutSchema:
         """解冻企业租户（status=1）；用户需重新登录（冻结时会话已清退）。"""
@@ -158,20 +153,13 @@ class EnterpriseService:
         crud = EnterpriseCRUD(self.auth, self.db)
         await crud.get_or_404(id=id, msg="企业租户不存在")
         await crud.update(id=id, data={"status": 1})
-        return await self.detail(id)
-
-    async def list_bindings(self, id: int) -> list[TenantUserOutSchema]:
-        return await TenantUserService(self.auth, self.db).list_by_tenant(id)
-
-    async def bind_user(self, id: int, data: TenantUserBindSchema) -> TenantUserOutSchema:
-        return await TenantUserService(self.auth, self.db).bind(id, data)
-
-    async def unbind_user(self, binding_id: int) -> None:
-        await TenantUserService(self.auth, self.db).unbind(binding_id)
+        result = await self.detail(id)
+        await self.db.commit()
+        return result
 
     async def _purge_tenant_sessions(self, redis: Redis, tenant_id: int) -> int:
         """清退租户全部绑定用户的会话（参考 online 模块会话键做法，三键全删）。"""
-        bindings = await TenantUserCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id})
+        bindings = await MemberCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id})
         user_ids = {binding.user_id for binding in bindings}
         if not user_ids:
             return 0

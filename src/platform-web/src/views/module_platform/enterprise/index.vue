@@ -86,7 +86,6 @@
           <ElRadioGroup v-model="provisionForm.admin_mode">
             <ElRadio value="create">新建管理员账号</ElRadio>
             <ElRadio value="bind">绑定已有账号</ElRadio>
-            <ElRadio value="none">暂不指定</ElRadio>
           </ElRadioGroup>
         </template>
         <template #admin_user_id>
@@ -173,56 +172,127 @@
       />
     </FaDialog>
 
-    <!-- 绑定管理 -->
+    <!-- 成员管理（ADR-001：Owner/Admin 标识＋停用＋移交记录） -->
     <FaDialog
       v-model="bindingsVisible"
-      :title="`绑定管理 · ${currentEnterprise?.name ?? ''}`"
+      :title="`成员管理 · ${currentEnterprise?.name ?? ''}`"
       form-mode="detail"
       size="lg"
       @close="bindingsVisible = false"
     >
-      <div
-        v-if="checkPerm('module_platform:enterprise:bind')"
-        class="mb-4 flex flex-wrap items-center gap-3"
-      >
-        <FaUserTableSelect
-          :model-value="bindForm.user_id"
-          @update:model-value="(v: number | undefined) => (bindForm.user_id = v)"
-        />
-        <ElCheckbox v-model="bindForm.is_enterprise_admin">企业管理员</ElCheckbox>
-        <ElInput v-model="bindForm.emp_no" placeholder="工号（可空）" class="w-36" clearable />
-        <ElButton type="primary" :loading="bindSubmitLoading" @click="submitBind"
-          >添加绑定</ElButton
-        >
+      <div class="mb-4 flex flex-wrap items-center gap-3">
+        <template v-if="checkPerm('module_platform:enterprise:bind')">
+          <FaUserTableSelect
+            :model-value="bindForm.user_id"
+            @update:model-value="(v: number | undefined) => (bindForm.user_id = v)"
+          />
+          <ElInput v-model="bindForm.emp_no" placeholder="工号（可空）" class="w-36" clearable />
+          <ElButton type="primary" :loading="bindSubmitLoading" @click="submitBind"
+            >添加成员</ElButton
+          >
+          <span class="text-xs text-g-500">无 Owner 租户的首名成员自动成为企业拥有者</span>
+        </template>
+        <ElButton v-if="checkPerm('module_platform:enterprise:audit')" @click="toggleAudit">
+          {{ auditVisible ? "隐藏移交记录" : "移交记录" }}
+        </ElButton>
       </div>
       <ElTable v-loading="bindingsLoading" :data="bindings" border>
-        <ElTableColumn prop="username" label="登录账号" min-width="140" />
-        <ElTableColumn prop="name" label="姓名" min-width="120" />
-        <ElTableColumn label="角色" width="120" align="center">
+        <ElTableColumn prop="username" label="登录账号" min-width="130" />
+        <ElTableColumn prop="name" label="姓名" min-width="100" />
+        <ElTableColumn label="角色" width="140" align="center">
           <template #default="{ row }">
             <FaStatusTag
-              :type="row.is_enterprise_admin ? 'primary' : 'info'"
-              :label="row.is_enterprise_admin ? '企业管理员' : '普通成员'"
+              :type="row.is_owner ? 'warning' : row.is_admin ? 'primary' : 'info'"
+              :label="row.is_owner ? '企业拥有者' : row.is_admin ? '企业管理员' : '普通成员'"
             />
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="emp_no" label="工号" min-width="100">
+        <ElTableColumn prop="emp_no" label="工号" min-width="80">
           <template #default="{ row }">{{ row.emp_no || "—" }}</template>
         </ElTableColumn>
-        <ElTableColumn label="操作" width="100" align="center">
+        <ElTableColumn label="状态" width="80" align="center">
+          <template #default="{ row }">
+            <FaStatusTag
+              :type="row.status === 0 ? 'success' : 'danger'"
+              :label="row.status === 0 ? '正常' : '停用'"
+            />
+          </template>
+        </ElTableColumn>
+        <ElTableColumn label="操作" width="110" align="center">
           <template #default="{ row }">
             <ElButton
               v-if="checkPerm('module_platform:enterprise:unbind')"
               link
               type="danger"
               size="small"
-              @click="handleUnbind(row)"
+              :disabled="row.is_owner"
+              :title="row.is_owner ? '企业拥有者须先移交所有权' : ''"
+              @click="handleDisable(row)"
             >
-              解绑
+              停用
             </ElButton>
           </template>
         </ElTableColumn>
       </ElTable>
+      <template v-if="auditVisible">
+        <ElDivider content-position="left">所有权移交记录</ElDivider>
+        <ElTable :data="audits" border size="small">
+          <ElTableColumn prop="source" label="来源" width="90" align="center">
+            <template #default="{ row }">{{ row.source === "tenant" ? "租户" : "平台" }}</template>
+          </ElTableColumn>
+          <ElTableColumn prop="from_member_id" label="原Owner" width="90" align="center">
+            <template #default="{ row }">{{ row.from_member_id ?? "—" }}</template>
+          </ElTableColumn>
+          <ElTableColumn prop="to_member_id" label="新Owner" width="90" align="center" />
+          <ElTableColumn prop="reason" label="原因" min-width="180" show-overflow-tooltip />
+          <ElTableColumn prop="created_time" label="时间" width="170" />
+        </ElTable>
+      </template>
+    </FaDialog>
+
+    <!-- 平台侧所有权移交 -->
+    <FaDialog
+      v-model="transferVisible"
+      title="移交企业拥有者"
+      form-mode="create"
+      confirm-text="确认移交"
+      :confirm-loading="transferSubmitLoading"
+      @cancel="transferVisible = false"
+      @close="transferVisible = false"
+      @confirm="submitTransfer"
+      size="md"
+    >
+      <ElAlert
+        type="warning"
+        :closable="false"
+        title="移交只改变租户所有权：原 Owner 不自动保留企业管理员，双方旧会话立即失效需重新登录，项目任命与历史归属不变。"
+      />
+      <div class="mt-4 flex flex-col gap-4">
+        <ElSelect
+          v-model="transferForm.target_member_id"
+          placeholder="选择新 Owner（本租户有效成员，不含当前 Owner）"
+          class="w-full"
+          filterable
+        >
+          <ElOption
+            v-for="member in transferCandidates"
+            :key="member.id"
+            :value="member.id!"
+            :label="`${member.username}（${member.name}）`"
+          />
+        </ElSelect>
+        <ElInput
+          v-model="transferForm.reason"
+          type="textarea"
+          :rows="3"
+          maxlength="500"
+          show-word-limit
+          placeholder="移交原因（必填，如 Owner 离职、停用、失联等）"
+        />
+        <ElCheckbox v-model="transferForm.confirm">
+          我已二次确认：移交后原 Owner 失去企业拥有者身份，双方需重新登录
+        </ElCheckbox>
+      </div>
     </FaDialog>
   </div>
 </template>
@@ -231,7 +301,8 @@
 import EnterpriseAPI, {
   type EnterpriseCreateForm,
   type EnterpriseTable,
-  type TenantUserBinding,
+  type OwnerAuditItem,
+  type TenantMember,
 } from "@/api/module_platform/enterprise";
 import FaSearchBar, { type SearchFormItem } from "@/components/forms/fa-search-bar/index.vue";
 import FaForm, { type FormItem } from "@/components/forms/fa-form/index.vue";
@@ -651,15 +722,14 @@ async function openDetail(row: EnterpriseTable) {
   detailVisible.value = true;
 }
 
-// ─── 绑定管理 ───
+// ─── 成员管理（ADR-001） ───
 const bindingsVisible = ref(false);
 const bindingsLoading = ref(false);
 const bindSubmitLoading = ref(false);
-const bindings = ref<TenantUserBinding[]>([]);
+const bindings = ref<TenantMember[]>([]);
 const currentEnterprise = ref<EnterpriseTable | null>(null);
 const bindForm = ref({
   user_id: undefined as number | undefined,
-  is_enterprise_admin: false,
   emp_no: undefined as string | undefined,
 });
 
@@ -667,7 +737,7 @@ async function loadBindings() {
   if (currentEnterprise.value?.id == null) return;
   bindingsLoading.value = true;
   try {
-    const res = await EnterpriseAPI.listBindings(currentEnterprise.value.id);
+    const res = await EnterpriseAPI.listMembers(currentEnterprise.value.id);
     bindings.value = res.data?.data ?? [];
   } finally {
     bindingsLoading.value = false;
@@ -676,8 +746,9 @@ async function loadBindings() {
 
 async function openBindings(row: EnterpriseTable) {
   currentEnterprise.value = row;
-  bindForm.value = { user_id: undefined, is_enterprise_admin: false, emp_no: undefined };
+  bindForm.value = { user_id: undefined, emp_no: undefined };
   bindingsVisible.value = true;
+  auditVisible.value = false;
   await loadBindings();
 }
 
@@ -689,32 +760,99 @@ async function submitBind() {
   }
   bindSubmitLoading.value = true;
   try {
-    const res = await EnterpriseAPI.bindUser(currentEnterprise.value.id, {
+    const res = await EnterpriseAPI.bindMember(currentEnterprise.value.id, {
       user_id: bindForm.value.user_id,
-      is_enterprise_admin: bindForm.value.is_enterprise_admin,
       emp_no: bindForm.value.emp_no || undefined,
     });
-    ElMessage.success("绑定用户成功");
-    bindForm.value = { user_id: undefined, is_enterprise_admin: false, emp_no: undefined };
-    // 响应即最新绑定（含 username/name），本地追加避免提交前刷新竞态
+    ElMessage.success("添加成员成功");
+    bindForm.value = { user_id: undefined, emp_no: undefined };
+    // 响应即最新成员（含 username/name/is_owner），本地追加避免提交前刷新竞态
     if (res.data?.data) bindings.value = [...bindings.value, res.data.data];
   } finally {
     bindSubmitLoading.value = false;
   }
 }
 
-async function handleUnbind(row: TenantUserBinding) {
+async function handleDisable(row: TenantMember) {
   if (row.id == null) return;
+  if (row.is_owner) {
+    ElMessage.warning("企业拥有者须先移交所有权，禁止直接停用");
+    return;
+  }
   try {
     await confirmAction(
-      `确定解绑用户「${row.username ?? row.user_id}」吗？解绑后该账号不再归属本企业。`,
-      "解绑确认"
+      `确定停用成员「${row.username ?? row.user_id}」吗？停用后其会话立即失效，历史记录保留。`,
+      "停用确认"
     );
-    await EnterpriseAPI.unbindUser(row.id);
-    ElMessage.success("解绑用户成功");
-    bindings.value = bindings.value.filter((item) => item.id !== row.id);
+    await EnterpriseAPI.disableMember(row.id);
+    ElMessage.success("停用成员成功");
+    // 停用不物理删除：本地标记状态
+    row.status = 1;
   } catch {
     // 用户取消
+  }
+}
+
+// ─── 所有权移交与审计 ───
+const transferVisible = ref(false);
+const transferSubmitLoading = ref(false);
+const transferForm = ref({
+  target_member_id: undefined as number | undefined,
+  reason: "",
+  confirm: false,
+});
+const transferCandidates = computed(() =>
+  bindings.value.filter((m) => !m.is_owner && m.status === 0)
+);
+
+async function openTransfer(row: EnterpriseTable) {
+  currentEnterprise.value = row;
+  transferForm.value = { target_member_id: undefined, reason: "", confirm: false };
+  await loadBindings();
+  transferVisible.value = true;
+}
+
+async function submitTransfer() {
+  if (currentEnterprise.value?.id == null) return;
+  if (!transferForm.value.target_member_id) {
+    ElMessage.warning("请选择新 Owner 成员");
+    return;
+  }
+  if (!transferForm.value.reason.trim()) {
+    ElMessage.warning("请填写移交原因");
+    return;
+  }
+  if (!transferForm.value.confirm) {
+    ElMessage.warning("请勾选二次确认");
+    return;
+  }
+  transferSubmitLoading.value = true;
+  try {
+    await EnterpriseAPI.transferOwner(currentEnterprise.value.id, {
+      target_member_id: transferForm.value.target_member_id,
+      reason: transferForm.value.reason.trim(),
+      confirm: true,
+    });
+    ElMessage.success("所有权移交成功，双方需重新登录");
+    // 本地更新 Owner 标识（双方会话已清退，无需立即刷新列表）
+    const oldOwner = bindings.value.find((m) => m.is_owner);
+    if (oldOwner) oldOwner.is_owner = false;
+    const newOwner = bindings.value.find((m) => m.id === transferForm.value.target_member_id);
+    if (newOwner) newOwner.is_owner = true;
+    transferVisible.value = false;
+  } finally {
+    transferSubmitLoading.value = false;
+  }
+}
+
+const auditVisible = ref(false);
+const audits = ref<OwnerAuditItem[]>([]);
+
+async function toggleAudit() {
+  auditVisible.value = !auditVisible.value;
+  if (auditVisible.value && currentEnterprise.value?.id != null) {
+    const res = await EnterpriseAPI.listOwnerAudit(currentEnterprise.value.id);
+    audits.value = res.data?.data ?? [];
   }
 }
 
@@ -767,11 +905,19 @@ function buildRowActions(row: EnterpriseTable): TableOperationAction[] {
     },
     {
       key: "bindings",
-      label: "绑定管理",
+      label: "成员管理",
       artType: "more",
       icon: "ri:user-settings-line",
       perm: "module_platform:enterprise:bind",
       run: () => void openBindings(row),
+    },
+    {
+      key: "transfer",
+      label: "移交所有权",
+      artType: "more",
+      icon: "ri:exchange-line",
+      perm: "module_platform:enterprise:transfer",
+      run: () => void openTransfer(row),
     },
   ];
   if (row.status === 1) {

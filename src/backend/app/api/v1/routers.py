@@ -4,12 +4,12 @@ from fastapi import APIRouter
 
 from app.modules.ai.chat.controller import ChatRouter
 from app.modules.common.file.controller import FileRouter
-from app.modules.ops.dbconsole.controller import DbConsoleRouter
 from app.modules.generator.gencode.controller import GenRouter
 from app.modules.monitor.cache.controller import CacheRouter
 from app.modules.monitor.health.controller import HealthRouter
 from app.modules.monitor.online.controller import OnlineRouter
 from app.modules.monitor.server.controller import ServerRouter
+from app.modules.ops.dbconsole.controller import DbConsoleRouter
 from app.modules.ops.ssh.controller import SshRouter
 from app.modules.platform.enterprise.controller import EnterpriseRouter
 from app.modules.system.auth.controller import AuthRouter
@@ -30,6 +30,8 @@ from app.modules.task.storage.browse.controller import StorageBrowseRouter
 from app.modules.task.storage.node.controller import StorageNodeRouter
 from app.modules.task.storage.transfer.controller import StorageTransferRouter
 from app.modules.task.storage.workflow.controller import StorageWorkflowRouter
+from app.modules.tenant.member.controller import TenantMemberRouter
+from app.modules.tenant.project.controller import TenantProjectRouter
 
 # 域前缀 → 该域 controller 清单（唯一路由事实来源）
 DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
@@ -65,6 +67,7 @@ DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
     "/generator": [GenRouter],
     "/common": [FileRouter],
     "/ops": [SshRouter, DbConsoleRouter],
+    "/tenant": [TenantMemberRouter, TenantProjectRouter],
     "/platform": [EnterpriseRouter],
 }
 
