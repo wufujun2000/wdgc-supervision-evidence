@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, MetaData, String
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, MetaData, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
@@ -142,7 +142,9 @@ class TenantModelMixin(ModelMixin):
     __abstract__: bool = True
 
     tenant_id: Mapped[int] = mapped_column(
-        BigInteger,
+        # MySQL 3780：FK 两侧列型必须完全一致。ModelMixin 主键为 Integer，
+        # 架构稿的 BigInteger 与该主键不兼容，统一按主键对齐为 Integer。
+        Integer,
         ForeignKey("plat_enterprise.id", ondelete="RESTRICT"),
         index=True,
         nullable=False,

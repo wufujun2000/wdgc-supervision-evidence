@@ -314,7 +314,6 @@ const {
   handleCurrentChange,
   refreshData,
   refreshCreate,
-  refreshUpdate,
 } = useTable({
   core: {
     apiFn: EnterpriseAPI.listEnterprise,
@@ -572,6 +571,7 @@ const editForm = ref({
   description: undefined as string | undefined,
 });
 const editFormRef = ref<InstanceType<typeof FaForm> | null>(null);
+const editingRow = ref<EnterpriseTable | null>(null);
 const editRules = { name: [{ required: true, message: "请输入企业名称", trigger: "blur" }] };
 const editFormItems: FormItem[] = [
   { label: "企业名称", key: "name", type: "input", span: 24, props: { maxlength: 128 } },
@@ -593,6 +593,7 @@ const editFormItems: FormItem[] = [
 
 async function openEdit(row: EnterpriseTable) {
   if (row.id == null) return;
+  editingRow.value = row;
   const res = await EnterpriseAPI.detailEnterprise(row.id);
   editForm.value = {
     id: row.id,
@@ -608,14 +609,19 @@ async function submitEdit() {
   if (editForm.value.id == null) return;
   editSubmitLoading.value = true;
   try {
-    await EnterpriseAPI.updateEnterprise(editForm.value.id, {
+    const res = await EnterpriseAPI.updateEnterprise(editForm.value.id, {
       name: editForm.value.name,
       credit_code: editForm.value.credit_code || undefined,
       description: editForm.value.description || undefined,
     });
+    // 响应即更新后实体，本地修补避免「响应后提交」的刷新竞态
+    if (editingRow.value && res.data?.data) {
+      editingRow.value.name = res.data.data.name;
+      editingRow.value.credit_code = res.data.data.credit_code;
+      editingRow.value.description = res.data.data.description;
+    }
     ElMessage.success("更新企业成功");
     editVisible.value = false;
-    await refreshUpdate();
   } finally {
     editSubmitLoading.value = false;
   }
@@ -683,14 +689,15 @@ async function submitBind() {
   }
   bindSubmitLoading.value = true;
   try {
-    await EnterpriseAPI.bindUser(currentEnterprise.value.id, {
+    const res = await EnterpriseAPI.bindUser(currentEnterprise.value.id, {
       user_id: bindForm.value.user_id,
       is_enterprise_admin: bindForm.value.is_enterprise_admin,
       emp_no: bindForm.value.emp_no || undefined,
     });
     ElMessage.success("绑定用户成功");
     bindForm.value = { user_id: undefined, is_enterprise_admin: false, emp_no: undefined };
-    await loadBindings();
+    // 响应即最新绑定（含 username/name），本地追加避免提交前刷新竞态
+    if (res.data?.data) bindings.value = [...bindings.value, res.data.data];
   } finally {
     bindSubmitLoading.value = false;
   }
@@ -705,7 +712,7 @@ async function handleUnbind(row: TenantUserBinding) {
     );
     await EnterpriseAPI.unbindUser(row.id);
     ElMessage.success("解绑用户成功");
-    await loadBindings();
+    bindings.value = bindings.value.filter((item) => item.id !== row.id);
   } catch {
     // 用户取消
   }
@@ -719,9 +726,11 @@ async function handleFreeze(row: EnterpriseTable) {
       `冻结后将立即清退「${row.name}」全部在线会话，并实时阻断该企业全部绑定用户。确定冻结吗？`,
       "冻结确认"
     );
-    await EnterpriseAPI.freezeEnterprise(row.id);
+    // db_getter 在响应后才提交事务：立即 refreshData 会读到提交前旧值。
+    // 冻结只改 status，直接用响应值更新行（解冻同理），不做竞态刷新。
+    const res = await EnterpriseAPI.freezeEnterprise(row.id);
+    row.status = res.data?.data?.status ?? 0;
     ElMessage.success("冻结企业租户成功");
-    await refreshData();
   } catch {
     // 用户取消
   }
@@ -731,9 +740,9 @@ async function handleUnfreeze(row: EnterpriseTable) {
   if (row.id == null) return;
   try {
     await confirmAction(`确定解冻「${row.name}」吗？解冻后绑定用户可重新登录。`, "解冻确认");
-    await EnterpriseAPI.unfreezeEnterprise(row.id);
+    const res = await EnterpriseAPI.unfreezeEnterprise(row.id);
+    row.status = res.data?.data?.status ?? 1;
     ElMessage.success("解冻企业租户成功");
-    await refreshData();
   } catch {
     // 用户取消
   }

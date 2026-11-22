@@ -51,7 +51,8 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), nullable=False, comment="用户ID(一人一租户)"),
         sa.Column("is_enterprise_admin", sa.Boolean(), nullable=False, comment="是否企业管理员"),
         sa.Column("emp_no", sa.String(length=32), nullable=True, comment="工号"),
-        sa.Column("tenant_id", sa.BigInteger(), nullable=False, comment="所属监理企业租户ID"),
+        # MySQL 3780：FK 列型须与 plat_enterprise.id（Integer 主键）完全一致，不能用 BigInteger
+        sa.Column("tenant_id", sa.Integer(), nullable=False, comment="所属监理企业租户ID"),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False, comment="主键ID"),
         sa.Column("uuid", sa.String(length=64), nullable=False, comment="UUID全局唯一标识"),
         sa.Column("is_deleted", sa.Boolean(), nullable=False, comment="是否已删除(0:未删除 1:已删除)"),
