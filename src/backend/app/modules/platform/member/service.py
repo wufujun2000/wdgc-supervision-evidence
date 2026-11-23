@@ -9,7 +9,7 @@ execute_owner_transfer 为平台侧与租户侧共用的原子移交：
 import json
 
 from redis.asyncio.client import Redis
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import RET, RedisInitKeyConfig
@@ -69,36 +69,47 @@ async def execute_owner_transfer(
     if source not in ("platform", "tenant"):
         raise CustomException(msg="非法移交来源", code=RET.ERROR.code)
 
-    # 跨租户校验须看到非本租户目标：do_orm_execute 兜底钩子会把 ORM 查询过滤为本租户，
-    # 这里用 text() 裸 SQL（钩子边界外）取目标，区分「跨租户 403 / 停用 403 / 不存在 404」。
     from sqlalchemy import text
 
+    # 跨租户/账号状态校验须看到非本租户目标（do_orm_execute 钩子边界外的 text() 裸 SQL）：
+    # 同时校验成员状态与统一账号 sys_user.status/is_deleted，拒绝停用/软删/超管账号
     target = (
         await db.execute(
-            text("SELECT id, tenant_id, user_id, status, is_deleted FROM biz_tenant_member WHERE id = :id"),
+            text(
+                "SELECT m.id AS id, m.tenant_id AS tenant_id, m.user_id AS user_id, m.status AS status,"
+                " m.is_deleted AS is_deleted, u.status AS user_status, u.is_deleted AS user_deleted,"
+                " u.is_superuser AS user_superuser"
+                " FROM biz_tenant_member m JOIN sys_user u ON u.id = m.user_id WHERE m.id = :id"
+            ),
             {"id": target_member_id},
         )
     ).mappings().first()
-    if not target or target["is_deleted"]:
+    if not target or target["is_deleted"] or target["user_deleted"]:
         raise CustomException(msg="目标成员不存在", code=RET.NOT_FOUND.code)
+    if target["user_superuser"]:
+        raise CustomException(msg="超级管理员账号禁止成为企业拥有者", code=RET.FORBIDDEN.code)
     if target["tenant_id"] != tenant_id:
         raise CustomException(msg="目标必须是本租户的有效成员，禁止跨租户移交", code=RET.FORBIDDEN.code)
-    if target["status"] != 0:
-        raise CustomException(msg="目标成员已停用，不能成为企业拥有者", code=RET.FORBIDDEN.code)
+    if target["status"] != 0 or target["user_status"] != 0:
+        raise CustomException(msg="目标成员或账号已停用，不能成为企业拥有者", code=RET.FORBIDDEN.code)
 
-    owner = await get_current_owner(db, tenant_id)
-    if owner and owner.member_id == target_member_id:
+    # Owner 读取与版本更新用 text() 裸 SQL：不受操作者租户上下文/钩子影响（平台跨租户移交同样正确）
+    owner = (
+        await db.execute(
+            text("SELECT id, member_id, version FROM biz_tenant_owner WHERE tenant_id = :t AND is_deleted = FALSE"),
+            {"t": tenant_id},
+        )
+    ).mappings().first()
+    if owner and owner["member_id"] == target_member_id:
         raise CustomException(msg="目标成员已是当前企业拥有者", code=RET.CONFLICT.code)
-    from_member_id = owner.member_id if owner else None
+    from_member_id = owner["member_id"] if owner else None
 
     if owner:
-        # version 乐观锁：并发移交仅一个成功，其余 409（防双 Owner/零 Owner）。
-        # 先取目标版本号：批量 UPDATE 同步内存对象后 owner.version 已是新值，不能再 +1
-        new_version = owner.version + 1
+        # version 乐观锁：并发移交仅一个成功，其余 409（防双 Owner/零 Owner）
+        new_version = owner["version"] + 1
         result = await db.execute(
-            update(BizTenantOwnerModel)
-            .where(BizTenantOwnerModel.tenant_id == tenant_id, BizTenantOwnerModel.version == owner.version)
-            .values(member_id=target_member_id, version=new_version)
+            text("UPDATE biz_tenant_owner SET member_id = :new, version = :v WHERE tenant_id = :t AND version = :expected"),
+            {"new": target_member_id, "v": new_version, "t": tenant_id, "expected": owner["version"]},
         )
         if result.rowcount != 1:
             raise CustomException(msg="所有权已变更，请刷新后重试", code=RET.CONFLICT.code)
@@ -106,6 +117,40 @@ async def execute_owner_transfer(
         # 无 Owner（开通初始化/平台补设）：tenant_id 唯一约束兜底并发补设
         db.add(BizTenantOwnerModel(tenant_id=tenant_id, member_id=target_member_id, version=1))
         new_version = 1
+
+    # M-03：目标成员行锁＋锁后重查（固定顺序：先锁目标成员再改 Owner），防停用/移交竞态
+    await db.execute(text("UPDATE biz_tenant_member SET status = status WHERE id = :id"), {"id": target_member_id})
+    target_after = (
+        await db.execute(text("SELECT status, is_deleted FROM biz_tenant_member WHERE id = :id"), {"id": target_member_id})
+    ).mappings().first()
+    if not target_after or target_after["status"] != 0 or target_after["is_deleted"]:
+        raise CustomException(msg="目标成员状态已变化，请刷新后重试", code=RET.CONFLICT.code)
+
+    # B-01：清除原 Owner 与新 Owner 的普通 Admin 记录及权限（需要 Admin 由新 Owner 事后另行授权）。
+    # 与 Owner 读写同用 text() 裸 SQL：操作者可能属于其他租户，不能被钩子过滤成不清理目标租户的 Admin。
+    admin_member_ids = [mid for mid in (from_member_id, target_member_id) if mid is not None]
+    if admin_member_ids:
+        from sqlalchemy import bindparam
+
+        admin_rows = (
+            (
+                await db.execute(
+                    text("SELECT id FROM biz_tenant_admin WHERE member_id IN :ids").bindparams(bindparam("ids", expanding=True)),
+                    {"ids": admin_member_ids},
+                )
+            )
+            .scalars()
+            .all()
+        )
+        if admin_rows:
+            await db.execute(
+                text("DELETE FROM biz_tenant_admin_permission WHERE admin_id IN :ids").bindparams(bindparam("ids", expanding=True)),
+                {"ids": admin_rows},
+            )
+            await db.execute(
+                text("DELETE FROM biz_tenant_admin WHERE id IN :ids").bindparams(bindparam("ids", expanding=True)),
+                {"ids": admin_rows},
+            )
 
     db.add(
         PlatOwnerTransferAuditModel(
@@ -131,19 +176,49 @@ async def execute_owner_transfer(
     return OwnerTransferOutSchema(tenant_id=tenant_id, from_member_id=from_member_id, to_member_id=target_member_id, version=new_version)
 
 
+async def audit_transfer_failure(
+    *, tenant_id: int, target_member_id: int, operator_user_id: int | None, source: str, reason: str, result: str = "failed"
+) -> None:
+    """M-11：失败/冲突移交的独立短事务审计（业务事务回滚也不丢审计）。
+
+    OperationLogRoute 只在原处理器正常返回时记录，覆盖不了 CustomException 的结构化 from/to/result。
+    """
+    from app.core.database import async_db_session
+
+    async with async_db_session() as session, session.begin():
+        owner = await get_current_owner(session, tenant_id)
+        session.add(
+            PlatOwnerTransferAuditModel(
+                source=source,
+                operator_user_id=operator_user_id,
+                tenant_id=tenant_id,
+                from_member_id=owner.member_id if owner else None,
+                to_member_id=target_member_id,
+                reason=reason,
+                result=result,
+            )
+        )
+
+
 async def create_login_account(auth: AuthSchema, db: AsyncSession, account):
     """新建登录账号（开通/新增成员共用）：基线哈希＋种子 USER 角色（data_scope=1 仅本人）。
 
     无角色用户在原生数据权限下连 current/info 自查都受限；租户域业务不受平台 Permission 影响。
     """
+    from sqlalchemy import select
+
     from app.modules.platform.enterprise.schema import AdminAccountSchema
-    from app.modules.system.role.crud import RoleCRUD
-    from app.modules.system.user.model import UserRolesModel
+    from app.modules.system.role.model import RoleModel
+    from app.modules.system.user.model import UserModel, UserRolesModel
     from app.utils.password_util import PwdUtil
 
     if not isinstance(account, AdminAccountSchema):
         raise CustomException(msg="账号参数无效", code=RET.ERROR.code)
-    if await UserCRUD(auth, db).get(username=account.username):
+
+    # M-10：跨账号/种子角色查询必须系统级精确匹配，不能被操作者平台 DATA_SCOPE_SELF 误拦
+    if (
+        await db.execute(select(UserModel.id).where(UserModel.username == account.username, UserModel.is_deleted == False))  # noqa: E712
+    ).scalars().first():
         raise CustomException(msg="已存在相同用户名称的账号", code=RET.DATAEXIST.code)
     raw_password = account.password
     initial_password: str | None = None
@@ -160,7 +235,9 @@ async def create_login_account(auth: AuthSchema, db: AsyncSession, account):
             "status": 0,
         }
     )
-    default_role = await RoleCRUD(auth, db).get(code="USER")
+    default_role = (
+        await db.execute(select(RoleModel).where(RoleModel.code == "USER", RoleModel.is_deleted == False))  # noqa: E712
+    ).scalars().first()
     if default_role:
         db.add(UserRolesModel(user_id=new_user.id, role_id=default_role.id))
         await db.flush()
@@ -181,39 +258,52 @@ class MemberService:
             raise CustomException(msg="仅平台管理员可操作", code=RET.FORBIDDEN.code)
 
     def _require_transfer_permission(self) -> None:
-        """平台移交专门权限：默认仅 SUPERADMIN；预留 platform:owner:transfer 平台角色授予。"""
-        from app.core.tenant_permission import PLATFORM_OWNER_TRANSFER_PERMISSION
-
-        if self.auth.user.is_superuser or PLATFORM_OWNER_TRANSFER_PERMISSION in self.auth.permissions:
+        """平台移交专门权限：默认仅 SUPERADMIN；预留 module_platform:enterprise:transfer 平台角色授予。"""
+        if self.auth.user.is_superuser or "module_platform:enterprise:transfer" in self.auth.permissions:
             return
         raise CustomException(msg="缺少平台所有权移交权限", code=RET.FORBIDDEN.code)
 
+    def _require_member_read_permission(self) -> None:
+        """候选成员读取：超管或具有移交专门权限的平台账号（移交弹窗需要候选列表）。"""
+        if self.auth.user.is_superuser or "module_platform:enterprise:transfer" in self.auth.permissions:
+            return
+        raise CustomException(msg="缺少平台成员读取权限", code=RET.FORBIDDEN.code)
+
     async def list_by_tenant(self, tenant_id: int) -> list[MemberOutSchema]:
-        self._require_superadmin()
+        self._require_member_read_permission()
         await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
-        members = await MemberCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id}, preload=["user"])
-        owner = await get_current_owner(self.db, tenant_id)
-        admin_member_ids = set(
-            (
-                await self.db.execute(
-                    select(BizTenantAdminModel.member_id).where(
-                        BizTenantAdminModel.tenant_id == tenant_id, BizTenantAdminModel.is_deleted == False  # noqa: E712
+        # M-04：平台域跨租户读取不受操作者所属租户的 ORM 钩子过滤，临时清除上下文
+        from app.core.tenant_context import TenantRequestContext
+
+        saved = TenantRequestContext.get()
+        TenantRequestContext.clear()
+        try:
+            members = await MemberCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id}, preload=["user"])
+            owner = await get_current_owner(self.db, tenant_id)
+            admin_member_ids = set(
+                (
+                    await self.db.execute(
+                        select(BizTenantAdminModel.member_id).where(
+                            BizTenantAdminModel.tenant_id == tenant_id, BizTenantAdminModel.is_deleted == False  # noqa: E712
+                        )
                     )
                 )
+                .scalars()
+                .all()
             )
-            .scalars()
-            .all()
-        )
-        result: list[MemberOutSchema] = []
-        for member in members:
-            out = MemberOutSchema.model_validate(member)
-            if member.user:
-                out.username = member.user.username
-                out.name = member.user.name
-            out.is_owner = bool(owner and owner.member_id == member.id)
-            out.is_admin = member.id in admin_member_ids
-            result.append(out)
-        return result
+            result: list[MemberOutSchema] = []
+            for member in members:
+                out = MemberOutSchema.model_validate(member)
+                if member.user:
+                    out.username = member.user.username
+                    out.name = member.user.name
+                out.is_owner = bool(owner and owner.member_id == member.id)
+                out.is_admin = member.id in admin_member_ids
+                result.append(out)
+            return result
+        finally:
+            if saved is not None:
+                TenantRequestContext.set(saved)
 
     async def bind(self, tenant_id: int, data: MemberBindSchema, redis: Redis) -> MemberOutSchema:
         """平台补绑成员；无 Owner 租户首名成员自动补 Owner（开通初始化路径之一）。"""
@@ -226,6 +316,8 @@ class MemberService:
             raise CustomException(msg="绑定用户不存在", code=RET.NOT_FOUND.code)
         if user.is_superuser:
             raise CustomException(msg="超级管理员账号禁止加入租户成员（超管走平台域）", code=RET.FORBIDDEN.code)
+        if user.status != 0:
+            raise CustomException(msg="绑定账号已停用，不能加入租户成员", code=RET.FORBIDDEN.code)
         if await MemberCRUD(self.auth, self.db).get(tenant_id=tenant_id, user_id=data.user_id):
             raise CustomException(msg="该账号已是本租户成员", code=RET.CONFLICT.code)
 
@@ -265,17 +357,28 @@ class MemberService:
         """平台侧移交：冻结期间仍保留处置能力；操作人不因此成为 Owner。"""
         self._require_transfer_permission()
         await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
-        result = await execute_owner_transfer(
-            self.db,
-            redis,
-            tenant_id=tenant_id,
-            target_member_id=target_member_id,
-            operator_user_id=self.auth.user.id,
-            source="platform",
-            reason=reason,
-        )
-        await self.db.commit()
-        return result
+        try:
+            result = await execute_owner_transfer(
+                self.db,
+                redis,
+                tenant_id=tenant_id,
+                target_member_id=target_member_id,
+                operator_user_id=self.auth.user.id,
+                source="platform",
+                reason=reason,
+            )
+            await self.db.commit()
+            return result
+        except CustomException:
+            # M-11：业务失败/冲突独立短事务审计（业务事务回滚不丢审计）
+            await audit_transfer_failure(
+                tenant_id=tenant_id,
+                target_member_id=target_member_id,
+                operator_user_id=self.auth.user.id,
+                source="platform",
+                reason=reason,
+            )
+            raise
 
     async def list_audit(self, tenant_id: int) -> list[PlatOwnerTransferAuditModel]:
         self._require_superadmin()

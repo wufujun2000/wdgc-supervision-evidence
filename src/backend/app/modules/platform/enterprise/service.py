@@ -47,6 +47,8 @@ class EnterpriseService:
                 raise CustomException(msg="绑定用户不存在", code=RET.NOT_FOUND.code)
             if admin_user.is_superuser:
                 raise CustomException(msg="超级管理员账号禁止加入租户成员（超管走平台域）", code=RET.FORBIDDEN.code)
+            if admin_user.status != 0:
+                raise CustomException(msg="绑定账号已停用，不能成为企业拥有者", code=RET.FORBIDDEN.code)
 
         enterprise_code = data.enterprise_code or f"ENT-{uuid.uuid4().hex[:8].upper()}"
         if await crud.get(enterprise_code=enterprise_code):

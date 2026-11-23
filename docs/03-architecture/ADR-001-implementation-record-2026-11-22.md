@@ -63,3 +63,32 @@ platform-web：成员管理（Owner/Admin/状态标识、停用、移交记录�
 2. 成员/任命输出的 `member.user` 关系懒加载在异步会话中 MissingGreenlet，改为显式查询/预加载（已修）。
 3. 冻结企业租户侧移交在认证层即 401（H-02），服务层冻结校验作纵深防御保留。
 4. dev 自动迁移对新增模型产生空表与额外 head，已清理后以手写迁移为唯一事实来源。
+
+## 八、独立评审（Slow-2）与修复闭环（2026-11-23）
+
+评审报告 `local://adr001-review.md`：REQUEST_CHANGES（1 blocker＋14 major＋6 minor＋1 nit），逐条修复：
+
+- **B-01**：移交同事务清除原/新 Owner 的普通 Admin 记录与权限（text() 裸 SQL，不受操作者租户钩子过滤）；迁移初始 Owner 不再写普通 Admin；补 Admin→Owner→第三人测试。
+- **M-01**：revoke_admin 输出查询移到 commit 之前；补正常撤销成功测试。
+- **M-02**：移交目标 JOIN sys_user 校验账号 status/is_deleted/is_superuser；开通/绑定入口同步校验停用账号。
+- **M-03**：移交先对目标成员行锁（no-op UPDATE）＋锁后重查；停用与移交固定顺序协调；补 transfer-vs-disable 并发测试（不产生已停用 Owner）。
+- **M-04**：Owner 读写改 text() 裸 SQL（平台跨租户移交不受操作者租户上下文/钩子影响）；冻结校验按域放行（平台域不被操作者所属冻结租户误拦，系统/租户域保持 H-02）；前后端权限标识统一为 `module_platform:enterprise:transfer`；候选成员读取对专门权限开放；补非超管专门权限跨租户＋冻结正向测试。
+- **M-05**：旧 `platform/tenant_user` 运行模块从提交删除（fresh create_all 不再创建 biz_tenant_user）；补元数据断言。
+- **M-06**：六张新表补 `ix_<table>_tenant_id`；legacy 重建 audit=True；迁移 roundtrip 索引对照测试。
+- **M-07**：downgrade 在 DDL 前对多租户同账号成员明确拒绝（不可逆指引）；停用成员回滚映射为 legacy 软删；补冲突/停用 roundtrip。
+- **M-08**：Boolean 全部 TRUE/FALSE 字面量（MySQL/PG/SQLite）；补三方言编译/离线渲染验证。
+- **M-09**：初始 Owner 取每租户最早有效成员（不限 admin）；无有效成员保持无 Owner（平台补设）；补四组存量映射测试。
+- **M-10**：跨账号/种子角色查询改系统级精确匹配（db.get/直查，不经平台 DATA_SCOPE_SELF）；成员列表消费预加载 user；补绑定他人/姓名可见/新账号 USER 角色测试。
+- **M-11**：失败/冲突移交经独立短事务写 result=failed 结构化审计；补失败审计测试。
+- **M-12**：原生 update(status=1)/batch/delete 统一检查当前 Owner，命中要求先移交；补三入口拒绝＋移交后可停用测试。
+- **M-13**：PUT /tenant/admins/{id}/permissions 增加 Owner 目标拒绝；补测试。
+- **M-14**：upgrade/downgrade 显式 ID 搬迁后同步 PostgreSQL 序列（空表妥善处理）；补迁移后新增行测试。
+- **m-01**：非超管合法载荷开通仍断言 403（保留 422 校验用例）。
+- **m-02**：移交原因 strip 后非空校验。
+- **m-03**：菜单迁移以确定性 UUID 标识所有权，预存异 UUID 行显式冲突、downgrade 仅删本迁移行。
+- **m-04**：移交前双方均建立会话，移交后分别断言三键失效。
+- **m-05**：EXPIRE_ON_COMMIT=True 下 commit 前缓存标量/生成 Schema；补配置测试。
+- **m-06**：补卸任后 403 且历史保留、错配 404、跨租户任命拒绝、未任命全权限 Admin 403、SA 危大 403。
+- **n-01**：删除重复 `_std_indexes` 定义。
+
+修复后验证：迁移测试 12 passed；真实 MySQL downgrade/upgrade roundtrip 映射正确（初始 Owner 无 Admin 残留）；E2E 17/17；全量套件结果以最终提交说明为准。

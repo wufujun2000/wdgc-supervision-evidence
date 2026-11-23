@@ -170,7 +170,10 @@ class TestProvisionLifecycle:
 
     def test_disabled_user_rejected_and_session_purged(self, test_client: TestClient, auth_headers: dict, redis_keys_compat) -> None:
         uid, username, password = _mk_user(test_client, auth_headers)
-        ent = _provision(test_client, auth_headers, admin_user_id=uid)
+        # M-12：现任 Owner 不可直接停用，H-02 用例改用非 Owner 成员
+        owner_uid, _, _ = _mk_user(test_client, auth_headers)
+        ent = _provision(test_client, auth_headers, admin_user_id=owner_uid)
+        assert test_client.post(f"/platform/enterprise/{ent['id']}/members", json={"user_id": uid}, headers=auth_headers).status_code < 300
         headers = _login(test_client, username, password)
 
         # 停用用户（sys_user 原生批量状态接口）

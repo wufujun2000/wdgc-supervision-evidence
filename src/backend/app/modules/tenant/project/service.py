@@ -46,8 +46,10 @@ class TenantProjectService:
         project = await crud.create(
             data={"project_code": project_code, "name": data.name, "description": data.description, "status": 0}
         )
+        # m-05：EXPIRE_ON_COMMIT=True 时 commit 后属性过期，先生成响应再提交
+        out = ProjectOutSchema.model_validate(project)
         await self.db.commit()
-        return ProjectOutSchema.model_validate(project)
+        return out
 
     async def list_projects(self) -> list[ProjectOutSchema]:
         projects = await ProjectCRUD(self.auth, self.db).get_list()

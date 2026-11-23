@@ -8,6 +8,7 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
 import sqlalchemy as sa
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
@@ -89,5 +90,46 @@ def test_menu_migration_roundtrip_and_idempotent(test_client: TestClient, tmp_pa
                 for migration in reversed(migrations):
                     migration.downgrade()  # 重复回滚安全
             assert _counts(conn) == (0, 0, 0)
+    finally:
+        engine.dispose()
+
+
+def test_menu_conflict_survives_rejected_upgrade_and_downgrade(test_client: TestClient, tmp_path) -> None:
+    """预存同 permission/异 UUID 必须冲突，部分 upgrade 后 downgrade 也不能删除该他人行。"""
+    engine = sa.create_engine(f"sqlite:///{tmp_path}/menu_conflict.db")
+    try:
+        MappedBase.metadata.create_all(engine)
+        d4_migration, menu_migration = _load_migrations()
+        foreign_uuid = "preexisting-audit-uuid"
+        conflict_permission = "module_platform:enterprise:audit"
+        with engine.begin() as conn:
+            ctx = MigrationContext.configure(conn)
+            with Operations.context(ctx):
+                # 先创建父菜单及既有七个按钮，再注入一个不属于 f6 迁移的 audit 行。
+                d4_migration.upgrade()
+            template = conn.execute(
+                sa.select(menu_migration._MENU).where(menu_migration._MENU.c.permission == "module_platform:enterprise:bind")
+            ).mappings().one()
+            values = {key: value for key, value in template.items() if key != "id"}
+            values.update(name="预存审计", title="预存审计", permission=conflict_permission, uuid=foreign_uuid)
+            conn.execute(menu_migration._MENU.insert().values(**values))
+
+            with Operations.context(ctx):
+                with pytest.raises(RuntimeError, match=r"module_platform:enterprise:audit.*其他 UUID"):
+                    menu_migration.upgrade()
+                # transfer 在 audit 前已插入；精确 downgrade 应只清掉这个本迁移 UUID 的行。
+                menu_migration.downgrade()
+
+            foreign_row = conn.execute(
+                sa.select(menu_migration._MENU.c.id, menu_migration._MENU.c.uuid).where(
+                    menu_migration._MENU.c.permission == conflict_permission
+                )
+            ).mappings().one()
+            assert foreign_row["uuid"] == foreign_uuid
+            assert conn.execute(
+                sa.select(sa.func.count()).select_from(menu_migration._MENU).where(
+                    menu_migration._MENU.c.permission == "module_platform:enterprise:transfer"
+                )
+            ).scalar_one() == 0
     finally:
         engine.dispose()

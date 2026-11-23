@@ -145,6 +145,10 @@ async def test_set_available_protection(monkeypatch: pytest.MonkeyPatch) -> None
     class U2(U):
         async def get_list(self, **kw): return [SimpleNamespace(id=1, is_superuser=False)]
     s2 = _svc(monkeypatch, U2)
+    # M-12：set_available(status=1) 会做 Owner 检查，假 db 需提供 execute（返回空=无 Owner）
+    async def _empty_execute(*a, **k):
+        return SimpleNamespace(all=lambda: [])
+    s2.db = SimpleNamespace(execute=_empty_execute)
     await s2.set_available(BatchSetAvailable(ids=[1], status=1))
 
 

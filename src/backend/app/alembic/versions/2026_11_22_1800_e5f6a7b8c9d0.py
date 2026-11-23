@@ -7,8 +7,10 @@ Create Date: 2026-11-22 18:00:00
 - biz_tenant_user → biz_tenant_member（改名重建保留存量；(tenant_id,user_id) 唯一，加 status）
 - 新增 biz_tenant_owner（单持有人＋version）、biz_tenant_admin(+permission)、
   biz_project、biz_project_member(+hazard)、plat_owner_transfer_audit
-- 存量映射：is_enterprise_admin=True → Admin＋全部 delegable 权限；每租户最早 admin 成员 → 初始 Owner
-- 全部按 ModelMixin/NAMING_CONVENTION 命名，跨 SQLite/MySQL/PG 可渲染，支持 downgrade 还原
+- 存量映射：is_enterprise_admin=True → Admin＋全部 delegable 权限；每租户最早有效成员 → 初始 Owner，
+  初始 Owner 不重复写 Admin；无有效成员的租户保持无 Owner，由平台补设
+- 全部按 ModelMixin/NAMING_CONVENTION 命名，跨 SQLite/MySQL/PG 可渲染；
+  单账号单成员状态支持 downgrade，多租户成员冲突在任何 DDL 前明确拒绝
 """
 
 import uuid
@@ -59,20 +61,22 @@ def _std_indexes(table: str, audit: bool = False) -> None:
         if audit:
             # UserMixin 审计列索引（与基线 biz_tenant_user 先例一致）
             batch_op.create_index(batch_op.f(f"ix_{table}_created_id"), ["created_id"], unique=False)
-            batch_op.create_index(batch_op.f(f"ix_{table}_deleted_id"), ["deleted_id"], unique=False)
-
-
-def _std_indexes(table: str, audit: bool = False) -> None:
-    with op.batch_alter_table(table, schema=None) as batch_op:
-        batch_op.create_index(batch_op.f(f"ix_{table}_id"), ["id"], unique=False)
-        batch_op.create_index(batch_op.f(f"ix_{table}_uuid"), ["uuid"], unique=True)
-        batch_op.create_index(batch_op.f(f"ix_{table}_is_deleted"), ["is_deleted"], unique=False)
-        batch_op.create_index(batch_op.f(f"ix_{table}_created_time"), ["created_time"], unique=False)
-        if audit:
-            # UserMixin 审计列索引（与基线 biz_tenant_user 先例一致）
-            batch_op.create_index(batch_op.f(f"ix_{table}_created_id"), ["created_id"], unique=False)
             batch_op.create_index(batch_op.f(f"ix_{table}_updated_id"), ["updated_id"], unique=False)
             batch_op.create_index(batch_op.f(f"ix_{table}_deleted_id"), ["deleted_id"], unique=False)
+
+
+def _sync_postgresql_sequence(bind: sa.Connection, table: str) -> None:
+    """显式搬迁 id 后推进 PG 序列；空表重置为 1 且下一次仍返回 1。"""
+    if bind.dialect.name != "postgresql":
+        return
+    # table 仅由本迁移中的两个字面量调用，不能作为参数绑定进 FROM/标识符位置。
+    bind.execute(
+        sa.text(
+            f"SELECT setval(pg_get_serial_sequence('{table}', 'id'),"
+            f" COALESCE((SELECT MAX(id) FROM {table}), 1),"
+            f" EXISTS (SELECT 1 FROM {table}))"
+        )
+    )
 
 
 def _create_member() -> None:
@@ -111,6 +115,8 @@ def _create_owner_admin() -> None:
         comment="企业拥有者单持有人记录表",
     )
     _std_indexes("biz_tenant_owner", audit=True)
+    with op.batch_alter_table("biz_tenant_owner", schema=None) as batch_op:
+        batch_op.create_index(batch_op.f("ix_biz_tenant_owner_tenant_id"), ["tenant_id"], unique=False)
 
     op.create_table(
         "biz_tenant_admin",
@@ -127,6 +133,7 @@ def _create_owner_admin() -> None:
     _std_indexes("biz_tenant_admin", audit=True)
     with op.batch_alter_table("biz_tenant_admin", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_tenant_admin_member_id"), ["member_id"], unique=False)
+        batch_op.create_index(batch_op.f("ix_biz_tenant_admin_tenant_id"), ["tenant_id"], unique=False)
 
     op.create_table(
         "biz_tenant_admin_permission",
@@ -143,6 +150,7 @@ def _create_owner_admin() -> None:
     _std_indexes("biz_tenant_admin_permission")
     with op.batch_alter_table("biz_tenant_admin_permission", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_tenant_admin_permission_admin_id"), ["admin_id"], unique=False)
+        batch_op.create_index(batch_op.f("ix_biz_tenant_admin_permission_tenant_id"), ["tenant_id"], unique=False)
 
 
 def _create_project() -> None:
@@ -163,6 +171,7 @@ def _create_project() -> None:
     _std_indexes("biz_project", audit=True)
     with op.batch_alter_table("biz_project", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_project_project_code"), ["project_code"], unique=False)
+        batch_op.create_index(batch_op.f("ix_biz_project_tenant_id"), ["tenant_id"], unique=False)
 
     op.create_table(
         "biz_project_member",
@@ -184,6 +193,7 @@ def _create_project() -> None:
     with op.batch_alter_table("biz_project_member", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_project_member_project_id"), ["project_id"], unique=False)
         batch_op.create_index(batch_op.f("ix_biz_project_member_member_id"), ["member_id"], unique=False)
+        batch_op.create_index(batch_op.f("ix_biz_project_member_tenant_id"), ["tenant_id"], unique=False)
 
     op.create_table(
         "biz_project_member_hazard",
@@ -200,6 +210,7 @@ def _create_project() -> None:
     _std_indexes("biz_project_member_hazard")
     with op.batch_alter_table("biz_project_member_hazard", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_project_member_hazard_project_member_id"), ["project_member_id"], unique=False)
+        batch_op.create_index(batch_op.f("ix_biz_project_member_hazard_tenant_id"), ["tenant_id"], unique=False)
 
 
 def _create_audit() -> None:
@@ -237,7 +248,7 @@ def _create_legacy_binding() -> None:
         sa.ForeignKeyConstraint(["user_id"], ["sys_user.id"], name=op.f("fk_biz_tenant_user_user_id_sys_user"), ondelete="CASCADE"),
         comment="租户用户绑定表",
     )
-    _std_indexes("biz_tenant_user")
+    _std_indexes("biz_tenant_user", audit=True)
     with op.batch_alter_table("biz_tenant_user", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_biz_tenant_user_user_id"), ["user_id"], unique=True)
         batch_op.create_index(batch_op.f("ix_biz_tenant_user_tenant_id"), ["tenant_id"], unique=False)
@@ -259,36 +270,44 @@ def upgrade() -> None:
             " created_time, updated_time, deleted_time, created_id, updated_id, deleted_id FROM biz_tenant_user"
         )
     )
-    # 2. 每租户最早 admin 成员 → 初始 Owner（version=1）
+    _sync_postgresql_sequence(bind, "biz_tenant_member")
+
+    # 2. 每租户最早有效成员 → 初始 Owner（version=1）；没有有效成员的租户留给平台补设。
     owner_rows = bind.execute(
         sa.text(
             "SELECT tenant_id, MIN(id) AS member_id FROM biz_tenant_user"
-            " WHERE is_enterprise_admin = 1 AND is_deleted = 0 GROUP BY tenant_id"
+            " WHERE is_deleted = FALSE GROUP BY tenant_id"
         )
     ).mappings().all()
+    owner_member_ids = {row["member_id"] for row in owner_rows}
     for row in owner_rows:
         bind.execute(
             sa.text(
                 "INSERT INTO biz_tenant_owner (member_id, version, tenant_id, uuid, is_deleted,"
-                " created_time, updated_time) VALUES (:mid, 1, :tid, :uuid, 0, :now, :now)"
+                " created_time, updated_time) VALUES (:mid, 1, :tid, :uuid, FALSE, :now, :now)"
             ),
             {"mid": row["member_id"], "tid": row["tenant_id"], "uuid": _uuid(f"owner:{row['tenant_id']}"), "now": _NOW},
         )
-    # 3. 全部 admin 成员 → Admin＋全部 delegable 权限
+
+    # 3. 有效 admin 成员 → Admin＋全部 delegable 权限；初始 Owner 不进入普通授权列表。
     admin_rows = bind.execute(
-        sa.text("SELECT id, tenant_id FROM biz_tenant_user WHERE is_enterprise_admin = 1 AND is_deleted = 0")
+        sa.text(
+            "SELECT id, tenant_id FROM biz_tenant_user"
+            " WHERE is_enterprise_admin = TRUE AND is_deleted = FALSE ORDER BY tenant_id, id"
+        )
     ).mappings().all()
-    admin_pk_by_member: dict[int, int] = {}
     for row in admin_rows:
+        if row["id"] in owner_member_ids:
+            continue
         result = bind.execute(
             sa.text(
                 "INSERT INTO biz_tenant_admin (member_id, tenant_id, uuid, is_deleted, created_time, updated_time)"
-                " VALUES (:mid, :tid, :uuid, 0, :now, :now) RETURNING id"
+                " VALUES (:mid, :tid, :uuid, FALSE, :now, :now) RETURNING id"
             )
             if bind.dialect.name == "postgresql"
             else sa.text(
                 "INSERT INTO biz_tenant_admin (member_id, tenant_id, uuid, is_deleted, created_time, updated_time)"
-                " VALUES (:mid, :tid, :uuid, 0, :now, :now)"
+                " VALUES (:mid, :tid, :uuid, FALSE, :now, :now)"
             ),
             {"mid": row["id"], "tid": row["tenant_id"], "uuid": _uuid(f"admin:{row['tenant_id']}:{row['id']}"), "now": _NOW},
         )
@@ -296,12 +315,11 @@ def upgrade() -> None:
             admin_pk = result.scalar_one()
         else:
             admin_pk = bind.execute(sa.text("SELECT id FROM biz_tenant_admin WHERE member_id = :mid"), {"mid": row["id"]}).scalar_one()
-        admin_pk_by_member[row["id"]] = admin_pk
         for code in _DELEGABLE:
             bind.execute(
                 sa.text(
                     "INSERT INTO biz_tenant_admin_permission (admin_id, permission_code, tenant_id, uuid, is_deleted,"
-                    " created_time, updated_time) VALUES (:aid, :code, :tid, :uuid, 0, :now, :now)"
+                    " created_time, updated_time) VALUES (:aid, :code, :tid, :uuid, FALSE, :now, :now)"
                 ),
                 {"aid": admin_pk, "code": code, "tid": row["tenant_id"], "uuid": _uuid(f"adminperm:{admin_pk}:{code}"), "now": _NOW},
             )
@@ -311,8 +329,23 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     bind = op.get_bind()
+    # 旧表 user_id 单列唯一；在任何 DDL 前拒绝会静默丢成员或半回滚的多租户状态。
+    duplicate = bind.execute(
+        sa.text(
+            "SELECT user_id, COUNT(*) AS membership_count FROM biz_tenant_member"
+            " GROUP BY user_id HAVING COUNT(*) > 1 ORDER BY user_id"
+        )
+    ).mappings().first()
+    if duplicate:
+        raise RuntimeError(
+            "ADR-001 downgrade 不可逆："
+            f"user_id={duplicate['user_id']} 在 biz_tenant_member 中有 {duplicate['membership_count']} 条成员记录，"
+            "legacy biz_tenant_user 的 user_id 单列唯一约束无法无损还原。"
+            "请保留当前版本；如必须回滚，请先备份数据库，并将每个冲突账号的额外租户成员归档到独立存储后重试。"
+        )
+
     _create_legacy_binding()
-    # 还原成员（admin/owner 身份映射回 is_enterprise_admin；多租户成员场景请先人工评估 user_id 唯一冲突）
+    # 还原成员；停用成员必须成为 legacy 软删记录，避免回滚后恢复为有效绑定。
     bind.execute(
         sa.text(
             "INSERT INTO biz_tenant_user (user_id, is_enterprise_admin, emp_no, tenant_id, id, uuid, is_deleted,"
@@ -320,11 +353,14 @@ def downgrade() -> None:
             " SELECT user_id,"
             " CASE WHEN EXISTS (SELECT 1 FROM biz_tenant_admin a WHERE a.member_id = biz_tenant_member.id)"
             "      OR EXISTS (SELECT 1 FROM biz_tenant_owner o WHERE o.member_id = biz_tenant_member.id)"
-            " THEN 1 ELSE 0 END,"
-            " emp_no, tenant_id, id, uuid, is_deleted, created_time, updated_time, deleted_time,"
+            " THEN TRUE ELSE FALSE END,"
+            " emp_no, tenant_id, id, uuid,"
+            " CASE WHEN biz_tenant_member.status = 1 THEN TRUE ELSE biz_tenant_member.is_deleted END,"
+            " created_time, updated_time, deleted_time,"
             " created_id, updated_id, deleted_id FROM biz_tenant_member"
         )
     )
+    _sync_postgresql_sequence(bind, "biz_tenant_user")
     for table in (
         "plat_owner_transfer_audit",
         "biz_project_member_hazard",

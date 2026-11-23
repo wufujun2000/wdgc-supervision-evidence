@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.base_schema import BaseSchema
 
@@ -33,6 +33,15 @@ class OwnerTransferSchema(BaseModel):
     target_member_id: int = Field(..., ge=1, description="新 Owner 目标成员ID（本租户有效成员）")
     reason: str = Field(..., min_length=1, max_length=500, description="移交原因")
     confirm: Literal[True] = Field(..., description="二次确认（必须为 true）")
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, value: str) -> str:
+        """m-02：strip 后非空，保存规范化原因。"""
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("移交原因不能为空")
+        return stripped
 
 
 class OwnerTransferOutSchema(BaseModel):

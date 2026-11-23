@@ -23,7 +23,7 @@ from app.modules.platform.enterprise.crud import EnterpriseCRUD
 from app.modules.platform.member.crud import AuditCRUD, MemberCRUD, MemberIsolatedCRUD
 from app.modules.platform.member.schema import MemberOutSchema, OwnerTransferOutSchema
 from app.modules.platform.member.service import execute_owner_transfer, purge_user_sessions
-from app.modules.system.user.crud import UserCRUD
+from app.modules.system.user.model import UserModel
 from app.modules.tenant.member.model import BizTenantAdminModel, BizTenantAdminPermissionModel, BizTenantMemberModel
 
 from .schema import AdminGrantSchema, AdminPermissionUpdateSchema, MemberCreateSchema
@@ -47,8 +47,9 @@ class TenantMemberService:
 
     async def _out(self, member: BizTenantMemberModel) -> MemberOutSchema:
         out = MemberOutSchema.model_validate(member)
-        # 显式查询账号信息：member.user 关系懒加载在异步会话中会 MissingGreenlet
-        user = await UserCRUD(self.auth, self.db).get(id=member.user_id)
+        # M-10：优先消费预加载的 member.user（避免平台 DATA_SCOPE_SELF 重查误拦）；
+        # 未预加载时用主键直查（db.get 不经 Permission），绝不走关系懒加载（MissingGreenlet）
+        user = member.user if "user" in member.__dict__ and member.user is not None else await self.db.get(UserModel, member.user_id)
         if user:
             out.username = user.username
             out.name = user.name
@@ -80,7 +81,8 @@ class TenantMemberService:
             user_id = new_user.id
             username, name = new_user.username, new_user.name
         else:
-            user = await UserCRUD(self.auth, self.db).get(id=user_id)
+            # M-10：主键直查（不经 Permission），避免 Owner 绑定他人被 DATA_SCOPE_SELF 误判不存在
+            user = await self.db.get(UserModel, user_id)
             if not user:
                 raise CustomException(msg="绑定用户不存在", code=RET.NOT_FOUND.code)
             if user.is_superuser:
@@ -107,8 +109,10 @@ class TenantMemberService:
         if await is_current_owner(self.db, member.tenant_id, member.id):
             raise CustomException(msg="企业拥有者须先移交所有权，禁止直接停用", code=RET.FORBIDDEN.code)
         await MemberIsolatedCRUD(self.auth, self.db).update(id=member.id, data={"status": 1})
+        # m-05：EXPIRE_ON_COMMIT=True 时 commit 后属性过期，先缓存再提交
+        target_user_id = member.user_id
         await self.db.commit()
-        await purge_user_sessions(redis, {member.user_id})
+        await purge_user_sessions(redis, {target_user_id})
 
     # ── 企业管理员及权限管理 ─────────────────────────────────────
     async def _grant_admin(self, member: BizTenantMemberModel, permissions: list[str]) -> None:
@@ -150,6 +154,9 @@ class TenantMemberService:
     async def update_admin_permissions(self, member_id: int, data: AdminPermissionUpdateSchema) -> MemberOutSchema:
         await require_permission(self.db, "tenant_admin_manage")
         member = await MemberIsolatedCRUD(self.auth, self.db).get_or_404(id=member_id, msg="成员不存在")
+        # M-13：Owner 不得作为普通权限调整目标
+        if await is_current_owner(self.db, member.tenant_id, member.id):
+            raise CustomException(msg="企业拥有者身份不可经普通授权变更", code=RET.FORBIDDEN.code)
         admin = (
             (
                 await self.db.execute(
@@ -188,8 +195,9 @@ class TenantMemberService:
             await self.db.execute(delete(BizTenantAdminPermissionModel).where(BizTenantAdminPermissionModel.admin_id == admin.id))
             await self.db.delete(admin)
             await self.db.flush()
+        out = await self._out(member)
         await self.db.commit()
-        return await self._out(member)
+        return out
 
     # ── 所有权移交与审计 ─────────────────────────────────────────
     async def transfer_owner(self, target_member_id: int, reason: str, redis: Redis) -> OwnerTransferOutSchema:
@@ -198,17 +206,30 @@ class TenantMemberService:
         enterprise = await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
         if enterprise.status != 1:
             raise CustomException(msg="租户冻结期间禁止租户侧移交，请联系平台处置", code=RET.FORBIDDEN.code)
-        result = await execute_owner_transfer(
-            self.db,
-            redis,
-            tenant_id=tenant_id,
-            target_member_id=target_member_id,
-            operator_user_id=self.auth.user.id,
-            source="tenant",
-            reason=reason,
-        )
-        await self.db.commit()
-        return result
+        try:
+            result = await execute_owner_transfer(
+                self.db,
+                redis,
+                tenant_id=tenant_id,
+                target_member_id=target_member_id,
+                operator_user_id=self.auth.user.id,
+                source="tenant",
+                reason=reason,
+            )
+            await self.db.commit()
+            return result
+        except CustomException:
+            # M-11：业务失败/冲突独立短事务审计
+            from app.modules.platform.member.service import audit_transfer_failure
+
+            await audit_transfer_failure(
+                tenant_id=tenant_id,
+                target_member_id=target_member_id,
+                operator_user_id=self.auth.user.id,
+                source="tenant",
+                reason=reason,
+            )
+            raise
 
     async def list_owner_audit(self):
         await require_owner(self.db)

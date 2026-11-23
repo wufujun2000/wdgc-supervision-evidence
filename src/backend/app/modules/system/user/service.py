@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.enums import RET
 from app.config.setting import settings
 from app.core.base_schema import AuthSchema, BatchSetAvailable, PageResultSchema
 from app.core.exceptions import CustomException
@@ -113,6 +114,27 @@ class UserService:
         await self._set_user_positions(user_ids=[new_user.id], position_ids=data.position_ids or [])
         return await self.detail(id=new_user.id)
 
+    async def _reject_if_current_owner(self, user_ids: list[int]) -> None:
+        """M-12：账号停用/软删前检查是否为某租户当前 Owner，命中则要求先移交。
+
+        系统级直查（不经 Permission），避免账号被停用/删除后留下无有效 Owner 的租户。
+        """
+        if not user_ids:
+            return
+        from sqlalchemy import select
+
+        from app.modules.tenant.member.model import BizTenantMemberModel, BizTenantOwnerModel
+
+        rows = (
+            await self.db.execute(
+                select(BizTenantOwnerModel.tenant_id)
+                .join(BizTenantMemberModel, BizTenantMemberModel.id == BizTenantOwnerModel.member_id)
+                .where(BizTenantMemberModel.user_id.in_(user_ids), BizTenantOwnerModel.is_deleted == False)  # noqa: E712
+            )
+        ).all()
+        if rows:
+            raise CustomException(msg="账号是当前企业拥有者，须先移交所有权后再停用/删除", code=RET.FORBIDDEN.code)
+
     async def update(self, id: int, data: UserUpdateSchema) -> UserOutSchema:
         if data.username:
             if exist_user := await UserCRUD(self.auth, self.db).get(username=data.username):
@@ -136,6 +158,8 @@ class UserService:
                 raise CustomException(msg="部门已被禁用")
 
         update_data = data.model_dump(exclude_unset=True, exclude_none=True, exclude={"role_ids", "position_ids"})
+        if data.status == 1:
+            await self._reject_if_current_owner([id])
         await UserCRUD(self.auth, self.db).update(id=id, data=update_data)
         await self._set_user_roles(user_ids=[id], role_ids=data.role_ids or [])
         await self._set_user_positions(user_ids=[id], position_ids=data.position_ids or [])
@@ -165,6 +189,7 @@ class UserService:
         # 先解除角色/岗位关联，再删除用户
         await UserCRUD(self.auth, self.db).set_user_roles(user_objs=users, role_objs=[])
         await UserCRUD(self.auth, self.db).set_user_positions(user_objs=users, position_objs=[])
+        await self._reject_if_current_owner(ids)
         await UserCRUD(self.auth, self.db).delete(ids=ids)
 
     async def _load_users(self, user_ids: list[int], preload: list[str]) -> Sequence[UserModel]:
@@ -272,6 +297,8 @@ class UserService:
         for user in users:
             if user.is_superuser:
                 raise CustomException(msg="超级管理员状态不能修改")
+        if data.status == 1:
+            await self._reject_if_current_owner(data.ids)
         await UserCRUD(self.auth, self.db).set(ids=data.ids, status=data.status)
 
     async def change_password(self, data: UserChangePasswordSchema) -> UserOutSchema:

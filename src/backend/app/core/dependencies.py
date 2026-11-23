@@ -50,9 +50,13 @@ async def get_current_user(
     redis: Redis = Depends(redis_getter),
     token: str = Depends(OAuth2Schema),
     x_tenant_id: int | None = Header(default=None, alias="X-Tenant-Id"),
+    request: Request = None,
 ) -> AuthSchema:
     """获取当前用户（X-Tenant-Id 仅作租户选择，成员归属由服务端校验）"""
-    return await _authenticate(token, db, redis, selected_tenant_id=x_tenant_id)
+    # M-04：平台域请求（如专门权限的所有权移交）不被操作者所属租户的冻结状态误拦；
+    # 系统/租户域保持 H-02 冻结即失效语义
+    allow_frozen_platform = request is not None and request.url.path.startswith(("/platform/", "/api/v1/platform/"))
+    return await _authenticate(token, db, redis, selected_tenant_id=x_tenant_id, allow_frozen_platform=allow_frozen_platform)
 
 
 WS_TOKEN_SUBPROTOCOL = "access_token"
@@ -107,6 +111,7 @@ async def _authenticate(
     db: AsyncSession,
     redis: Redis,
     selected_tenant_id: int | None = None,
+    allow_frozen_platform: bool = False,
 ) -> AuthSchema:
     """核心认证逻辑（HTTP 与 WebSocket 共享）"""
     # 每次认证先清空租户上下文：TestClient 复用线程/后台任务防串号
@@ -247,7 +252,7 @@ async def _authenticate(
             .scalars()
             .first()
         )
-        if not enterprise or enterprise.status != 1:
+        if (not enterprise or enterprise.status != 1) and not allow_frozen_platform:
             await _purge_session(redis, session_id)
             raise CustomException(msg="企业租户已被冻结", code=RET.UNAUTHORIZED.code)
 
