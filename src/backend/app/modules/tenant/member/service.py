@@ -13,7 +13,7 @@ from app.core.base_schema import AuthSchema
 from app.core.exceptions import CustomException
 from app.core.tenant_context import TenantRequestContext
 from app.core.tenant_permission import (
-    get_delegable_scope,
+    DELEGABLE_PERMISSIONS,
     is_current_owner,
     require_owner,
     require_permission,
@@ -22,7 +22,13 @@ from app.core.tenant_permission import (
 from app.modules.platform.enterprise.crud import EnterpriseCRUD
 from app.modules.platform.member.crud import AuditCRUD, MemberCRUD, MemberIsolatedCRUD
 from app.modules.platform.member.schema import MemberOutSchema, OwnerTransferOutSchema
-from app.modules.platform.member.service import execute_owner_transfer, purge_user_sessions
+from app.modules.platform.member.service import (
+    execute_owner_transfer,
+    for_update_suffix,
+    get_current_owner_row,
+    lock_member_for_update,
+    purge_user_sessions,
+)
 from app.modules.system.user.model import UserModel
 from app.modules.tenant.member.model import BizTenantAdminModel, BizTenantAdminPermissionModel, BizTenantMemberModel
 
@@ -83,8 +89,10 @@ class TenantMemberService:
         else:
             # M-10：主键直查（不经 Permission），避免 Owner 绑定他人被 DATA_SCOPE_SELF 误判不存在
             user = await self.db.get(UserModel, user_id)
-            if not user:
+            if not user or user.is_deleted:
                 raise CustomException(msg="绑定用户不存在", code=RET.NOT_FOUND.code)
+            if user.status != 0:
+                raise CustomException(msg="绑定账号已停用，不能加入租户成员", code=RET.FORBIDDEN.code)
             if user.is_superuser:
                 raise CustomException(msg="超级管理员账号禁止加入租户成员", code=RET.FORBIDDEN.code)
             username, name = user.username, user.name
@@ -104,48 +112,82 @@ class TenantMemberService:
         return [await self._out(member) for member in members]
 
     async def disable_member(self, member_id: int, redis: Redis) -> None:
+        from sqlalchemy import text
+
         await require_permission(self.db, "tenant_member_manage")
-        member = await MemberIsolatedCRUD(self.auth, self.db).get_or_404(id=member_id, msg="成员不存在")
-        if await is_current_owner(self.db, member.tenant_id, member.id):
+        tenant_id = self._tenant_id()
+        member = await lock_member_for_update(self.db, member_id, tenant_id)
+        if not member:
+            raise CustomException(msg="成员不存在", code=RET.NOT_FOUND.code)
+        owner = await get_current_owner_row(self.db, tenant_id, for_update=True)
+        if owner and owner["member_id"] == member_id:
             raise CustomException(msg="企业拥有者须先移交所有权，禁止直接停用", code=RET.FORBIDDEN.code)
-        await MemberIsolatedCRUD(self.auth, self.db).update(id=member.id, data={"status": 1})
-        # m-05：EXPIRE_ON_COMMIT=True 时 commit 后属性过期，先缓存再提交
-        target_user_id = member.user_id
+        target_user_id = member["user_id"]
+        await self.db.execute(
+            text("UPDATE biz_tenant_member SET status = 1 WHERE id = :id AND tenant_id = :tenant_id AND status = 0"),
+            {"id": member_id, "tenant_id": tenant_id},
+        )
         await self.db.commit()
         await purge_user_sessions(redis, {target_user_id})
 
     # ── 企业管理员及权限管理 ─────────────────────────────────────
     async def _grant_admin(self, member: BizTenantMemberModel, permissions: list[str]) -> None:
-        scope = await get_delegable_scope(self.db)
-        validate_delegable_subset(permissions, scope)
-        admin = (
-            (
+        from sqlalchemy import text
+
+        locked = await lock_member_for_update(self.db, member.id, member.tenant_id)
+        if not locked:
+            raise CustomException(msg="成员不存在", code=RET.NOT_FOUND.code)
+        if locked["status"] != 0:
+            raise CustomException(msg="停用成员不能设为企业管理员", code=RET.FORBIDDEN.code)
+        owner = await get_current_owner_row(self.db, member.tenant_id, for_update=True)
+        if owner and owner["member_id"] == member.id:
+            raise CustomException(msg="企业拥有者不得进入普通角色分配列表", code=RET.FORBIDDEN.code)
+
+        # 目标成员与 Owner 行锁定后重算操作者 scope，避免旧 Owner 在移交后沿用锁前全权限。
+        context = TenantRequestContext.get()
+        if context is None or context.tenant_id is None or context.member_id is None:
+            scope: set[str] = set()
+        elif owner and owner["member_id"] == context.member_id:
+            scope = set(DELEGABLE_PERMISSIONS)
+        else:
+            rows = (
                 await self.db.execute(
-                    select(BizTenantAdminModel).where(
-                        BizTenantAdminModel.member_id == member.id, BizTenantAdminModel.is_deleted == False  # noqa: E712
-                    )
+                    text(
+                        "SELECT p.permission_code FROM biz_tenant_admin_permission p"
+                        " JOIN biz_tenant_admin a ON a.id = p.admin_id"
+                        " WHERE a.tenant_id = :tenant_id AND a.member_id = :member_id"
+                        " AND a.is_deleted = FALSE AND p.is_deleted = FALSE"
+                        f" ORDER BY p.permission_code{for_update_suffix(self.db)}"
+                    ),
+                    {"tenant_id": context.tenant_id, "member_id": context.member_id},
                 )
+            ).scalars().all()
+            scope = set(rows)
+        validate_delegable_subset(permissions, scope)
+
+        admin_id = (
+            await self.db.execute(
+                text(
+                    "SELECT id FROM biz_tenant_admin WHERE member_id = :member_id"
+                    f" AND is_deleted = FALSE{for_update_suffix(self.db)}"
+                ),
+                {"member_id": member.id},
             )
-            .scalars()
-            .first()
-        )
-        if not admin:
+        ).scalar_one_or_none()
+        if admin_id is None:
             admin = BizTenantAdminModel(tenant_id=member.tenant_id, member_id=member.id)
             self.db.add(admin)
             await self.db.flush()
-        # 替换权限集：旧授予物理清除（当前态授权，操作日志审计），重新写入
-        await self.db.execute(delete(BizTenantAdminPermissionModel).where(BizTenantAdminPermissionModel.admin_id == admin.id))
+            admin_id = admin.id
+        # 替换权限集：旧授予物理清除（当前态授权，操作日志审计），重新写入。
+        await self.db.execute(delete(BizTenantAdminPermissionModel).where(BizTenantAdminPermissionModel.admin_id == admin_id))
         for code in dict.fromkeys(permissions):
-            self.db.add(BizTenantAdminPermissionModel(tenant_id=member.tenant_id, admin_id=admin.id, permission_code=code))
+            self.db.add(BizTenantAdminPermissionModel(tenant_id=member.tenant_id, admin_id=admin_id, permission_code=code))
         await self.db.flush()
 
     async def set_admin(self, data: AdminGrantSchema) -> MemberOutSchema:
         await require_permission(self.db, "tenant_admin_manage")
         member = await MemberIsolatedCRUD(self.auth, self.db).get_or_404(id=data.member_id, msg="成员不存在")
-        if member.status != 0:
-            raise CustomException(msg="停用成员不能设为企业管理员", code=RET.FORBIDDEN.code)
-        if await is_current_owner(self.db, member.tenant_id, member.id):
-            raise CustomException(msg="企业拥有者不得进入普通角色分配列表", code=RET.FORBIDDEN.code)
         await self._grant_admin(member, data.permissions)
         out = await self._out(member)
         await self.db.commit()
@@ -201,12 +243,12 @@ class TenantMemberService:
 
     # ── 所有权移交与审计 ─────────────────────────────────────────
     async def transfer_owner(self, target_member_id: int, reason: str, redis: Redis) -> OwnerTransferOutSchema:
-        await require_owner(self.db)
         tenant_id = self._tenant_id()
-        enterprise = await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
-        if enterprise.status != 1:
-            raise CustomException(msg="租户冻结期间禁止租户侧移交，请联系平台处置", code=RET.FORBIDDEN.code)
         try:
+            await require_owner(self.db)
+            enterprise = await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
+            if enterprise.status != 1:
+                raise CustomException(msg="租户冻结期间禁止租户侧移交，请联系平台处置", code=RET.FORBIDDEN.code)
             result = await execute_owner_transfer(
                 self.db,
                 redis,
@@ -219,9 +261,9 @@ class TenantMemberService:
             await self.db.commit()
             return result
         except CustomException:
-            # M-11：业务失败/冲突独立短事务审计
             from app.modules.platform.member.service import audit_transfer_failure
 
+            await self.db.rollback()
             await audit_transfer_failure(
                 tenant_id=tenant_id,
                 target_member_id=target_member_id,

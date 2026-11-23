@@ -136,8 +136,8 @@
       title="编辑企业"
       form-mode="update"
       :confirm-loading="editSubmitLoading"
-      @cancel="editVisible = false"
-      @close="editVisible = false"
+      @cancel="closeEdit"
+      @close="closeEdit"
       @confirm="submitEdit"
       size="md"
     >
@@ -161,7 +161,7 @@
       title="企业详情"
       form-mode="detail"
       size="lg"
-      @close="detailVisible = false"
+      @close="closeDetail"
     >
       <FaDescriptions
         :column="2"
@@ -178,7 +178,7 @@
       :title="`成员管理 · ${currentEnterprise?.name ?? ''}`"
       form-mode="detail"
       size="lg"
-      @close="bindingsVisible = false"
+      @close="closeBindings"
     >
       <div class="mb-4 flex flex-wrap items-center gap-3">
         <template v-if="checkPerm('module_platform:enterprise:bind')">
@@ -227,7 +227,7 @@
               size="small"
               :disabled="row.is_owner"
               :title="row.is_owner ? '企业拥有者须先移交所有权' : ''"
-              @click="handleDisable(row)"
+              @click="handleDisable(row, currentEnterprise?.id)"
             >
               停用
             </ElButton>
@@ -257,8 +257,8 @@
       form-mode="create"
       confirm-text="确认移交"
       :confirm-loading="transferSubmitLoading"
-      @cancel="transferVisible = false"
-      @close="transferVisible = false"
+      @cancel="closeTransfer"
+      @close="closeTransfer"
       @confirm="submitTransfer"
       size="md"
     >
@@ -635,6 +635,7 @@ async function copyText(text: string) {
 // ─── 编辑 ───
 const editVisible = ref(false);
 const editSubmitLoading = ref(false);
+const editRequestToken = ref(0);
 const editForm = ref({
   id: undefined as number | undefined,
   name: "",
@@ -662,12 +663,27 @@ const editFormItems: FormItem[] = [
   },
 ];
 
+function isCurrentEditRequest(requestToken: number, enterpriseId: number) {
+  return editRequestToken.value === requestToken && editingRow.value?.id === enterpriseId;
+}
+
+function closeEdit() {
+  editVisible.value = false;
+  editRequestToken.value += 1;
+  editingRow.value = null;
+  editSubmitLoading.value = false;
+}
+
 async function openEdit(row: EnterpriseTable) {
   if (row.id == null) return;
+  const enterpriseId = row.id;
+  const requestToken = ++editRequestToken.value;
   editingRow.value = row;
-  const res = await EnterpriseAPI.detailEnterprise(row.id);
+  editSubmitLoading.value = false;
+  const res = await EnterpriseAPI.detailEnterprise(enterpriseId);
+  if (!isCurrentEditRequest(requestToken, enterpriseId)) return;
   editForm.value = {
-    id: row.id,
+    id: enterpriseId,
     name: res.data?.data?.name ?? "",
     credit_code: res.data?.data?.credit_code ?? undefined,
     description: res.data?.data?.description ?? undefined,
@@ -676,30 +692,39 @@ async function openEdit(row: EnterpriseTable) {
 }
 
 async function submitEdit() {
+  const row = editingRow.value;
+  const enterpriseId = editForm.value.id;
+  const requestToken = editRequestToken.value;
+  if (!row || enterpriseId == null || row.id !== enterpriseId) return;
   await editFormRef.value?.validate();
-  if (editForm.value.id == null) return;
+  if (!isCurrentEditRequest(requestToken, enterpriseId) || editForm.value.id !== enterpriseId) {
+    return;
+  }
+  const payload = {
+    name: editForm.value.name,
+    credit_code: editForm.value.credit_code || undefined,
+    description: editForm.value.description || undefined,
+  };
   editSubmitLoading.value = true;
   try {
-    const res = await EnterpriseAPI.updateEnterprise(editForm.value.id, {
-      name: editForm.value.name,
-      credit_code: editForm.value.credit_code || undefined,
-      description: editForm.value.description || undefined,
-    });
+    const res = await EnterpriseAPI.updateEnterprise(enterpriseId, payload);
+    if (!isCurrentEditRequest(requestToken, enterpriseId)) return;
     // 响应即更新后实体，本地修补避免「响应后提交」的刷新竞态
-    if (editingRow.value && res.data?.data) {
-      editingRow.value.name = res.data.data.name;
-      editingRow.value.credit_code = res.data.data.credit_code;
-      editingRow.value.description = res.data.data.description;
+    if (res.data?.data) {
+      row.name = res.data.data.name;
+      row.credit_code = res.data.data.credit_code;
+      row.description = res.data.data.description;
     }
     ElMessage.success("更新企业成功");
     editVisible.value = false;
   } finally {
-    editSubmitLoading.value = false;
+    if (editRequestToken.value === requestToken) editSubmitLoading.value = false;
   }
 }
 
 // ─── 详情 ───
 const detailVisible = ref(false);
+const detailRequestToken = ref(0);
 const detailData = ref<EnterpriseTable>({});
 const detailItems: import("@/components/display/fa-descriptions/index.vue").DescriptionsItem[] = [
   { label: "企业编码", prop: "enterprise_code" },
@@ -715,9 +740,17 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "更新时间", prop: "updated_time" },
 ];
 
+function closeDetail() {
+  detailVisible.value = false;
+  detailRequestToken.value += 1;
+}
+
 async function openDetail(row: EnterpriseTable) {
   if (row.id == null) return;
-  const res = await EnterpriseAPI.detailEnterprise(row.id);
+  const enterpriseId = row.id;
+  const requestToken = ++detailRequestToken.value;
+  const res = await EnterpriseAPI.detailEnterprise(enterpriseId);
+  if (detailRequestToken.value !== requestToken) return;
   detailData.value = res.data?.data ?? {};
   detailVisible.value = true;
 }
@@ -728,53 +761,105 @@ const bindingsLoading = ref(false);
 const bindSubmitLoading = ref(false);
 const bindings = ref<TenantMember[]>([]);
 const currentEnterprise = ref<EnterpriseTable | null>(null);
+const bindingsRequestToken = ref(0);
+const bindingsEnterpriseId = ref<number | undefined>(undefined);
 const bindForm = ref({
   user_id: undefined as number | undefined,
   emp_no: undefined as string | undefined,
 });
 
+function isCurrentBindingsRequest(requestToken: number, enterpriseId: number) {
+  return (
+    bindingsRequestToken.value === requestToken && currentEnterprise.value?.id === enterpriseId
+  );
+}
+
+function isCurrentBindingMember(row: TenantMember, enterpriseId: number, requestToken: number) {
+  return (
+    isCurrentBindingsRequest(requestToken, enterpriseId) &&
+    bindingsEnterpriseId.value === enterpriseId &&
+    bindings.value.includes(row) &&
+    (row.tenant_id == null || row.tenant_id === enterpriseId)
+  );
+}
+
+function closeBindings() {
+  bindingsVisible.value = false;
+  bindingsRequestToken.value += 1;
+  bindingsLoading.value = false;
+  bindSubmitLoading.value = false;
+  bindings.value = [];
+  bindingsEnterpriseId.value = undefined;
+  auditVisible.value = false;
+  audits.value = [];
+}
+
 async function loadBindings() {
-  if (currentEnterprise.value?.id == null) return;
+  const enterpriseId = currentEnterprise.value?.id;
+  if (enterpriseId == null) return;
+  const requestToken = ++bindingsRequestToken.value;
+  bindingsEnterpriseId.value = undefined;
   bindingsLoading.value = true;
   try {
-    const res = await EnterpriseAPI.listMembers(currentEnterprise.value.id);
+    const res = await EnterpriseAPI.listMembers(enterpriseId);
+    if (!isCurrentBindingsRequest(requestToken, enterpriseId)) return;
     bindings.value = res.data?.data ?? [];
+    bindingsEnterpriseId.value = enterpriseId;
+    return requestToken;
   } finally {
-    bindingsLoading.value = false;
+    if (isCurrentBindingsRequest(requestToken, enterpriseId)) bindingsLoading.value = false;
   }
 }
 
 async function openBindings(row: EnterpriseTable) {
+  if (row.id == null) return;
   currentEnterprise.value = row;
+  bindings.value = [];
+  bindingsEnterpriseId.value = undefined;
+  bindSubmitLoading.value = false;
   bindForm.value = { user_id: undefined, emp_no: undefined };
   bindingsVisible.value = true;
   auditVisible.value = false;
+  audits.value = [];
   await loadBindings();
 }
 
 async function submitBind() {
-  if (currentEnterprise.value?.id == null) return;
-  if (!bindForm.value.user_id) {
+  const enterpriseId = currentEnterprise.value?.id;
+  if (enterpriseId == null) return;
+  const userId = bindForm.value.user_id;
+  if (!userId) {
     ElMessage.warning("请选择要绑定的账号");
     return;
   }
+  // 写操作开启新代次：较早的 list 响应不得覆盖随后追加的新成员。
+  const requestToken = ++bindingsRequestToken.value;
+  bindingsLoading.value = false;
+  const empNo = bindForm.value.emp_no;
   bindSubmitLoading.value = true;
   try {
-    const res = await EnterpriseAPI.bindMember(currentEnterprise.value.id, {
-      user_id: bindForm.value.user_id,
-      emp_no: bindForm.value.emp_no || undefined,
+    const res = await EnterpriseAPI.bindMember(enterpriseId, {
+      user_id: userId,
+      emp_no: empNo || undefined,
     });
+    if (!isCurrentBindingsRequest(requestToken, enterpriseId)) return;
     ElMessage.success("添加成员成功");
     bindForm.value = { user_id: undefined, emp_no: undefined };
     // 响应即最新成员（含 username/name/is_owner），本地追加避免提交前刷新竞态
-    if (res.data?.data) bindings.value = [...bindings.value, res.data.data];
+    if (res.data?.data) {
+      bindings.value = [...bindings.value, res.data.data];
+      bindingsEnterpriseId.value = enterpriseId;
+    }
   } finally {
-    bindSubmitLoading.value = false;
+    if (isCurrentBindingsRequest(requestToken, enterpriseId)) bindSubmitLoading.value = false;
   }
 }
 
-async function handleDisable(row: TenantMember) {
-  if (row.id == null) return;
+async function handleDisable(row: TenantMember, enterpriseId: number | undefined) {
+  const memberId = row.id;
+  if (memberId == null || enterpriseId == null) return;
+  const requestToken = bindingsRequestToken.value;
+  if (!isCurrentBindingMember(row, enterpriseId, requestToken)) return;
   if (row.is_owner) {
     ElMessage.warning("企业拥有者须先移交所有权，禁止直接停用");
     return;
@@ -784,7 +869,9 @@ async function handleDisable(row: TenantMember) {
       `确定停用成员「${row.username ?? row.user_id}」吗？停用后其会话立即失效，历史记录保留。`,
       "停用确认"
     );
-    await EnterpriseAPI.disableMember(row.id);
+    if (!isCurrentBindingMember(row, enterpriseId, requestToken)) return;
+    await EnterpriseAPI.disableMember(memberId);
+    if (!isCurrentBindingMember(row, enterpriseId, requestToken)) return;
     ElMessage.success("停用成员成功");
     // 停用不物理删除：本地标记状态
     row.status = 1;
@@ -805,20 +892,34 @@ const transferCandidates = computed(() =>
   bindings.value.filter((m) => !m.is_owner && m.status === 0)
 );
 
+function closeTransfer() {
+  transferVisible.value = false;
+  bindingsRequestToken.value += 1;
+  bindingsLoading.value = false;
+  transferSubmitLoading.value = false;
+}
+
 async function openTransfer(row: EnterpriseTable) {
+  if (row.id == null) return;
+  const enterpriseId = row.id;
   currentEnterprise.value = row;
+  transferSubmitLoading.value = false;
   transferForm.value = { target_member_id: undefined, reason: "", confirm: false };
-  await loadBindings();
+  const requestToken = await loadBindings();
+  if (requestToken == null || !isCurrentBindingsRequest(requestToken, enterpriseId)) return;
   transferVisible.value = true;
 }
 
 async function submitTransfer() {
-  if (currentEnterprise.value?.id == null) return;
-  if (!transferForm.value.target_member_id) {
+  const enterpriseId = currentEnterprise.value?.id;
+  const targetMemberId = transferForm.value.target_member_id;
+  if (enterpriseId == null) return;
+  if (!targetMemberId) {
     ElMessage.warning("请选择新 Owner 成员");
     return;
   }
-  if (!transferForm.value.reason.trim()) {
+  const reason = transferForm.value.reason.trim();
+  if (!reason) {
     ElMessage.warning("请填写移交原因");
     return;
   }
@@ -826,22 +927,24 @@ async function submitTransfer() {
     ElMessage.warning("请勾选二次确认");
     return;
   }
+  const requestToken = bindingsRequestToken.value;
   transferSubmitLoading.value = true;
   try {
-    await EnterpriseAPI.transferOwner(currentEnterprise.value.id, {
-      target_member_id: transferForm.value.target_member_id,
-      reason: transferForm.value.reason.trim(),
+    await EnterpriseAPI.transferOwner(enterpriseId, {
+      target_member_id: targetMemberId,
+      reason,
       confirm: true,
     });
+    if (!isCurrentBindingsRequest(requestToken, enterpriseId)) return;
     ElMessage.success("所有权移交成功，双方需重新登录");
     // 本地更新 Owner 标识（双方会话已清退，无需立即刷新列表）
     const oldOwner = bindings.value.find((m) => m.is_owner);
     if (oldOwner) oldOwner.is_owner = false;
-    const newOwner = bindings.value.find((m) => m.id === transferForm.value.target_member_id);
+    const newOwner = bindings.value.find((m) => m.id === targetMemberId);
     if (newOwner) newOwner.is_owner = true;
     transferVisible.value = false;
   } finally {
-    transferSubmitLoading.value = false;
+    if (isCurrentBindingsRequest(requestToken, enterpriseId)) transferSubmitLoading.value = false;
   }
 }
 
@@ -850,8 +953,11 @@ const audits = ref<OwnerAuditItem[]>([]);
 
 async function toggleAudit() {
   auditVisible.value = !auditVisible.value;
-  if (auditVisible.value && currentEnterprise.value?.id != null) {
-    const res = await EnterpriseAPI.listOwnerAudit(currentEnterprise.value.id);
+  const enterpriseId = currentEnterprise.value?.id;
+  if (auditVisible.value && enterpriseId != null) {
+    const requestToken = bindingsRequestToken.value;
+    const res = await EnterpriseAPI.listOwnerAudit(enterpriseId);
+    if (!auditVisible.value || !isCurrentBindingsRequest(requestToken, enterpriseId)) return;
     audits.value = res.data?.data ?? [];
   }
 }

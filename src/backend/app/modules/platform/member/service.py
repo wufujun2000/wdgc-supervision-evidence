@@ -17,14 +17,57 @@ from app.core.base_schema import AuthSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.core.redis_crud import RedisCURD
-from app.core.tenant_permission import get_current_owner
 from app.modules.platform.enterprise.crud import EnterpriseCRUD
 from app.modules.system.user.crud import UserCRUD
-from app.modules.tenant.member.model import BizTenantAdminModel, BizTenantMemberModel, BizTenantOwnerModel
+from app.modules.tenant.member.model import BizTenantAdminModel, BizTenantOwnerModel
 
 from .crud import AuditCRUD, MemberCRUD
 from .model import PlatOwnerTransferAuditModel
 from .schema import MemberBindSchema, MemberOutSchema, OwnerTransferOutSchema
+
+
+def for_update_suffix(db: AsyncSession) -> str:
+    """MySQL/PostgreSQL 锁后当前读；SQLite 无行锁语法，由真实 MySQL 交错测试验证互斥。"""
+    return " FOR UPDATE" if db.get_bind().dialect.name in {"mysql", "postgresql"} else ""
+
+
+async def lock_member_for_update(db: AsyncSession, member_id: int, tenant_id: int | None = None):
+    """按共同顺序先锁成员，再以当前读返回成员及统一账号状态。"""
+    from sqlalchemy import text
+
+    params = {"id": member_id}
+    tenant_clause = ""
+    if tenant_id is not None:
+        tenant_clause = " AND tenant_id = :tenant_id"
+        params["tenant_id"] = tenant_id
+    await db.execute(text(f"UPDATE biz_tenant_member SET status = status WHERE id = :id{tenant_clause}"), params)
+    row = await db.execute(
+        text(
+            "SELECT m.id AS id, m.tenant_id AS tenant_id, m.user_id AS user_id, m.status AS status,"
+            " m.is_deleted AS is_deleted, u.status AS user_status, u.is_deleted AS user_deleted,"
+            " u.is_superuser AS user_superuser"
+            " FROM biz_tenant_member m JOIN sys_user u ON u.id = m.user_id"
+            f" WHERE m.id = :id{tenant_clause}{for_update_suffix(db)}"
+        ),
+        params,
+    )
+    return row.mappings().first()
+
+
+async def get_current_owner_row(db: AsyncSession, tenant_id: int, *, for_update: bool = False):
+    """目标租户 Owner 裸 SQL 查询，不受操作者租户上下文过滤。"""
+    from sqlalchemy import text
+
+    suffix = for_update_suffix(db) if for_update else ""
+    return (
+        await db.execute(
+            text(
+                "SELECT id, member_id, version, tenant_id FROM biz_tenant_owner"
+                f" WHERE tenant_id = :tenant_id AND is_deleted = FALSE{suffix}"
+            ),
+            {"tenant_id": tenant_id},
+        )
+    ).mappings().first()
 
 
 async def purge_user_sessions(redis: Redis, user_ids: set[int]) -> int:
@@ -71,19 +114,8 @@ async def execute_owner_transfer(
 
     from sqlalchemy import text
 
-    # 跨租户/账号状态校验须看到非本租户目标（do_orm_execute 钩子边界外的 text() 裸 SQL）：
-    # 同时校验成员状态与统一账号 sys_user.status/is_deleted，拒绝停用/软删/超管账号
-    target = (
-        await db.execute(
-            text(
-                "SELECT m.id AS id, m.tenant_id AS tenant_id, m.user_id AS user_id, m.status AS status,"
-                " m.is_deleted AS is_deleted, u.status AS user_status, u.is_deleted AS user_deleted,"
-                " u.is_superuser AS user_superuser"
-                " FROM biz_tenant_member m JOIN sys_user u ON u.id = m.user_id WHERE m.id = :id"
-            ),
-            {"id": target_member_id},
-        )
-    ).mappings().first()
+    # 共同锁顺序：先锁目标成员，再读/改 Owner；锁后以当前读同时校验成员及统一账号状态。
+    target = await lock_member_for_update(db, target_member_id)
     if not target or target["is_deleted"] or target["user_deleted"]:
         raise CustomException(msg="目标成员不存在", code=RET.NOT_FOUND.code)
     if target["user_superuser"]:
@@ -93,13 +125,8 @@ async def execute_owner_transfer(
     if target["status"] != 0 or target["user_status"] != 0:
         raise CustomException(msg="目标成员或账号已停用，不能成为企业拥有者", code=RET.FORBIDDEN.code)
 
-    # Owner 读取与版本更新用 text() 裸 SQL：不受操作者租户上下文/钩子影响（平台跨租户移交同样正确）
-    owner = (
-        await db.execute(
-            text("SELECT id, member_id, version FROM biz_tenant_owner WHERE tenant_id = :t AND is_deleted = FALSE"),
-            {"t": tenant_id},
-        )
-    ).mappings().first()
+    # 保留 version 乐观锁：并发移交只允许一个成功；裸 SQL 不受操作者租户上下文过滤。
+    owner = await get_current_owner_row(db, tenant_id)
     if owner and owner["member_id"] == target_member_id:
         raise CustomException(msg="目标成员已是当前企业拥有者", code=RET.CONFLICT.code)
     from_member_id = owner["member_id"] if owner else None
@@ -118,14 +145,7 @@ async def execute_owner_transfer(
         db.add(BizTenantOwnerModel(tenant_id=tenant_id, member_id=target_member_id, version=1))
         new_version = 1
 
-    # M-03：目标成员行锁＋锁后重查（固定顺序：先锁目标成员再改 Owner），防停用/移交竞态
-    await db.execute(text("UPDATE biz_tenant_member SET status = status WHERE id = :id"), {"id": target_member_id})
-    target_after = (
-        await db.execute(text("SELECT status, is_deleted FROM biz_tenant_member WHERE id = :id"), {"id": target_member_id})
-    ).mappings().first()
-    if not target_after or target_after["status"] != 0 or target_after["is_deleted"]:
-        raise CustomException(msg="目标成员状态已变化，请刷新后重试", code=RET.CONFLICT.code)
-
+    # 成员仍由本事务入口处的行锁保护；后续 Admin 清理与 Owner 变更同提交。
     # B-01：清除原 Owner 与新 Owner 的普通 Admin 记录及权限（需要 Admin 由新 Owner 事后另行授权）。
     # 与 Owner 读写同用 text() 裸 SQL：操作者可能属于其他租户，不能被钩子过滤成不清理目标租户的 Admin。
     admin_member_ids = [mid for mid in (from_member_id, target_member_id) if mid is not None]
@@ -135,7 +155,9 @@ async def execute_owner_transfer(
         admin_rows = (
             (
                 await db.execute(
-                    text("SELECT id FROM biz_tenant_admin WHERE member_id IN :ids").bindparams(bindparam("ids", expanding=True)),
+                    text(f"SELECT id FROM biz_tenant_admin WHERE member_id IN :ids{for_update_suffix(db)}").bindparams(
+                        bindparam("ids", expanding=True)
+                    ),
                     {"ids": admin_member_ids},
                 )
             )
@@ -168,9 +190,11 @@ async def execute_owner_transfer(
     # 双方旧会话清退，新权限立即生效；账号本身、项目任命与历史归属不变
     user_ids = {target["user_id"]}
     if from_member_id is not None:
-        old_member = await db.get(BizTenantMemberModel, from_member_id)
-        if old_member:
-            user_ids.add(old_member.user_id)
+        old_user_id = (
+            await db.execute(text("SELECT user_id FROM biz_tenant_member WHERE id = :id"), {"id": from_member_id})
+        ).scalar_one_or_none()
+        if old_user_id is not None:
+            user_ids.add(old_user_id)
     purged = await purge_user_sessions(redis, user_ids)
     logger.info("所有权移交完成: tenant={}, from={}, to={}, 清退会话数={}", tenant_id, from_member_id, target_member_id, purged)
     return OwnerTransferOutSchema(tenant_id=tenant_id, from_member_id=from_member_id, to_member_id=target_member_id, version=new_version)
@@ -186,7 +210,7 @@ async def audit_transfer_failure(
     from app.core.database import async_db_session
 
     async with async_db_session() as session, session.begin():
-        owner = await get_current_owner(session, tenant_id)
+        owner = await get_current_owner_row(session, tenant_id)
         session.add(
             PlatOwnerTransferAuditModel(
                 source=source,
@@ -279,7 +303,7 @@ class MemberService:
         TenantRequestContext.clear()
         try:
             members = await MemberCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id}, preload=["user"])
-            owner = await get_current_owner(self.db, tenant_id)
+            owner = await get_current_owner_row(self.db, tenant_id)
             admin_member_ids = set(
                 (
                     await self.db.execute(
@@ -324,7 +348,7 @@ class MemberService:
         member = await MemberCRUD(self.auth, self.db).create(
             data={"tenant_id": tenant_id, "user_id": data.user_id, "emp_no": data.emp_no, "status": 0}
         )
-        if not await get_current_owner(self.db, tenant_id):
+        if not await get_current_owner_row(self.db, tenant_id):
             await execute_owner_transfer(
                 self.db,
                 redis,
@@ -334,7 +358,7 @@ class MemberService:
                 source="platform",
                 reason="平台补设企业拥有者",
             )
-        owner = await get_current_owner(self.db, tenant_id)
+        owner = await get_current_owner_row(self.db, tenant_id)
         out = MemberOutSchema.model_validate(member)
         out.username = user.username
         out.name = user.name
@@ -343,21 +367,26 @@ class MemberService:
         return out
 
     async def disable(self, member_id: int, redis: Redis) -> None:
-        """成员停用（不物理删除，保留历史归属）；当前 Owner 一律先移交，禁止直接停用。"""
+        """先锁成员并锁后拒绝当前 Owner，再原子停用；commit 前缓存会话清退字段。"""
+        from sqlalchemy import text
+
         self._require_superadmin()
-        member = await MemberCRUD(self.auth, self.db).get_or_404(id=member_id, msg="成员不存在")
-        owner = await get_current_owner(self.db, member.tenant_id)
-        if owner and owner.member_id == member.id:
+        member = await lock_member_for_update(self.db, member_id)
+        if not member:
+            raise CustomException(msg="成员不存在", code=RET.NOT_FOUND.code)
+        owner = await get_current_owner_row(self.db, member["tenant_id"], for_update=True)
+        if owner and owner["member_id"] == member_id:
             raise CustomException(msg="企业拥有者须先移交所有权，禁止直接停用", code=RET.FORBIDDEN.code)
-        await MemberCRUD(self.auth, self.db).update(id=member.id, data={"status": 1})
+        target_user_id = member["user_id"]
+        await self.db.execute(text("UPDATE biz_tenant_member SET status = 1 WHERE id = :id AND status = 0"), {"id": member_id})
         await self.db.commit()
-        await purge_user_sessions(redis, {member.user_id})
+        await purge_user_sessions(redis, {target_user_id})
 
     async def transfer(self, tenant_id: int, target_member_id: int, reason: str, redis: Redis) -> OwnerTransferOutSchema:
         """平台侧移交：冻结期间仍保留处置能力；操作人不因此成为 Owner。"""
-        self._require_transfer_permission()
-        await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
         try:
+            self._require_transfer_permission()
+            await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
             result = await execute_owner_transfer(
                 self.db,
                 redis,
@@ -370,7 +399,8 @@ class MemberService:
             await self.db.commit()
             return result
         except CustomException:
-            # M-11：业务失败/冲突独立短事务审计（业务事务回滚不丢审计）
+            # 先释放成员/Owner 行锁，再由独立短事务写失败审计。
+            await self.db.rollback()
             await audit_transfer_failure(
                 tenant_id=tenant_id,
                 target_member_id=target_member_id,

@@ -115,25 +115,69 @@ class UserService:
         return await self.detail(id=new_user.id)
 
     async def _reject_if_current_owner(self, user_ids: list[int]) -> None:
-        """M-12：账号停用/软删前检查是否为某租户当前 Owner，命中则要求先移交。
-
-        系统级直查（不经 Permission），避免账号被停用/删除后留下无有效 Owner 的租户。
-        """
+        """先按成员 ID 顺序锁成员，再以系统级裸 SQL 当前读拒绝现任 Owner。"""
         if not user_ids:
             return
-        from sqlalchemy import select
+        from sqlalchemy import bindparam, text
 
-        from app.modules.tenant.member.model import BizTenantMemberModel, BizTenantOwnerModel
-
-        rows = (
-            await self.db.execute(
-                select(BizTenantOwnerModel.tenant_id)
-                .join(BizTenantMemberModel, BizTenantMemberModel.id == BizTenantOwnerModel.member_id)
-                .where(BizTenantMemberModel.user_id.in_(user_ids), BizTenantOwnerModel.is_deleted == False)  # noqa: E712
+        ids = sorted(set(user_ids))
+        expanding_ids = bindparam("ids", expanding=True)
+        member_ids = (
+            (
+                await self.db.execute(
+                    text("SELECT id FROM biz_tenant_member WHERE user_id IN :ids ORDER BY id").bindparams(expanding_ids),
+                    {"ids": ids},
+                )
             )
-        ).all()
-        if rows:
+            .scalars()
+            .all()
+        )
+        if not member_ids:
+            # 无成员时不存在现任 Owner；写后 NOT EXISTS 守卫覆盖预检后新建首成员/Owner 的竞态。
+            return
+        for member_id in member_ids:
+            await self.db.execute(text("UPDATE biz_tenant_member SET status = status WHERE id = :id"), {"id": member_id})
+
+        suffix = " FOR UPDATE" if self.db.get_bind().dialect.name in {"mysql", "postgresql"} else ""
+        rows = await self.db.execute(
+            text(
+                "SELECT o.tenant_id FROM sys_user u"
+                " JOIN biz_tenant_member m ON m.user_id = u.id"
+                " JOIN biz_tenant_owner o ON o.member_id = m.id"
+                " WHERE u.id IN :ids AND o.is_deleted = FALSE ORDER BY o.tenant_id"
+                f"{suffix}"
+            ).bindparams(bindparam("ids", expanding=True)),
+            {"ids": ids},
+        )
+        if rows.first():
             raise CustomException(msg="账号是当前企业拥有者，须先移交所有权后再停用/删除", code=RET.FORBIDDEN.code)
+
+    async def _assert_no_owner_after_write(self, user_ids: list[int]) -> None:
+        """写入后以当前读复核 NOT EXISTS；首成员/Owner 在预检后提交也必须整体回滚。"""
+        if not user_ids:
+            return
+        from sqlalchemy import bindparam, text
+
+        ids = sorted(set(user_ids))
+        suffix = " FOR UPDATE" if self.db.get_bind().dialect.name in {"mysql", "postgresql"} else ""
+        allowed_ids = (
+            (
+                await self.db.execute(
+                    text(
+                        "SELECT u.id FROM sys_user u WHERE u.id IN :ids"
+                        " AND NOT EXISTS ("
+                        "SELECT 1 FROM biz_tenant_member m JOIN biz_tenant_owner o ON o.member_id = m.id"
+                        " WHERE m.user_id = u.id AND o.is_deleted = FALSE"
+                        f" ) ORDER BY u.id{suffix}"
+                    ).bindparams(bindparam("ids", expanding=True)),
+                    {"ids": ids},
+                )
+            )
+            .scalars()
+            .all()
+        )
+        if len(allowed_ids) != len(ids):
+            raise CustomException(msg="账号已成为企业拥有者，须先移交所有权后再停用/删除", code=RET.FORBIDDEN.code)
 
     async def update(self, id: int, data: UserUpdateSchema) -> UserOutSchema:
         if data.username:
@@ -161,6 +205,8 @@ class UserService:
         if data.status == 1:
             await self._reject_if_current_owner([id])
         await UserCRUD(self.auth, self.db).update(id=id, data=update_data)
+        if data.status == 1:
+            await self._assert_no_owner_after_write([id])
         await self._set_user_roles(user_ids=[id], role_ids=data.role_ids or [])
         await self._set_user_positions(user_ids=[id], position_ids=data.position_ids or [])
 
@@ -191,6 +237,7 @@ class UserService:
         await UserCRUD(self.auth, self.db).set_user_positions(user_objs=users, position_objs=[])
         await self._reject_if_current_owner(ids)
         await UserCRUD(self.auth, self.db).delete(ids=ids)
+        await self._assert_no_owner_after_write(ids)
 
     async def _load_users(self, user_ids: list[int], preload: list[str]) -> Sequence[UserModel]:
         """加载用户并校验存在性。"""
@@ -300,6 +347,8 @@ class UserService:
         if data.status == 1:
             await self._reject_if_current_owner(data.ids)
         await UserCRUD(self.auth, self.db).set(ids=data.ids, status=data.status)
+        if data.status == 1:
+            await self._assert_no_owner_after_write(data.ids)
 
     async def change_password(self, data: UserChangePasswordSchema) -> UserOutSchema:
         user_id = self.auth.user.id

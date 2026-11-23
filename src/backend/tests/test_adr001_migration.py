@@ -56,7 +56,13 @@ def _legacy_row(row_id: int, tenant_id: int, user_id: int, *, admin: bool = Fals
 def _create_legacy_schema(engine: sa.Engine, rows: list[dict]) -> None:
     metadata = sa.MetaData()
     enterprise = sa.Table("plat_enterprise", metadata, sa.Column("id", sa.Integer, primary_key=True))
-    user = sa.Table("sys_user", metadata, sa.Column("id", sa.Integer, primary_key=True))
+    user = sa.Table(
+        "sys_user",
+        metadata,
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("status", sa.Integer, nullable=False),
+        sa.Column("is_deleted", sa.Boolean, nullable=False),
+    )
     legacy = sa.Table(
         "biz_tenant_user",
         metadata,
@@ -78,7 +84,13 @@ def _create_legacy_schema(engine: sa.Engine, rows: list[dict]) -> None:
     metadata.create_all(engine)
     with engine.begin() as conn:
         conn.execute(enterprise.insert(), [{"id": tenant_id} for tenant_id in sorted({row["tenant_id"] for row in rows} | {1, 2, 3, 4, 5})])
-        conn.execute(user.insert(), [{"id": user_id} for user_id in sorted({row["user_id"] for row in rows} | {141, 142})])
+        conn.execute(
+            user.insert(),
+            [
+                {"id": user_id, "status": 0, "is_deleted": False}
+                for user_id in sorted({row["user_id"] for row in rows} | {141, 142})
+            ],
+        )
         if rows:
             conn.execute(legacy.insert(), rows)
 
@@ -138,6 +150,29 @@ def test_owner_and_admin_mapping_covers_legacy_member_shapes(tmp_path) -> None:
             assert set(permissions) == set(_MIGRATION._DELEGABLE)
             assert conn.execute(sa.text("SELECT is_deleted FROM biz_tenant_member WHERE id = 40")).scalar_one() == 1
             assert conn.execute(sa.text("SELECT is_deleted FROM biz_tenant_member WHERE id = 50")).scalar_one() == 1
+    finally:
+        engine.dispose()
+
+
+def test_owner_selection_skips_disabled_or_deleted_sys_user_accounts(tmp_path) -> None:
+    engine = sa.create_engine(f"sqlite:///{tmp_path}/owner_account_filters.db")
+    try:
+        rows = [
+            # tenant=1：最早 legacy 成员的账号已停用，必须选择次早双有效成员。
+            _legacy_row(10, 1, 110),
+            _legacy_row(11, 1, 111),
+            # tenant=2：最早 legacy 成员的账号已软删，必须选择次早双有效成员。
+            _legacy_row(20, 2, 120),
+            _legacy_row(21, 2, 121),
+        ]
+        _create_legacy_schema(engine, rows)
+        with engine.begin() as conn:
+            conn.execute(sa.text("UPDATE sys_user SET status = 1 WHERE id = 110"))
+            conn.execute(sa.text("UPDATE sys_user SET is_deleted = TRUE WHERE id = 120"))
+            _upgrade(conn)
+
+            owners = conn.execute(sa.text("SELECT tenant_id, member_id FROM biz_tenant_owner ORDER BY tenant_id")).mappings().all()
+            assert [(row["tenant_id"], row["member_id"]) for row in owners] == [(1, 11), (2, 21)]
     finally:
         engine.dispose()
 
@@ -246,7 +281,7 @@ class _DataSqlBind:
     def execute(self, statement: sa.TextClause, _parameters: dict | None = None) -> _Result:
         self.statements.append(statement)
         sql = str(statement)
-        if sql.startswith("SELECT tenant_id, MIN(id)"):
+        if sql.startswith("SELECT binding.tenant_id, MIN(binding.id)"):
             return _Result(rows=[{"tenant_id": 1, "member_id": 10}])
         if sql.startswith("SELECT id, tenant_id FROM biz_tenant_user"):
             return _Result(rows=[{"id": 10, "tenant_id": 1}, {"id": 11, "tenant_id": 1}])
@@ -265,7 +300,8 @@ def test_data_sql_uses_boolean_literals_and_compiles_on_all_dialects(monkeypatch
     _MIGRATION.upgrade()
     _MIGRATION.downgrade()
     sql = "\n".join(str(statement) for statement in bind.statements)
-    assert "WHERE is_deleted = FALSE" in sql
+    assert "JOIN sys_user AS account ON account.id = binding.user_id" in sql
+    assert "WHERE binding.is_deleted = FALSE AND account.status = 0 AND account.is_deleted = FALSE" in sql
     assert "is_enterprise_admin = TRUE AND is_deleted = FALSE" in sql
     assert "VALUES (:mid, 1, :tid, :uuid, FALSE, :now, :now)" in sql
     assert "VALUES (:mid, :tid, :uuid, FALSE, :now, :now)" in sql

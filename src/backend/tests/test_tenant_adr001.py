@@ -16,7 +16,7 @@ import uuid
 import pytest
 from fastapi.testclient import TestClient
 from tenant_probe_helpers import make_enterprise, make_user, set_ctx
-from test_tenant_platform_api import _login, _mk_user, _provision
+from test_tenant_platform_api import _login, _mk_user, _provision, _session_keys, _token
 
 from app.core.base_schema import AuthSchema
 from app.core.database import async_db_session
@@ -64,6 +64,32 @@ def _members(client: TestClient, headers: dict, tenant_id: int) -> list[dict]:
     resp = client.get(f"/platform/enterprise/{tenant_id}/members", headers=headers)
     assert resp.json()["success"] is True, resp.text
     return resp.json()["data"]
+
+
+def _grant_menu_permissions(client: TestClient, admin_headers: dict, uid: int, wanted: set[str]) -> None:
+    tree = client.get("/system/menu/tree", headers=admin_headers).json()["data"]
+    found: dict[str, int] = {}
+
+    def walk(nodes):
+        for node in nodes:
+            if node.get("permission") in wanted:
+                found[node["permission"]] = node["id"]
+            walk(node.get("children") or [])
+
+    walk(tree)
+    assert set(found) == wanted
+    menu_ids = list(found.values())
+    role = client.post(
+        "/system/role/create",
+        json={"name": f"权限-{uuid.uuid4().hex[:6]}", "code": f"ROLE_{uuid.uuid4().hex[:8]}", "menu_ids": menu_ids},
+        headers=admin_headers,
+    )
+    assert role.json()["success"] is True, role.text
+    role_id = role.json()["data"]["id"]
+    assert client.put(
+        "/system/role/permission", json={"role_ids": [role_id], "menu_ids": menu_ids, "data_scope": 3}, headers=admin_headers
+    ).json()["success"] is True
+    assert client.put(f"/system/user/update/{uid}", json={"role_ids": [role_id]}, headers=admin_headers).json()["success"] is True
 
 
 @pytest.fixture
@@ -184,9 +210,18 @@ class TestOwnershipTransfer:
         assert any(row["source"] == "tenant" and row["to_member_id"] == new_owner["id"] for row in audit)
 
     def test_platform_transfer_success_and_not_becoming_owner(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
+        from conftest import _mock_redis_store
+
         ent = owner_env["ent"]
+        old_headers = owner_env["owner_headers"]
+        new_owner_old_headers = _login(test_client, owner_env["member"]["username"], "Abc123!x")
+        old_keys = _session_keys(_token(old_headers))
+        new_owner_keys = _session_keys(_token(new_owner_old_headers))
         resp = _transfer_platform(test_client, auth_headers, ent["id"], owner_env["member"]["id"])
         assert resp.status_code < 300, resp.text
+        assert test_client.get("/tenant/members/list", headers=old_headers).status_code == 401
+        assert test_client.get("/tenant/members/list", headers=new_owner_old_headers).status_code == 401
+        assert all(key not in _mock_redis_store for key in old_keys + new_owner_keys)
         # 平台操作人不因此成为 Owner：超管从不在成员列表中
         admin_uid = test_client.get("/system/user/current/info", headers=auth_headers).json()["data"]["id"]
         members = _members(test_client, auth_headers, ent["id"])
@@ -232,14 +267,12 @@ class TestOwnershipTransfer:
             ent = await make_enterprise(seed_db, "并发移交")
             owner_user = await make_user(seed_db, "conc_owner")
             target_a = await make_user(seed_db, "conc_a")
-            target_b = await make_user(seed_db, "conc_b")
             crud = MemberCRUD(AuthSchema(), seed_db)
             m0 = await crud.create({"tenant_id": ent.id, "user_id": owner_user.id, "status": 0})
             ma = await crud.create({"tenant_id": ent.id, "user_id": target_a.id, "status": 0})
-            mb = await crud.create({"tenant_id": ent.id, "user_id": target_b.id, "status": 0})
             await execute_owner_transfer(seed_db, _mock_redis, tenant_id=ent.id, target_member_id=m0.id, operator_user_id=None, source="platform", reason="初始化")
         tenant_id = ent.id
-        target_a_id, target_b_id = ma.id, mb.id
+        target_a_id = ma.id
 
         outcomes: list[str] = []
 
@@ -251,7 +284,8 @@ class TestOwnershipTransfer:
                 except CustomException as exc:
                     outcomes.append(f"conflict:{exc.code}")
 
-        await asyncio.gather(_transfer(target_a_id), _transfer(target_b_id))
+        # SQLite 单写者会令不同目标顺序成功；同目标确定一成功一 409，跨目标乐观锁由真实 MySQL 用例覆盖。
+        await asyncio.gather(_transfer(target_a_id), _transfer(target_a_id))
         assert outcomes.count("success") == 1, outcomes
         assert any(code.startswith("conflict:409") for code in outcomes), outcomes
 
@@ -260,7 +294,7 @@ class TestOwnershipTransfer:
         async with async_db_session() as read_db:
             owners = (await read_db.execute(select(BizTenantOwnerModel).where(BizTenantOwnerModel.tenant_id == tenant_id))).scalars().all()
         assert len(owners) == 1
-        assert owners[0].member_id in (target_a_id, target_b_id)
+        assert owners[0].member_id == target_a_id
         assert owners[0].version == 2
 
 
@@ -420,13 +454,24 @@ class TestReviewFixOwnership:
         # 停用账号开通 → 403
         resp = test_client.post("/platform/enterprise/create", json={"name": "停用账号开通", "admin_user_id": uid}, headers=auth_headers)
         assert resp.status_code == 403
-        # 停用账号绑定 → 403
+        # 停用账号绑定 → 403（平台与租户两端）
         assert test_client.post(f"/platform/enterprise/{owner_env['ent']['id']}/members", json={"user_id": uid}, headers=auth_headers).status_code == 403
+        assert test_client.post("/tenant/members", json={"user_id": uid}, headers=owner_env["owner_headers"]).status_code == 403
+        # 软删账号租户绑定 → 404；停用统一账号的非 Owner 目标移交 → 403
+        deleted_uid, _, _ = _mk_user(test_client, auth_headers)
+        assert test_client.request("DELETE", "/system/user/delete", json=[deleted_uid], headers=auth_headers).json()["success"] is True
+        assert test_client.post("/tenant/members", json={"user_id": deleted_uid}, headers=owner_env["owner_headers"]).status_code == 404
+        target_uid, _, _ = _mk_user(test_client, auth_headers)
+        target = _create_member(test_client, owner_env["owner_headers"], user_id=target_uid)
+        assert test_client.put(f"/system/user/update/{target_uid}", json={"status": 1}, headers=auth_headers).json()["success"] is True
+        assert _transfer_tenant(test_client, owner_env["owner_headers"], target["id"]).status_code == 403
 
     def test_platform_dedicated_permission_cross_tenant(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
         """M-04：非超管专门权限账号可跨租户移交、可读候选、不被自身冻结租户拦截。"""
         ent_a = owner_env["ent"]
         ent_b = _provision(test_client, auth_headers)
+        old_b_headers = _login(test_client, ent_b["admin_username"], "Abc123!x")
+        old_b_keys = _session_keys(_token(old_b_headers))
         uid, username, password = _mk_user(test_client, auth_headers)
         # 角色携带移交菜单权限
         tree = test_client.get("/system/menu/tree", headers=auth_headers).json()["data"]
@@ -453,6 +498,9 @@ class TestReviewFixOwnership:
         assert test_client.post(f"/platform/enterprise/freeze/{ent_a['id']}", headers=auth_headers).json()["success"] is True
 
         x_headers = _login(test_client, username, password)
+        # 专门权限可加载企业页及移交详情，不再被超管门禁阻断
+        assert test_client.get("/platform/enterprise/list", params={"page_no": 1, "page_size": 10}, headers=x_headers).status_code == 200
+        assert test_client.get(f"/platform/enterprise/detail/{ent_b['id']}", headers=x_headers).status_code == 200
         # 可读 B 候选成员（移交专门权限）
         members_b = test_client.get(f"/platform/enterprise/{ent_b['id']}/members", headers=x_headers)
         assert members_b.status_code == 200, members_b.text
@@ -464,6 +512,10 @@ class TestReviewFixOwnership:
         # 平台移交 B（X 属于 A 且 A 冻结，仍应成功）
         resp = _transfer_platform(test_client, x_headers, ent_b["id"], target_b["id"])
         assert resp.status_code < 300, resp.text
+        from conftest import _mock_redis_store
+
+        assert test_client.get("/tenant/members/list", headers={**old_b_headers, "X-Tenant-Id": str(ent_b["id"])}).status_code == 401
+        assert all(key not in _mock_redis_store for key in old_b_keys)
         # X 不因此成为 B 的 Owner/成员
         members_b_after = test_client.get(f"/platform/enterprise/{ent_b['id']}/members", headers=x_headers).json()["data"]
         assert all(m["user_id"] != uid for m in members_b_after)
@@ -489,14 +541,37 @@ class TestReviewFixOwnership:
         assert info["tenant_id"] == owner_env["ent"]["id"]
 
     def test_failed_transfer_writes_audit(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
-        """M-11：失败移交写入 result=failed 的结构化审计。"""
+        """越权/业务失败均审计；A 域操作者不得把 B 的 from_member_id 过滤为 NULL。"""
         ent = owner_env["ent"]
+        current = next(row for row in _members(test_client, auth_headers, ent["id"]) if row["is_owner"])
         other = _provision(test_client, auth_headers)
         other_member = _members(test_client, auth_headers, other["id"])[0]
-        # 平台跨租户移交失败 → 403＋failed 审计
-        assert _transfer_platform(test_client, auth_headers, ent["id"], other_member["id"]).status_code == 403
+        reason = f"跨租户目标-{uuid.uuid4().hex[:6]}"
+        assert _transfer_platform(test_client, auth_headers, ent["id"], other_member["id"], reason).status_code == 403
         audit = test_client.get(f"/platform/enterprise/{ent['id']}/owner-audit", headers=auth_headers).json()["data"]
-        assert any(row["result"] == "failed" and row["to_member_id"] == other_member["id"] for row in audit)
+        row = next(row for row in audit if row["reason"] == reason)
+        assert row["result"] == "failed" and row["from_member_id"] == current["id"]
+
+        # A 域专门权限账号对 B 的当前 Owner 发起冲突移交，审计仍读取 B 原 Owner。
+        uid, username, password = _mk_user(test_client, auth_headers)
+        _grant_menu_permissions(test_client, auth_headers, uid, {"module_platform:enterprise:transfer"})
+        assert test_client.post(f"/platform/enterprise/{ent['id']}/members", json={"user_id": uid}, headers=auth_headers).status_code < 300
+        x_headers = _login(test_client, username, password)
+        x_reason = f"A到B失败-{uuid.uuid4().hex[:6]}"
+        assert _transfer_platform(test_client, x_headers, other["id"], other_member["id"], x_reason).status_code == 409
+        b_audit = test_client.get(f"/platform/enterprise/{other['id']}/owner-audit", headers=auth_headers).json()["data"]
+        x_row = next(row for row in b_audit if row["reason"] == x_reason)
+        assert x_row["result"] == "failed" and x_row["from_member_id"] == other_member["id"]
+
+        # 全 delegable Admin 仍非 Owner，require_owner 失败也进入失败审计。
+        admin = owner_env["member"]
+        assert _grant(test_client, owner_env["owner_headers"], admin["id"], ALL_DELEGABLE).status_code < 300
+        admin_headers = _login(test_client, admin["username"], "Abc123!x")
+        admin_reason = f"Admin越权-{uuid.uuid4().hex[:6]}"
+        assert _transfer_tenant(test_client, admin_headers, current["id"], admin_reason).status_code == 403
+        admin_audit = test_client.get(f"/platform/enterprise/{ent['id']}/owner-audit", headers=auth_headers).json()["data"]
+        admin_row = next(row for row in admin_audit if row["reason"] == admin_reason)
+        assert admin_row["result"] == "failed" and admin_row["from_member_id"] == current["id"]
 
     def test_native_account_disable_delete_owner_protected(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
         """M-12：原生 update(status=1)/batch/delete 对当前 Owner 均拒绝；移交后可停用原 Owner。"""
@@ -508,6 +583,28 @@ class TestReviewFixOwnership:
         new_owner = owner_env["member"]
         assert _transfer_tenant(test_client, owner_env["owner_headers"], new_owner["id"]).status_code < 300
         assert test_client.put(f"/system/user/update/{owner_uid}", json={"status": 1}, headers=auth_headers).status_code < 300
+
+    def test_cross_tenant_native_owner_protection(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
+        """操作者上下文属于 A 时，原生账号写路径仍必须保护 B 的当前 Owner。"""
+        targets = [_provision(test_client, auth_headers) for _ in range(3)]
+        uid, username, password = _mk_user(test_client, auth_headers)
+        _grant_menu_permissions(
+            test_client, auth_headers, uid, {"module_system:user:update", "module_system:user:patch", "module_system:user:delete"}
+        )
+        bound = test_client.post(
+            f"/platform/enterprise/{owner_env['ent']['id']}/members", json={"user_id": uid}, headers=auth_headers
+        )
+        assert bound.status_code < 300, bound.text
+        headers = _login(test_client, username, password)
+        update_uid, batch_uid, delete_uid = (ent["admin_user_id"] for ent in targets)
+        assert test_client.put(f"/system/user/update/{update_uid}", json={"status": 1}, headers=headers).status_code == 403
+        assert test_client.patch("/system/user/status/batch", json={"ids": [batch_uid], "status": 1}, headers=headers).status_code == 403
+        assert test_client.request("DELETE", "/system/user/delete", json=[delete_uid], headers=headers).status_code == 403
+        for ent, target_uid in zip(targets, (update_uid, batch_uid, delete_uid), strict=True):
+            detail = test_client.get(f"/system/user/detail/{target_uid}", headers=auth_headers).json()["data"]
+            assert detail["status"] == 0 and detail["is_deleted"] is False
+            members = _members(test_client, auth_headers, ent["id"])
+            assert any(row["user_id"] == target_uid and row["is_owner"] for row in members)
 
     def test_owner_target_permission_update_rejected(self, test_client: TestClient, auth_headers: dict, owner_env, db) -> None:
         """M-13：Owner 不得作为 PUT /tenant/admins/{id}/permissions 目标。"""
@@ -532,13 +629,17 @@ class TestReviewFixOwnership:
     def test_expire_on_commit_config_safe(self, test_client: TestClient, auth_headers: dict, owner_env, monkeypatch: pytest.MonkeyPatch) -> None:
         """m-05：EXPIRE_ON_COMMIT=True 时停用/建项目不触发隐式刷新。"""
         from app.config.setting import settings
+        from app.core.database import async_db_session
 
         monkeypatch.setattr(settings, "EXPIRE_ON_COMMIT", True)
+        monkeypatch.setitem(async_db_session.kw, "expire_on_commit", True)
         owner_headers = owner_env["owner_headers"]
         resp = test_client.post("/tenant/projects", json={"name": "过期配置项目"}, headers=owner_headers)
         assert resp.status_code < 300, resp.text
         target = _create_member(test_client, owner_headers, account=_account())
         assert test_client.post(f"/tenant/members/{target['id']}/disable", headers=owner_headers).status_code < 300
+        platform_target = _create_member(test_client, owner_headers, account=_account())
+        assert test_client.post(f"/platform/enterprise/members/{platform_target['id']}/disable", headers=auth_headers).status_code < 300
 
 
     async def test_transfer_vs_disable_never_disabled_owner(self, test_client: TestClient) -> None:
@@ -643,4 +744,37 @@ class TestReviewFixProjects:
         other_member = _members(test_client, auth_headers, other["id"])[0]
         resp = test_client.post(f"/tenant/projects/{pa['id']}/members", json={"member_id": other_member["id"], "role_code": "SZ"}, headers=owner_headers)
         assert resp.status_code in (403, 404)
+
+    def test_cross_tenant_appointment_disable_combinations(self, test_client: TestClient, auth_headers: dict, owner_env) -> None:
+        """跨租户 project_id/appointment_id 组合均不可写，双方任命保持在职。"""
+        a_headers = owner_env["owner_headers"]
+        a_project = test_client.post("/tenant/projects", json={"name": "A任命项目"}, headers=a_headers).json()["data"]
+        a_assignment = test_client.post(
+            f"/tenant/projects/{a_project['id']}/members", json={"member_id": owner_env["member"]["id"], "role_code": "SZ"}, headers=a_headers
+        )
+        assert a_assignment.status_code < 300, a_assignment.text
+        a_appointment = a_assignment.json()["data"]["id"]
+
+        ent_b = _provision(test_client, auth_headers)
+        b_headers = _login(test_client, ent_b["admin_username"], "Abc123!x")
+        b_member = _create_member(test_client, b_headers, account=_account())
+        b_project = test_client.post("/tenant/projects", json={"name": "B任命项目"}, headers=b_headers).json()["data"]
+        b_assignment = test_client.post(
+            f"/tenant/projects/{b_project['id']}/members", json={"member_id": b_member["id"], "role_code": "SZ"}, headers=b_headers
+        )
+        assert b_assignment.status_code < 300, b_assignment.text
+        b_appointment = b_assignment.json()["data"]["id"]
+
+        assert test_client.post(
+            f"/tenant/projects/{b_project['id']}/members/{a_appointment}/disable", headers=a_headers
+        ).status_code in (403, 404)
+        assert test_client.post(
+            f"/tenant/projects/{a_project['id']}/members/{b_appointment}/disable", headers=a_headers
+        ).status_code in (403, 404)
+        a_member_headers = _login(test_client, owner_env["member"]["username"], "Abc123!x")
+        b_member_headers = _login(test_client, b_member["username"], "Abc123!x")
+        a_rows = test_client.get(f"/tenant/projects/{a_project['id']}/members", headers=a_member_headers).json()["data"]
+        b_rows = test_client.get(f"/tenant/projects/{b_project['id']}/members", headers=b_member_headers).json()["data"]
+        assert next(row for row in a_rows if row["id"] == a_appointment)["status"] == 0
+        assert next(row for row in b_rows if row["id"] == b_appointment)["status"] == 0
 

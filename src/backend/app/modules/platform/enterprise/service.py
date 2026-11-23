@@ -35,6 +35,11 @@ class EnterpriseService:
         if not self.auth.user.is_superuser:
             raise CustomException(msg="仅平台管理员可操作", code=RET.FORBIDDEN.code)
 
+    def _require_read_permission(self) -> None:
+        if self.auth.user.is_superuser or "module_platform:enterprise:transfer" in self.auth.permissions:
+            return
+        raise CustomException(msg="仅平台管理员或所有权移交专员可读取", code=RET.FORBIDDEN.code)
+
     async def create(self, data: EnterpriseCreateSchema, redis: Redis) -> EnterpriseProvisionOutSchema:
         """开通租户（ADR-001）：同事务完成企业＋首名成员＋唯一 Owner＋审计，失败整体回滚。"""
         self._require_superadmin()
@@ -104,7 +109,7 @@ class EnterpriseService:
         )
 
     async def detail(self, id: int) -> EnterpriseOutSchema:
-        self._require_superadmin()
+        self._require_read_permission()
         enterprise = await EnterpriseCRUD(self.auth, self.db).get_or_404(id=id, msg="企业租户不存在")
         return EnterpriseOutSchema.model_validate(enterprise)
 
@@ -115,7 +120,7 @@ class EnterpriseService:
         search: EnterpriseQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> PageResultSchema[EnterpriseOutSchema]:
-        self._require_superadmin()
+        self._require_read_permission()
         offset = (page_no - 1) * page_size
         return await EnterpriseCRUD(self.auth, self.db).page(
             offset=offset,
@@ -135,7 +140,9 @@ class EnterpriseService:
             if exist and exist.id != id:
                 raise CustomException(msg="统一社会信用代码已存在", code=RET.DATAEXIST.code)
         await crud.update(id=id, data=data.model_dump(exclude_unset=True, exclude_none=True))
-        return await self.detail(id)
+        result = await self.detail(id)
+        await self.db.commit()
+        return result
 
     async def freeze(self, id: int, redis: Redis) -> EnterpriseOutSchema:
         """冻结企业租户（status=0）并清退全部绑定用户会话。幂等：重复冻结仍执行清退。"""

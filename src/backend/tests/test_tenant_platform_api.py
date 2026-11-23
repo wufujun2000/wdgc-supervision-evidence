@@ -263,6 +263,27 @@ class TestBindingRules:
         headers = _login(test_client, username, password)
         ent = _provision(test_client, auth_headers)
 
+        # m-01：合法 admin_account 载荷也必须先被超管门禁拒绝，企业与账号均不得落库。
+        enterprise_name = f"越权合法企业-{uuid.uuid4().hex[:6]}"
+        account_username = f"denied_{uuid.uuid4().hex[:8]}"
+        denied = test_client.post(
+            "/platform/enterprise/create",
+            json={
+                "name": enterprise_name,
+                "admin_account": {"username": account_username, "name": "越权账号", "password": "Abc123!x"},
+            },
+            headers=headers,
+        )
+        assert denied.status_code == 403, denied.text
+        enterprise_page = test_client.get(
+            "/platform/enterprise/list", params={"name": enterprise_name, "page_no": 1, "page_size": 10}, headers=auth_headers
+        ).json()["data"]
+        assert enterprise_page["total"] == 0
+        user_page = test_client.get(
+            "/system/user/list", params={"username": account_username, "page_no": 1, "page_size": 10}, headers=auth_headers
+        ).json()["data"]
+        assert all(row["username"] != account_username for row in user_page["items"])
+
         # ADR-001：开通必须首名 Owner（schema 校验 422），越权账号同样被拦截
         assert test_client.post("/platform/enterprise/create", json={"name": "越权企业"}, headers=headers).status_code == 422
         assert test_client.get("/platform/enterprise/list", headers=headers).status_code == 403
@@ -293,8 +314,17 @@ class TestPlatformDomainAndSysRegression:
 
         ent = _provision(test_client, auth_headers)
         credit_code = f"91{uuid.uuid4().hex[:16].upper()}"
-        resp = test_client.put(f"/platform/enterprise/update/{ent['id']}", json={"credit_code": credit_code}, headers=auth_headers)
+        new_name = f"更新企业-{uuid.uuid4().hex[:6]}"
+        resp = test_client.put(
+            f"/platform/enterprise/update/{ent['id']}", json={"name": new_name, "credit_code": credit_code}, headers=auth_headers
+        )
         assert resp.json()["data"]["credit_code"] == credit_code
+        detail = test_client.get(f"/platform/enterprise/detail/{ent['id']}", headers=auth_headers).json()["data"]
+        assert detail["name"] == new_name and detail["credit_code"] == credit_code
+        page = test_client.get(
+            "/platform/enterprise/list", params={"name": new_name, "page_no": 1, "page_size": 10}, headers=auth_headers
+        ).json()["data"]
+        assert any(row["id"] == ent["id"] and row["name"] == new_name for row in page["items"])
 
         # 唯一约束：重复信用代码拒绝
         other = _provision(test_client, auth_headers)

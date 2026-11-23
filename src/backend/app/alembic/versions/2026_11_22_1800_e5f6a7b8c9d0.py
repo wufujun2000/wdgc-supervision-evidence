@@ -272,11 +272,13 @@ def upgrade() -> None:
     )
     _sync_postgresql_sequence(bind, "biz_tenant_member")
 
-    # 2. 每租户最早有效成员 → 初始 Owner（version=1）；没有有效成员的租户留给平台补设。
+    # 2. 每租户最早绑定与账号双有效成员 → 初始 Owner（version=1）；没有有效候选的租户留给平台补设。
     owner_rows = bind.execute(
         sa.text(
-            "SELECT tenant_id, MIN(id) AS member_id FROM biz_tenant_user"
-            " WHERE is_deleted = FALSE GROUP BY tenant_id"
+            "SELECT binding.tenant_id, MIN(binding.id) AS member_id FROM biz_tenant_user AS binding"
+            " JOIN sys_user AS account ON account.id = binding.user_id"
+            " WHERE binding.is_deleted = FALSE AND account.status = 0 AND account.is_deleted = FALSE"
+            " GROUP BY binding.tenant_id"
         )
     ).mappings().all()
     owner_member_ids = {row["member_id"] for row in owner_rows}

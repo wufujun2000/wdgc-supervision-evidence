@@ -145,10 +145,12 @@ async def test_set_available_protection(monkeypatch: pytest.MonkeyPatch) -> None
     class U2(U):
         async def get_list(self, **kw): return [SimpleNamespace(id=1, is_superuser=False)]
     s2 = _svc(monkeypatch, U2)
-    # M-12：set_available(status=1) 会做 Owner 检查，假 db 需提供 execute（返回空=无 Owner）
-    async def _empty_execute(*a, **k):
-        return SimpleNamespace(all=lambda: [])
-    s2.db = SimpleNamespace(execute=_empty_execute)
+    # 本用例只覆盖原生 set_available 基础分支；跨租户 Owner 与竞态由集成/MySQL 用例验证。
+    async def _owner_guard_noop(user_ids):
+        return None
+
+    monkeypatch.setattr(s2, "_reject_if_current_owner", _owner_guard_noop)
+    monkeypatch.setattr(s2, "_assert_no_owner_after_write", _owner_guard_noop)
     await s2.set_available(BatchSetAvailable(ids=[1], status=1))
 
 
