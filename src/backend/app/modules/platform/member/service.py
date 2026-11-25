@@ -293,6 +293,12 @@ class MemberService:
             return
         raise CustomException(msg="缺少平台成员读取权限", code=RET.FORBIDDEN.code)
 
+    def _require_audit_permission(self) -> None:
+        """所有权审计读取：超管或持有菜单按钮权限 module_platform:enterprise:audit 的平台账号（F-03/E2-04）。"""
+        if self.auth.user.is_superuser or "module_platform:enterprise:audit" in self.auth.permissions:
+            return
+        raise CustomException(msg="缺少平台所有权审计权限", code=RET.FORBIDDEN.code)
+
     async def list_by_tenant(self, tenant_id: int) -> list[MemberOutSchema]:
         self._require_member_read_permission()
         await EnterpriseCRUD(self.auth, self.db).get_or_404(id=tenant_id, msg="企业租户不存在")
@@ -411,5 +417,5 @@ class MemberService:
             raise
 
     async def list_audit(self, tenant_id: int) -> list[PlatOwnerTransferAuditModel]:
-        self._require_superadmin()
+        self._require_audit_permission()
         return await AuditCRUD(self.auth, self.db).get_list(search={"tenant_id": tenant_id}, order_by=[{"id": "desc"}])

@@ -33,8 +33,13 @@ class AuditCRUD(CRUDBase[PlatOwnerTransferAuditModel, dict, dict]):
 
 
 async def get_first_active_member(db: AsyncSession, user_id: int) -> BizTenantMemberModel | None:
-    """登录/认证解析：账号最早的有效成员（status=0 正常）。"""
-    return (
+    """登录/认证解析：账号最早的有效成员（status=0），优先未冻结租户（C1）。
+
+    全部所属租户冻结时回退最早成员，冻结拦截由认证层统一执行。
+    """
+    from app.modules.platform.enterprise.model import EnterpriseModel  # 延迟导入：登录链路不新增导入期依赖
+
+    members = (
         (
             await db.execute(
                 select(BizTenantMemberModel)
@@ -47,5 +52,21 @@ async def get_first_active_member(db: AsyncSession, user_id: int) -> BizTenantMe
             )
         )
         .scalars()
-        .first()
+        .all()
     )
+    if not members:
+        return None
+    active_tenant_ids = set(
+        (
+            await db.execute(
+                select(EnterpriseModel.id).where(
+                    EnterpriseModel.id.in_({m.tenant_id for m in members}),
+                    EnterpriseModel.status == 1,
+                    EnterpriseModel.is_deleted == False,  # noqa: E712
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return next((m for m in members if m.tenant_id in active_tenant_ids), members[0])

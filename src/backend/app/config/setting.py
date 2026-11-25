@@ -143,7 +143,9 @@ class Settings(BaseSettings):
     # ================================================= #
     # ***************** 第三方 OAuth 登录（可选）********* #
     # ================================================= #
-    OAUTH_DEFAULT_ROLE_IDS: list[int] = [2]
+    # 第三方自动注册默认角色：空＝按 code 解析种子 USER 角色（与 create_login_account 同口径，data_scope=1）；
+    # 禁止硬编码 ADMIN。显式配置为运维覆盖，部署检查单须核查与 ADMIN 菜单组合的后果（E2-01/C3）
+    OAUTH_DEFAULT_ROLE_IDS: list[int] = []
     OAUTH_FRONTEND_FALLBACK: str = "http://127.0.0.1:5173/login"
     OAUTH_GITHUB_CLIENT_ID: str = ""
     OAUTH_GITHUB_CLIENT_SECRET: str = ""

@@ -337,8 +337,9 @@ class TestBindingIsolation:
         TenantRequestContext.clear()
         with pytest.raises(CustomException):
             await isolated.get_list()
-        # 平台侧无上下文仍正常
-        assert await platform_crud.count() == 4
+        # 平台侧无上下文仍正常（按显式 tenant_id 计数：全表计数会混入其他用例已提交的成员行）
+        assert await platform_crud.count(tenant_id=ent_a.id) == 3
+        assert await platform_crud.count(tenant_id=ent_b.id) == 1
         assert (await platform_crud.get(id=bind_b1.id)).tenant_id == ent_b.id
         assert isinstance(bind_b1, BizTenantUserModel)
 

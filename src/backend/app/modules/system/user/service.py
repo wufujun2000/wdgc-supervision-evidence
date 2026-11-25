@@ -526,7 +526,15 @@ class UserService:
                     return 0, f"第{row_num}行: 超级管理员不允许修改"
                 if update_support:
                     user_update_data = UserUpdateSchema(**user_data)
-                    await UserCRUD(self.auth, self.db).update(id=exists_user.id, data=user_update_data)
+                    if user_data["status"] == 1:
+                        # C2：导入停用与 update/set_available 同守卫，禁止产生「账号已停用的在任 Owner」；
+                        # 行级 SAVEPOINT 保证写后复核失败时本行更新回滚，不随整批提交
+                        await self._reject_if_current_owner([exists_user.id])
+                        async with self.db.begin_nested():
+                            await UserCRUD(self.auth, self.db).update(id=exists_user.id, data=user_update_data)
+                            await self._assert_no_owner_after_write([exists_user.id])
+                    else:
+                        await UserCRUD(self.auth, self.db).update(id=exists_user.id, data=user_update_data)
                     return 1, None
                 else:
                     return 0, f"第{row_num}行: 用户 {user_data['username']} 已存在"

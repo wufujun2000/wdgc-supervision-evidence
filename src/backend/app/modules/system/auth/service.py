@@ -8,6 +8,7 @@ from typing import Any, NewType
 import ua_parser
 from fastapi import Request
 from redis.asyncio.client import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import EnvironmentEnum, RedisInitKeyConfig
@@ -64,18 +65,31 @@ async def auto_register_login_user(
     avatar: str | None = None,
     fail_msg: str,
 ) -> UserModel:
-    """自动注册第三方登录用户：随机密码 + 默认角色（OAUTH_DEFAULT_ROLE_IDS）。
+    """自动注册第三方登录用户：随机密码 + 默认角色。
 
+    缺省授予种子 USER 角色（与 create_login_account 同口径）；OAUTH_DEFAULT_ROLE_IDS 显式配置时为运维覆盖。
     并发创建触发唯一约束等异常时，回退为按登录名再查一次（登录场景以拿到用户为准）。
     """
     auth = AuthSchema()
+    role_ids = list(settings.OAUTH_DEFAULT_ROLE_IDS)
+    if not role_ids:
+        # C3/E2-01：第三方未认证自动注册不得默认平台 ADMIN，按 code 解析种子 USER（data_scope=1 仅本人）
+        from app.modules.system.role.model import RoleModel  # 延迟导入：登录链路不新增导入期依赖
+
+        default_role = (
+            await db.execute(select(RoleModel).where(RoleModel.code == "USER", RoleModel.is_deleted == False))  # noqa: E712
+        ).scalars().first()
+        if default_role:
+            role_ids = [default_role.id]
+        else:
+            logger.warning("种子角色 USER（普通用户）缺失，第三方自动注册账号 {} 未分配默认角色", username)
     reg = UserCreateSchema(
         username=username,
         password=secrets.token_urlsafe(24),
         name=(display_name or username)[:32],
         mobile=mobile,
         avatar=avatar,
-        role_ids=list(settings.OAUTH_DEFAULT_ROLE_IDS),
+        role_ids=role_ids,
     )
     try:
         await UserService(auth, db).create(data=reg)

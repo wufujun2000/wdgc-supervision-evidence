@@ -244,6 +244,14 @@
             <template #default="{ row }">{{ row.from_member_id ?? "—" }}</template>
           </ElTableColumn>
           <ElTableColumn prop="to_member_id" label="新Owner" width="90" align="center" />
+          <ElTableColumn prop="result" label="结果" width="90" align="center">
+            <template #default="{ row }">
+              <FaStatusTag
+                :type="row.result === 'success' ? 'success' : 'danger'"
+                :label="row.result === 'success' ? '成功' : '失败'"
+              />
+            </template>
+          </ElTableColumn>
           <ElTableColumn prop="reason" label="原因" min-width="180" show-overflow-tooltip />
           <ElTableColumn prop="created_time" label="时间" width="170" />
         </ElTable>
@@ -937,11 +945,18 @@ async function submitTransfer() {
     });
     if (!isCurrentBindingsRequest(requestToken, enterpriseId)) return;
     ElMessage.success("所有权移交成功，双方需重新登录");
-    // 本地更新 Owner 标识（双方会话已清退，无需立即刷新列表）
+    // 本地更新 Owner 标识（双方会话已清退，无需立即刷新列表）；
+    // B-01：移交同事务清除双方 Admin 记录，原 Owner 不自动保留企业管理员
     const oldOwner = bindings.value.find((m) => m.is_owner);
-    if (oldOwner) oldOwner.is_owner = false;
+    if (oldOwner) {
+      oldOwner.is_owner = false;
+      oldOwner.is_admin = false;
+    }
     const newOwner = bindings.value.find((m) => m.id === targetMemberId);
-    if (newOwner) newOwner.is_owner = true;
+    if (newOwner) {
+      newOwner.is_owner = true;
+      newOwner.is_admin = false;
+    }
     transferVisible.value = false;
   } finally {
     if (isCurrentBindingsRequest(requestToken, enterpriseId)) transferSubmitLoading.value = false;

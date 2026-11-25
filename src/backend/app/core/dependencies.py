@@ -55,8 +55,18 @@ async def get_current_user(
     """获取当前用户（X-Tenant-Id 仅作租户选择，成员归属由服务端校验）"""
     # M-04：平台域请求（如专门权限的所有权移交）不被操作者所属租户的冻结状态误拦；
     # 系统/租户域保持 H-02 冻结即失效语义
-    allow_frozen_platform = request is not None and request.url.path.startswith(("/platform/", "/api/v1/platform/"))
-    return await _authenticate(token, db, redis, selected_tenant_id=x_tenant_id, allow_frozen_platform=allow_frozen_platform)
+    path = request.url.path if request is not None else ""
+    allow_frozen_platform = path.startswith(("/platform/", "/api/v1/platform/"))
+    # C1：平台权限账号缺省解析下的公共自查（current/info）不清退会话，保留兜底移交入口；
+    allow_frozen_self_info = path in ("/system/user/current/info", "/api/v1/system/user/current/info")
+    return await _authenticate(
+        token,
+        db,
+        redis,
+        selected_tenant_id=x_tenant_id,
+        allow_frozen_platform=allow_frozen_platform,
+        allow_frozen_self_info=allow_frozen_self_info,
+    )
 
 
 WS_TOKEN_SUBPROTOCOL = "access_token"
@@ -112,6 +122,7 @@ async def _authenticate(
     redis: Redis,
     selected_tenant_id: int | None = None,
     allow_frozen_platform: bool = False,
+    allow_frozen_self_info: bool = False,
 ) -> AuthSchema:
     """核心认证逻辑（HTTP 与 WebSocket 共享）"""
     # 每次认证先清空租户上下文：TestClient 复用线程/后台任务防串号
@@ -238,7 +249,23 @@ async def _authenticate(
             raise CustomException(msg="当前账号不是所选租户的有效成员", code=RET.FORBIDDEN.code)
         tenant_id, member_id = target.tenant_id, target.id
     elif members:
-        tenant_id, member_id = members[0].tenant_id, members[0].id
+        # C1：缺省解析优先未冻结租户的最早有效成员，首租户冻结不误杀其余正常租户；
+        # 全部冻结时回退最早成员，由下方冻结校验统一拦截
+        active_tenant_ids = set(
+            (
+                await db.execute(
+                    select(EnterpriseModel.id).where(
+                        EnterpriseModel.id.in_({m.tenant_id for m in members}),
+                        EnterpriseModel.status == 1,
+                        EnterpriseModel.is_deleted == False,  # noqa: E712
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        chosen = next((m for m in members if m.tenant_id in active_tenant_ids), members[0])
+        tenant_id, member_id = chosen.tenant_id, chosen.id
     elif user_info.get("is_impersonated"):
         # 代管穿透（平台二期 P-PC-03 预留）：超管不做成员，目标租户来自会话快照
         tenant_id = user_info.get("tenant_id")
@@ -252,7 +279,16 @@ async def _authenticate(
             .scalars()
             .first()
         )
-        if (not enterprise or enterprise.status != 1) and not allow_frozen_platform:
+        platform_privileged = user_obj.is_superuser or any(
+            str(p).startswith("module_platform:") for p in user_info.get("permissions", [])
+        )
+        # 自查豁免仅限缺省解析（selected_tenant_id is None）：客户端显式 X-Tenant-Id
+        # 选中冻结租户时，无论是否平台权限账号一律拦截清退（H-02 语义不变）
+        if (
+            (not enterprise or enterprise.status != 1)
+            and not allow_frozen_platform
+            and not (allow_frozen_self_info and selected_tenant_id is None and platform_privileged)
+        ):
             await _purge_session(redis, session_id)
             raise CustomException(msg="企业租户已被冻结", code=RET.UNAUTHORIZED.code)
 
