@@ -184,8 +184,11 @@ python3 scripts/validate_prd_consistency.py
 
 ## 六、协作与贡献
 
-产品、技术、测试和专家评审团队统一遵循：
+> **2026-11-27 双仓协同规则生效（经项目负责人特别授权增补）**：本仓库（`wdgc-supervision-evidence`）仅限技术团队与第三方专家评审团队访问；**产品团队仅在独立协同仓库 `wdgc-supervision-evidence-collab`**。三方后续所有需求（PRD）、原型、多轮评审往返及权威业务口径统一以协同仓库为准，详见根目录 [`AGENTS.md`](AGENTS.md)。
 
+技术、测试和专家评审团队在本代码仓内的工程交付同时遵循：
+
+- [`AGENTS.md`](AGENTS.md)（双仓分工、跨仓协作铁律与本仓库规则边界）
 - [`docs/06-collaboration/team-collaboration-and-delivery-workflow.md`](docs/06-collaboration/team-collaboration-and-delivery-workflow.md)
 
 开发与上线门禁分离：允许当前阶段并行开发，不代表已经具备全量上线条件。业务规则、数据库、API、原型和测试变更应通过 GitHub 留痕，避免口头变更和跨文档漂移。
